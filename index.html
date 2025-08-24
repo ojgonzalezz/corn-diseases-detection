@@ -24,11 +24,11 @@
             font-family: var(--font-family);
             display: flex;
             justify-content: center;
-            align-items: center;
+            align-items: flex-start;
             min-height: 100vh;
             background-color: var(--background-color);
             margin: 0;
-            padding: 1rem;
+            padding: 2rem 1rem;
             box-sizing: border-box;
         }
 
@@ -38,7 +38,7 @@
             border-radius: 16px;
             box-shadow: 0 10px 25px var(--shadow-color);
             text-align: center;
-            max-width: 500px;
+            max-width: 550px;
             width: 100%;
             transition: all 0.3s ease;
         }
@@ -58,23 +58,11 @@
             transition: all 0.3s ease;
             position: relative;
         }
-
-        .upload-area.drag-over {
-            border-color: var(--secondary-color);
-            background-color: #edf2f7;
-        }
-
-        .upload-area p {
-            margin: 0;
-            color: var(--text-color);
-            font-weight: 500;
-        }
-
-        .upload-icon {
-            font-size: 3rem;
-            color: var(--secondary-color);
-            margin-bottom: 1rem;
-        }
+        
+        .upload-area.hidden { display: none; }
+        .upload-area.drag-over { border-color: var(--secondary-color); background-color: #edf2f7; }
+        .upload-area p { margin: 0; color: var(--text-color); font-weight: 500; }
+        .upload-icon { font-size: 3rem; color: var(--secondary-color); margin-bottom: 1rem; }
         
         #image-preview {
             max-width: 100%;
@@ -106,31 +94,14 @@
             text-transform: uppercase;
             letter-spacing: 0.5px;
         }
-
-        .btn-primary {
-            background-color: var(--primary-color);
-        }
-        .btn-primary:hover {
-            background-color: var(--secondary-color);
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px var(--shadow-color);
-        }
-
-        .btn-predict {
-            background-color: var(--accent-color);
-            display: none;
-        }
-        .btn-predict:hover {
-            background-color: #2f855a;
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px var(--shadow-color);
-        }
-        .btn:disabled {
-            background-color: #a0aec0;
-            cursor: not-allowed;
-            transform: none;
-            box-shadow: none;
-        }
+        
+        .btn-primary { background-color: var(--primary-color); }
+        .btn-primary:hover { background-color: var(--secondary-color); transform: translateY(-2px); box-shadow: 0 4px 12px var(--shadow-color); }
+        .btn-predict { background-color: var(--accent-color); display: none; }
+        .btn-predict:hover { background-color: #2f855a; transform: translateY(-2px); box-shadow: 0 4px 12px var(--shadow-color); }
+        .btn-danger { background-color: #e53e3e; }
+        .btn-danger:hover { background-color: #c53030; }
+        .btn:disabled { background-color: #a0aec0; cursor: not-allowed; transform: none; box-shadow: none; }
 
         #spinner {
             border: 4px solid #f3f3f3;
@@ -145,7 +116,7 @@
 
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 
-        #result-card {
+        .result-card {
             margin-top: 2rem;
             padding: 1.5rem;
             border: 1px solid var(--border-color);
@@ -157,88 +128,79 @@
             display: none;
         }
         
-        #result-card.visible {
-            opacity: 1;
-            transform: translateY(0);
-            display: block;
-        }
-        
-        .diagnosis-header {
-            font-size: 1.25rem;
-            font-weight: 500;
-            color: var(--text-color);
-        }
-        
-        .diagnosis-value {
-            font-size: 1.75rem;
-            font-weight: 600;
-            color: var(--primary-color);
-            margin: 0.5rem 0 1rem;
-        }
-        
-        .confidence-bar-container {
-            width: 100%;
-            background-color: var(--border-color);
-            border-radius: 5px;
-            overflow: hidden;
-            margin-bottom: 1rem;
-        }
-        
-        .confidence-bar {
-            height: 10px;
-            background: linear-gradient(90deg, var(--secondary-color), var(--accent-color));
-            width: 0%;
-            transition: width 0.5s ease-in-out;
-            border-radius: 5px;
-        }
+        .result-card.visible { opacity: 1; transform: translateY(0); display: block; }
+        .diagnosis-header { font-size: 1.1rem; font-weight: 500; color: var(--text-color); margin-top: 1rem; }
+        .diagnosis-value { font-size: 1.75rem; font-weight: 600; color: var(--primary-color); margin: 0.5rem 0 1rem; }
+        .confidence-bar-container { width: 100%; background-color: var(--border-color); border-radius: 5px; overflow: hidden; margin-bottom: 1rem; }
+        .confidence-bar { height: 10px; background: linear-gradient(90deg, var(--secondary-color), var(--accent-color)); width: 0%; transition: width 0.5s ease-in-out; border-radius: 5px; }
 
         #probabilities-list {
             list-style: none;
             padding: 0;
-            margin: 0;
+            margin: 0.5rem 0 0;
             color: var(--text-color);
         }
         
         #probabilities-list li {
             padding: 0.5rem 0;
             border-bottom: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
         }
+        
+        #probabilities-list li:last-child { border-bottom: none; }
 
-        #probabilities-list li:last-child {
-            border-bottom: none;
+        #log-container {
+            margin-top: 2rem;
+            max-height: 300px;
+            overflow-y: auto;
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 0 1rem;
+            display: none;
         }
+        
+        .log-entry { padding: 1rem 0; border-bottom: 1px solid var(--border-color); text-align: left; }
+        .log-entry:last-child { border-bottom: none; }
+        .log-entry p { margin: 0.2rem 0; }
+        .log-header { display: flex; justify-content: space-between; align-items: center; font-size: 0.9rem; color: #718096; }
+        .log-diagnosis { font-size: 1.2rem; font-weight: 600; color: var(--primary-color); }
 
-        .error-message {
-            color: #e53e3e;
-            background-color: #fff5f5;
-            border: 1px solid #fc8181;
-            padding: 1rem;
-            border-radius: 8px;
-        }
+        .error-message { color: #e53e3e; background-color: #fff5f5; border: 1px solid #fc8181; padding: 1rem; border-radius: 8px; }
 
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>🌽 Detector de Enfermedades en Maíz</h1>
-        
-        <label for="file-upload">
-            <div id="upload-area" class="upload-area">
-                <div id="upload-content">
-                    <div class="upload-icon">📤</div>
-                    <p>Arrastra una imagen aquí o haz clic para seleccionar</p>
+        <div id="main-content">
+            <h1>🌽 Detector de Enfermedades en Maíz</h1>
+            
+            <label for="file-upload">
+                <div id="upload-area" class="upload-area">
+                    <div id="upload-content">
+                        <div class="upload-icon">📤</div>
+                        <p>Arrastra una imagen aquí o haz clic para seleccionar</p>
+                    </div>
+                    <img id="image-preview" src="#" alt="Vista previa de la imagen"/>
                 </div>
-                <img id="image-preview" src="#" alt="Vista previa de la imagen"/>
+            </label>
+            <input type="file" id="file-upload" accept="image/*">
+            
+            <div class="button-group">
+                <button id="predict-btn" class="btn btn-predict">Predecir</button>
             </div>
-        </label>
-        <input type="file" id="file-upload" accept="image/*">
-        
-        <div class="button-group">
-            <button id="predict-btn" class="btn btn-predict">Predecir</button>
+            
+            <div id="spinner"></div>
+            <div id="result-card" class="result-card"></div>
         </div>
         
-        <div id="spinner"></div>
-        <div id="result-card"></div>
+        <div id="final-actions" class="button-group" style="display: none;">
+            <button id="reset-btn" class="btn btn-primary">Realizar otra predicción</button>
+            <button id="exit-btn" class="btn btn-danger">Salir</button>
+        </div>
+
+        <h2 id="log-title" style="display: none; margin-top: 2rem; color: var(--primary-color);">Historial de Predicciones</h2>
+        <div id="log-container"></div>
     </div>
 
     <script>
@@ -249,11 +211,17 @@
         const spinner = document.getElementById('spinner');
         const uploadArea = document.getElementById('upload-area');
         const uploadContent = document.getElementById('upload-content');
+        const finalActions = document.getElementById('final-actions');
+        const resetBtn = document.getElementById('reset-btn');
+        const exitBtn = document.getElementById('exit-btn');
+        const logContainer = document.getElementById('log-container');
+        const logTitle = document.getElementById('log-title');
+        const mainContent = document.getElementById('main-content');
         const apiEndpoint = 'https://felipepflorezo-corn-disease-api.hf.space/predict';
 
         let file = null;
+        let predictionCount = 0;
 
-        // Función para manejar el archivo seleccionado (por clic o drag-and-drop)
         function handleFile(selectedFile) {
             file = selectedFile;
             if (file) {
@@ -269,28 +237,11 @@
             }
         }
         
-        // Manejador para la selección de archivo por clic
-        imageUpload.addEventListener('change', (event) => {
-            handleFile(event.target.files[0]);
-        });
+        imageUpload.addEventListener('change', (event) => handleFile(event.target.files[0]));
+        uploadArea.addEventListener('dragover', (event) => { event.preventDefault(); uploadArea.classList.add('drag-over'); });
+        uploadArea.addEventListener('dragleave', () => uploadArea.classList.remove('drag-over'));
+        uploadArea.addEventListener('drop', (event) => { event.preventDefault(); uploadArea.classList.remove('drag-over'); handleFile(event.dataTransfer.files[0]); });
 
-        // Manejadores para Drag and Drop
-        uploadArea.addEventListener('dragover', (event) => {
-            event.preventDefault();
-            uploadArea.classList.add('drag-over');
-        });
-
-        uploadArea.addEventListener('dragleave', () => {
-            uploadArea.classList.remove('drag-over');
-        });
-
-        uploadArea.addEventListener('drop', (event) => {
-            event.preventDefault();
-            uploadArea.classList.remove('drag-over');
-            handleFile(event.dataTransfer.files[0]);
-        });
-
-        // Manejador para el botón de predecir
         predictBtn.addEventListener('click', async () => {
             if (!file) return;
 
@@ -299,7 +250,8 @@
 
             spinner.style.display = 'block';
             resultCard.classList.remove('visible');
-            predictBtn.disabled = true;
+            predictBtn.style.display = 'none';
+            uploadArea.style.pointerEvents = 'none';
 
             try {
                 const response = await fetch(apiEndpoint, {
@@ -307,29 +259,33 @@
                     body: formData,
                 });
 
-                if (!response.ok) {
-                    throw new Error('Error en la respuesta del servidor.');
-                }
+                if (!response.ok) throw new Error('Error en la respuesta del servidor.');
 
                 const data = await response.json();
                 displayResults(data);
+                logPrediction(data);
+                
+                uploadArea.classList.add('hidden');
+                finalActions.style.display = 'flex';
 
             } catch (error) {
                 resultCard.innerHTML = `<div class="error-message"><strong>Error:</strong> ${error.message}</div>`;
                 resultCard.classList.add('visible');
+                predictBtn.style.display = 'inline-block';
+                uploadArea.style.pointerEvents = 'auto';
             } finally {
                 spinner.style.display = 'none';
-                predictBtn.disabled = false;
             }
         });
-
-        // Función para mostrar los resultados de forma elegante
+        
+        // --- FUNCIÓN MODIFICADA ---
         function displayResults(data) {
             const confidenceValue = parseFloat(data.confidence.replace('%', ''));
 
             let probabilitiesHTML = '';
             for (const [className, prob] of Object.entries(data.all_probabilities)) {
-                probabilitiesHTML += `<li>${className.replace(/_/g, ' ')}: <strong>${prob}</strong></li>`;
+                // Añade un span para poder alinear la probabilidad a la derecha
+                probabilitiesHTML += `<li><span>${className.replace(/_/g, ' ')}:</span> <strong>${prob}</strong></li>`;
             }
 
             const resultHTML = `
@@ -346,6 +302,49 @@
             resultCard.innerHTML = resultHTML;
             resultCard.classList.add('visible');
         }
+
+        function logPrediction(data) {
+            predictionCount++;
+            logTitle.style.display = 'block';
+            logContainer.style.display = 'block';
+            
+            const logEntry = document.createElement('div');
+            logEntry.classList.add('log-entry');
+            
+            const timestamp = new Date().toLocaleTimeString('es-CO');
+
+            logEntry.innerHTML = `
+                <div class="log-header">
+                    <span><strong>#${predictionCount}</strong></span>
+                    <span>${timestamp}</span>
+                </div>
+                <p class="log-diagnosis">${data.predicted_class.replace(/_/g, ' ')}</p>
+                <p>Confianza: <strong>${data.confidence}</strong></p>
+            `;
+            logContainer.prepend(logEntry);
+        }
+
+        resetBtn.addEventListener('click', () => {
+            file = null;
+            uploadArea.classList.remove('hidden');
+            uploadArea.style.pointerEvents = 'auto';
+            uploadContent.style.display = 'block';
+            imagePreview.style.display = 'none';
+            imageUpload.value = '';
+            resultCard.classList.remove('visible');
+            finalActions.style.display = 'none';
+        });
+
+        exitBtn.addEventListener('click', () => {
+            mainContent.innerHTML = `
+                <h1>¡Gracias por usar el detector!</h1>
+                <p>Ha finalizado la sesión. Puede cerrar esta pestaña.</p>
+            `;
+            finalActions.style.display = 'none';
+            logContainer.style.display = 'none';
+            logTitle.style.display = 'none';
+        });
+
     </script>
 </body>
 </html>
