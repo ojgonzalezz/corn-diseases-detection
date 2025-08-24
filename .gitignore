@@ -1,0 +1,13 @@
+# Ignorar datasets crudos y procesados
+data/
+data_2/
+dataset_split_balanced/
+eda/
+eda_balanced/
+
+# Ignorar archivos generados por Python
+src/__pycache__/
+__pycache__/
+
+# Ignorar entorno virtual (si usas uno, ej: venv)
+venv/
