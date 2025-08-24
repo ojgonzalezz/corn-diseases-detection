@@ -1,6 +1,8 @@
-# 🌽 Detector de Enfermedades en Maíz con IA: Un Proyecto Completo
+# 🌽 Solución de visión por computadora para la detección de enfermedades en maíz
 
-> Un proyecto de Visión por Computadora de extremo a extremo que abarca desde el análisis de datos hasta el despliegue de un modelo de Deep Learning optimizado en una aplicación web interactiva.
+> Un proyecto de visión por computadora para la clasificación automática de enfermedades comunes en hojas de maíz, diseñado para ofrecer un diagnóstico rápido y preciso a los agricultores.
+
+Este repositorio contiene todo el código, análisis y datos asociados al desarrollo de un modelo de Deep Learning capaz de identificar si una planta de maíz está sana o si padece una de tres enfermedades comunes: Roya Común, Tizón Foliar o Mancha Gris.
 
 [![Licencia: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Python: 3.9+](https://img.shields.io/badge/Python-3.9+-blue.svg)](https://www.python.org/downloads/)
@@ -49,6 +51,27 @@ Este proyecto resuelve el problema mediante una **solución de Inteligencia Arti
 | **Procesamiento de Datos** | Pandas, NumPy, Matplotlib, Seaborn, Pillow                                                                                                                                         |
 | **Optimización y Backend** | **ONNX** (con `tf2onnx` y `onnxruntime`), **FastAPI**, Uvicorn, Requests                                                                                                                |
 | **Despliegue y MLOps** | Git, **GitHub** (Código Fuente y Pages), **Hugging Face** (Hub para el modelo, Spaces para la API), **Docker** |
+
+---
+
+## 📊 Dataset utilizado
+
+El modelo fue entrenado utilizando un conjunto de datos consolidado a partir de dos fuentes públicas para asegurar un volumen y una diversidad adecuados.
+
+1.  **Fuente principal (Kaggle):** [Corn or Maize Leaf Disease Dataset](https://www.kaggle.com/datasets/smaranjitghose/corn-or-maize-leaf-disease-dataset)
+2.  **Fuente de aumento (Roboflow):** [Corn Diseases Dataset](https://universe.roboflow.com/corn-disease-7/corn-diseases-oxojk)
+3. **Dataset aumentado:** https://drive.google.com/drive/folders/16dK4pekmruoguRkIFG9lgdztTWkzBbUo?usp=sharing 
+
+Inicialmente, el dataset de Kaggle presentaba un desbalance de clases. Para mitigarlo, se incorporaron imágenes de la fuente de Roboflow, específicamente en la clase con menor representación (*Gray Leaf Spot*), resultando en un conjunto de datos final y balanceado, ideal para el entrenamiento de un modelo robusto.
+
+---
+
+### Distribución inicial de clases
+Inicialmente teniamos: 
+  * **Roya Común (Common Rust):** 1,306 imágenes (27.3%)
+  * **Mancha Gris (Gray Leaf Spot):** 1,171 imágenes (24.5%)
+  * **Sana (Healthy):** 1,162 imágenes (24.3%)
+  * **Tizón (Blight):** 1,146 imágenes (23.9%)
 
 ---
 
