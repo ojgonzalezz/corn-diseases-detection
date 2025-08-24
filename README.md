@@ -13,9 +13,7 @@
 
 Prueba el modelo en tiempo real. Sube o arrastra una imagen de una hoja de maíz y obtén un diagnóstico instantáneo con un historial de tus predicciones.
 
-**[➡️ Acceder a la Aplicación Web Desplegada](https://felipepflorezo.github.io/corn-diseases-detection/)** *(Nota: Reemplaza con la URL final de tu GitHub Pages)*
-
-![Demostración de la aplicación web](https://i.imgur.com/225956.png) 
+**[➡️ Acceder a la Aplicación Web Desplegada](https://felipepflorezo.github.io/corn-diseases-detection/)**
 
 ---
 
@@ -118,3 +116,61 @@ El modelo fue entrenado utilizando datos de dos fuentes públicas, posteriorment
 ---
 
 ## 📁 Estructura del Repositorio
+
+```
+.
+├── src/                      # Contiene todo el código fuente de Python
+│   ├── api.py                # Lógica del backend con FastAPI
+│   ├── model.py              # Arquitectura del modelo VGG16
+│   ├── train.py              # Script para el entrenamiento inicial
+│   ├── fine_tune.py          # Script para el ajuste fino
+│   ├── evaluate.py           # Script para evaluar los modelos
+│   ├── data_pipeline.py      # Generadores de datos con aumento
+│   └── convert_to_onnx.py    # Script para optimizar el modelo
+├── preprocessing/            # Scripts para la preparación inicial de datos
+│   └── preprocess.py         # Balanceo y división del dataset
+├── models/                   # (Local) Modelos generados - Ignorado por .gitignore
+├── data/                     # (Local) Datasets - Ignorado por .gitignore
+├── index.html                # Interfaz de usuario (Frontend)
+├── requirements.txt          # Dependencias de Python
+└── README.md                 # Este archivo
+```
+
+-----
+
+## 🚀 Cómo Empezar Localmente
+
+1.  **Clona el repositorio:**
+    ```sh
+    git clone https://github.com/ojgonzalezz/corn-diseases-detection.git
+    ```
+2.  **Navega al directorio:**
+    ```sh
+    cd corn-diseases-detection
+    ```
+3.  **Crea un entorno virtual e instala las dependencias:**
+    ```sh
+    python -m venv venv
+    source venv/bin/activate  # En Windows: venv\Scripts\activate
+    pip install -r requirements.txt
+    ```
+4.  **Replicar el Proceso:** Para generar los resultados, ejecuta los scripts de la carpeta `src/` en orden: `train.py`, `fine_tune.py`, y `evaluate.py`.
+
+-----
+
+## 🤝 Contribuciones
+
+Este repositorio es público para consulta. Las contribuciones al código son gestionadas de manera controlada para garantizar la integridad del proyecto.
+
+  * El trabajo se organiza en **ramas individuales** por colaborador.
+  * Todos los cambios deben ser integrados a la rama principal a través de **Pull Requests (PRs)**.
+  * Cada PR debe ser **revisado y aprobado** por al menos otro miembro del equipo.
+
+-----
+
+## 🧑‍💻 Equipo de Trabajo
+
+  * **Oscar Gonzalez:** Recolección y gestión de datos.
+  * **Luis Macea:** Desarrollo del prototipo y gestión del repositorio GitHub.
+  * **Felipe Florez:** Exploración y descripción de datos, gestión del repositorio DVC.
+  * **Nicolas Castillo:** Exploración y descripción de datos, gestión del repositorio DVC.
