@@ -22,6 +22,7 @@ El modelo fue entrenado utilizando un conjunto de datos consolidado a partir de 
 
 1.  **Fuente principal (Kaggle):** [Corn or Maize Leaf Disease Dataset](https://www.kaggle.com/datasets/smaranjitghose/corn-or-maize-leaf-disease-dataset)
 2.  **Fuente de aumento (Roboflow):** [Corn Diseases Dataset](https://universe.roboflow.com/corn-disease-7/corn-diseases-oxojk)
+3. **Dataset aumentado:** https://drive.google.com/drive/folders/16dK4pekmruoguRkIFG9lgdztTWkzBbUo?usp=sharing 
 
 Inicialmente, el dataset de Kaggle presentaba un desbalance de clases. Para mitigarlo, se incorporaron imágenes de la fuente de Roboflow, específicamente en la clase con menor representación (*Gray Leaf Spot*), resultando en un conjunto de datos final y balanceado, ideal para el entrenamiento de un modelo robusto.
 
