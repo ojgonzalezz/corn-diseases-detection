@@ -1,87 +1,120 @@
-# Solución de visión por computadora para la detección de enfermedades en maíz
+# 🌽 Detector de Enfermedades en Maíz con IA: Un Proyecto Completo
 
-> Un proyecto de visión por computadora para la clasificación automática de enfermedades comunes en hojas de maíz, diseñado para ofrecer un diagnóstico rápido y preciso a los agricultores.
+> Un proyecto de Visión por Computadora de extremo a extremo que abarca desde el análisis de datos hasta el despliegue de un modelo de Deep Learning optimizado en una aplicación web interactiva.
 
-Este repositorio contiene todo el código, análisis y datos asociados al desarrollo de un modelo de Deep Learning capaz de identificar si una planta de maíz está sana o si padece una de tres enfermedades comunes: Roya Común, Tizón Foliar o Mancha Gris.
+[![Licencia: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Python: 3.9+](https://img.shields.io/badge/Python-3.9+-blue.svg)](https://www.python.org/downloads/)
+[![TensorFlow: 2.x](https://img.shields.io/badge/TensorFlow-Keras-FF6F00?logo=tensorflow)](https://www.tensorflow.org/)
+[![FastAPI: Backend](https://img.shields.io/badge/Backend-FastAPI-009688?logo=fastapi)](https://fastapi.tiangolo.com/)
 
-## 📜 Descripción del proyecto
+---
 
-### El problema
+## 🚀 Demo en Vivo
 
+Prueba el modelo en tiempo real. Sube o arrastra una imagen de una hoja de maíz y obtén un diagnóstico instantáneo con un historial de tus predicciones.
+
+**[➡️ Acceder a la Aplicación Web Desplegada](https://felipepflorezo.github.io/corn-diseases-detection/)** *(Nota: Reemplaza con la URL final de tu GitHub Pages)*
+
+![Demostración de la aplicación web](https://i.imgur.com/225956.png) 
+
+---
+
+### Tabla de Contenidos
+1. [Descripción del Proyecto](#-descripción-del-proyecto)
+2. [Stack Tecnológico](#-stack-tecnológico)
+3. [Metodología y Arquitectura del Modelo](#-metodología-y-arquitectura-del-modelo)
+4. [Resultados Finales](#-resultados-finales)
+5. [Arquitectura de Despliegue](#-arquitectura-de-despliegue)
+6. [Dataset Utilizado](#-dataset-utilizado)
+7. [Estructura del Repositorio](#-estructura-del-repositorio)
+8. [Cómo Empezar Localmente](#-cómo-empezar-localmente)
+9. [Contribuciones](#-contribuciones)
+10. [Equipo de Trabajo](#-equipo-de-trabajo)
+
+---
+
+## 📜 Descripción del Proyecto
+
+### El Problema
 El maíz es un pilar de la seguridad alimentaria global, pero sus cultivos enfrentan amenazas constantes por enfermedades que reducen drásticamente el rendimiento. El método tradicional de diagnóstico es la inspección visual, un proceso lento, subjetivo y que requiere un alto nivel de experticia, lo que impide tomar acciones rápidas y efectivas para frenar la propagación.
 
-### La solución
+### La Solución
+Este proyecto resuelve el problema mediante una **solución de Inteligencia Artificial** que automatiza el diagnóstico. Se desarrolló un modelo de Deep Learning que analiza imágenes de hojas de maíz para identificar con alta precisión si una planta está sana o si padece una de tres enfermedades comunes: **Roya Común (Common Rust)**, **Tizón Foliar (Blight)** o **Mancha Gris (Gray Leaf Spot)**. El objetivo es empoderar a los agricultores con una herramienta de diagnóstico instantánea, objetiva y accesible.
 
-Este proyecto desarrolla una solución basada en **Inteligencia Artificial** que automatiza el diagnóstico. Mediante un modelo de visión por computadora, la herramienta analiza una imagen de una hoja de maíz y determina con alta precisión si está sana o clasifica la enfermedad específica que la afecta.
+---
 
-El objetivo es empoderar a los agricultores con un diagnóstico **instantáneo, objetivo y accesible**, permitiendo una gestión proactiva de la salud del cultivo para minimizar pérdidas y optimizar el uso de recursos.
+## 🛠️ Stack Tecnológico
 
-## 📊 Dataset utilizado
+| Área                     | Tecnologías Utilizadas                                                                                                                                                             |
+| ------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Análisis y Modelado** | Python, TensorFlow (Keras), Scikit-learn, Jupyter Notebooks                                                                                                                        |
+| **Procesamiento de Datos** | Pandas, NumPy, Matplotlib, Seaborn, Pillow                                                                                                                                         |
+| **Optimización y Backend** | **ONNX** (con `tf2onnx` y `onnxruntime`), **FastAPI**, Uvicorn, Requests                                                                                                                |
+| **Despliegue y MLOps** | Git, **GitHub** (Código Fuente y Pages), **Hugging Face** (Hub para el modelo, Spaces para la API), **Docker** |
 
-El modelo fue entrenado utilizando un conjunto de datos consolidado a partir de dos fuentes públicas para asegurar un volumen y una diversidad adecuados.
+---
 
-1.  **Fuente principal (Kaggle):** [Corn or Maize Leaf Disease Dataset](https://www.kaggle.com/datasets/smaranjitghose/corn-or-maize-leaf-disease-dataset)
-2.  **Fuente de aumento (Roboflow):** [Corn Diseases Dataset](https://universe.roboflow.com/corn-disease-7/corn-diseases-oxojk)
-3. **Dataset aumentado:** https://drive.google.com/drive/folders/16dK4pekmruoguRkIFG9lgdztTWkzBbUo?usp=sharing 
+## ⚙️ Metodología y Arquitectura del Modelo
 
-Inicialmente, el dataset de Kaggle presentaba un desbalance de clases. Para mitigarlo, se incorporaron imágenes de la fuente de Roboflow, específicamente en la clase con menor representación (*Gray Leaf Spot*), resultando en un conjunto de datos final y balanceado, ideal para el entrenamiento de un modelo robusto.
+El proyecto siguió un flujo de trabajo iterativo y completo de Machine Learning:
 
-### Distribución final de clases
+1.  **Análisis Exploratorio de Datos (EDA):** Se analizaron los datasets, revelando un **desbalance de clases** significativo y una alta similitud visual entre las lesiones de *Blight* y *Gray Leaf Spot*, anticipando un desafío de clasificación.
 
-  * **Roya Común (Common Rust):** 1,306 imágenes (27.3%)
-  * **Mancha Gris (Gray Leaf Spot):** 1,171 imágenes (24.5%)
-  * **Sana (Healthy):** 1,162 imágenes (24.3%)
-  * **Tizón (Blight):** 1,146 imágenes (23.9%)
+2.  **Preprocesamiento y Balanceo:** Se aplicó **submuestreo (undersampling)** para crear un dataset perfectamente balanceado de 4,580 imágenes (1,145 por clase). Posteriormente, se dividió de forma estratificada en conjuntos de entrenamiento (70%), validación (15%) y prueba (15%). Se construyó un pipeline de datos para aplicar **aumento de datos en tiempo real** (rotaciones, zoom, etc.) al conjunto de entrenamiento.
 
-## ⚙️ Metodología
+3.  **Modelado y Entrenamiento (Iteración 1):**
+    * Se implementó una arquitectura de **Transfer Learning** utilizando **VGG16** pre-entrenado en ImageNet como base.
+    * Se "congeló" la base y se entrenaron capas de clasificación personalizadas, alcanzando una precisión inicial de **91.37%**.
 
-El desarrollo del proyecto siguió los siguientes pasos clave:
+4.  **Optimización (Iteración 2 - Ajuste Fino):**
+    * Para mejorar el rendimiento, se aplicó **Ajuste Fino (Fine-Tuning)**. Se "descongelaron" las últimas 4 capas de VGG16 y se re-entrenó el modelo con una tasa de aprendizaje muy baja (`1e-5`).
+    * Este proceso permitió que el modelo ajustara sus detectores de características a las sutilezas de las enfermedades del maíz.
 
-1.  **Análisis Exploratorio de Datos (EDA):** Se realizó un análisis exhaustivo de las imágenes para entender sus características. Se validó la integridad de los datos, se cuantificó el desbalance de clases y se analizaron las propiedades visuales (dimensiones y perfiles de color), confirmando que el color es un rasgo altamente discriminatorio.
-2.  **Balanceo de clases:** Se aplicó una estrategia de aumento de datos, incorporando imágenes externas para balancear la distribución de clases y evitar sesgos en el modelo.
-3.  **Preprocesamiento de imágenes:** Se definieron y aplicaron transformaciones necesarias, como el redimensionamiento a un tamaño estándar (ej. 224x224 px) y la normalización de los valores de los píxeles.
-4.  **Entrenamiento del modelo:** Se desarrolló y entrenó un modelo de clasificación de imágenes para distinguir entre las cuatro categorías.
-5.  **Prototipo:** Se diseñó una maqueta funcional que permite a un usuario cargar una imagen y recibir la predicción del modelo con las probabilidades asociadas a cada clase.
+5.  **Preparación para Despliegue (Conversión a ONNX):**
+    * Para asegurar un despliegue eficiente y evitar problemas de memoria, el modelo final `.keras` fue convertido al formato **ONNX**. Esto redujo drásticamente el consumo de RAM y aceleró las predicciones en el servidor.
 
-## 🚀 Prototipo
+---
 
-El prototipo es una interfaz simple donde el usuario puede:
+## 📈 Resultados Finales
 
-1.  Cargar una imagen de una hoja de maíz desde su dispositivo.
-2.  Hacer clic en el botón "Predecir".
-3.  Recibir como resultado la clasificación (ej. "Roya Común") junto con el porcentaje de confianza de la predicción para cada una de las cuatro clases.
+La evaluación final se realizó sobre el conjunto de prueba utilizando el modelo optimizado tras el ajuste fino, confirmando la efectividad de la estrategia.
 
-## 🛠️ Cómo empezar
+* **Exactitud Final (Accuracy):** **92.92%**
+* **Pérdida (Loss):** **0.1989**
 
-Para clonar y ejecutar este proyecto localmente, sigue estos pasos:
+### Matriz de Confusión Final
+La matriz confirma la alta efectividad del modelo. La diagonal principal (150, 164, 160, 169) muestra el número de predicciones correctas. Se observa que la confusión principal entre `Gray_Leaf_Spot` y `Blight` se redujo significativamente después del ajuste fino.
 
-1.  **Clona el repositorio:**
-    ```sh
-    git clone https://github.com/ojgonzalezz/corn-diseases-detection.git
-    ```
-2.  **Navega al directorio del proyecto:**
-    ```sh
-    cd corn-diseases-detection
-    ```
-3.  **Instala las dependencias (se recomienda usar un entorno virtual):**
-    ```sh
-    pip install -r requirements.txt
-    ```
-4.  **Explora los notebooks y scripts** en las carpetas correspondientes para replicar los análisis y el entrenamiento.
+![Matriz de Confusión del Modelo Final](Figure_3.png)
 
-## 🤝 Contribuciones
+### Reporte de Clasificación Final
 
-Este repositorio es público para consulta. Las contribuciones al código son gestionadas de manera controlada para garantizar la integridad del proyecto. Solo tienen acceso losss colaboradores del proyeeeeecto.
+| Clase          | Precision | Recall | F1-Score |
+| :------------- | :-------: | :----: | :------: |
+| Blight         |   0.90    |  0.87  |   0.88   |
+| Common_Rust    |   0.98    |  0.95  |   0.96   |
+| Gray_Leaf_Spot |   0.85    |  0.92  |   0.88   |
+| Healthy        |   0.99    |  0.98  |   0.99   |
 
-  * El trabajo se organiza en **ramas individuales** por colaborador.
-  * Todos los cambios deben ser integrados a la rama principal (`main` o `develop`) a través de **Pull Requests (PRs)**.
-  * Cada PR debe ser **revisado y aprobado** por al menos un otro miembro del equipo antes de ser fusionado.
+---
 
-## 🧑‍💻 Equipo de trabajo
+## ☁️ Arquitectura de Despliegue
 
-  * **Oscar Gonzalez:** Recolección y gestión de datos.
-  * **Luis Macea:** Desarrollo del prototipo y gestión del repositorio GitHub.
-  * **Felipe Florez:** Exploración y descripción de datos, gestión del repositorio DVC.
-  * **Nicolas Castillo:** Exploración y descripción de datos, gestión del repositorio DVC.
+La aplicación utiliza una arquitectura moderna y desacoplada:
 
-*La redacción de la problemática y la pregunta de negocio fue un esfuerzo conjunto de todo el equipo.*
+* **Modelo (`.onnx`):** El artefacto entrenado se aloja en **Hugging Face Hub**.
+* **Backend (API):** Una API construida con **FastAPI** se ejecuta dentro de un contenedor **Docker** en **Hugging Face Spaces**. Al iniciarse, la API descarga el modelo desde el Hub y expone un endpoint `/predict`.
+* **Frontend:** La interfaz de usuario es una página estática (`index.html` con JavaScript) alojada en **GitHub Pages**, que se comunica con la API para ofrecer una experiencia interactiva.
+
+---
+
+## 📊 Dataset Utilizado
+
+El modelo fue entrenado utilizando datos de dos fuentes públicas, posteriormente balanceados y procesados.
+1.  **Fuente Principal (Kaggle):** [Corn or Maize Leaf Disease Dataset](https://www.kaggle.com/datasets/smaranjitghose/corn-or-maize-leaf-disease-dataset)
+2.  **Fuente de Aumento (Roboflow):** [Corn Diseases Dataset](https://universe.roboflow.com/corn-disease-7/corn-diseases-oxojk)
+3.  **Dataset Aumentado:** Un tercer dataset fue considerado y se puede encontrar en este [Google Drive](https://drive.google.com/drive/folders/16dK4pekmruoguRkIFG9lgdztTWkzBbUo?usp=sharing).
+
+---
+
+## 📁 Estructura del Repositorio
