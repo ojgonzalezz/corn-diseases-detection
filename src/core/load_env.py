@@ -46,5 +46,6 @@ class EnvLoader:
         Devuelve todas las variables definidas en el archivo .env
         en forma de diccionario.
         """
+        print(self._env_vars)
         return {k: v  for k, v in self._env_vars.items()}
 
