@@ -1,10 +1,57 @@
-fastapi
-uvicorn[standard]
-python-multipart
-tensorflow-cpu
-numpy
-Pillow
-requests
-scikit-learn
-seaborn
-matplotlib
+# ===============================
+# Core de Deep Learning con GPU
+# ===============================
+# PyTorch (compatible con CUDA 12.4)
+#torch==2.6.0+cu124
+#torchvision==0.21.0+cu124
+#torchaudio==2.6.0+cu124
+#--extra-index-url https://download.pytorch.org/whl/cu124
+
+# ===============================
+# Procesamiento y aumento de datos
+# ===============================
+albumentations>=1.3.1        # Transformaciones avanzadas de data augmentation
+imgaug>=0.4.0                # Aumento con ruido, blur, escalado, recortes
+Augmentor>=0.2.10            # Flujo de augmentación flexible
+Pillow>=10.0.0               # Manipulación básica de imágenes
+opencv-python>=4.8.0.74      # Procesamiento de imágenes (OpenCV)
+scikit-image>=0.21.0         # Procesamiento científico de imágenes
+
+# ===============================
+# Modelos preentrenados y NLP
+# ===============================
+transformers>=4.33.0         # Modelos preentrenados (BERT, ViT, CLIP, etc.)
+datasets>=2.14.0             # Conjuntos de datos de Hugging Face
+tokenizers>=0.13.3           # Tokenización rápida
+huggingface-hub>=0.20.0      # Conexión con Hugging Face Hub
+accelerate>=0.24.0           # Manejo de entrenamiento distribuido/FP16
+peft>=0.6.0                  # Fine-tuning eficiente de modelos grandes
+evaluate>=0.4.0              # Métricas compatibles con Hugging Face
+
+# ===============================
+# Procesamiento numérico y científico
+# ===============================
+numpy>=1.23.5
+pandas>=2.0.0
+scikit-learn>=1.3.0
+scipy>=1.11.0
+torchmetrics>=1.2.0          # Métricas para entrenamiento/validación
+
+# ===============================
+# Visualización
+# ===============================
+matplotlib>=3.7.0
+seaborn>=0.12.0
+
+# ===============================
+# Utilidades
+# ===============================
+tqdm>=4.65.0
+optuna>=3.2.0                # Optimización de hiperparámetros
+
+# ===============================
+# System
+# ===============================
+os
+sys
+dotenv
