@@ -17,6 +17,10 @@ from dotenv import load_dotenv
 from PIL import Image
 import torch
 import tensorflow as tf
+import random
+from typing import Dict, List, Tuple, Any
+from collections import defaultdict
+import math
 
 ####################################
 # ---- System-related utilities ----
@@ -51,7 +55,90 @@ def check_cuda_availability():
     else:
         print("⚠️ TensorFlow no puede usar la GPU. Se ejecutará en CPU 🖥️")
 
+
+#################################
+# ---- Stratified data split ----
+#################################
+
+def stratified_split_dataset(
+    dataset: Dict[str, List[Any]], 
+    split_ratios: Tuple[float, float, float] = (0.7, 0.15, 0.15)
+) -> Dict[str, Dict[str, List[Any]]]:
+    """
+    Realiza una división estratificada de un dataset unificado por clase.
+
+    Asegura que la proporción de cada clase en los conjuntos de train, val y test 
+    sea la misma que en el dataset original.
+
+    Args:
+        dataset (Dict[str, List[Any]]): Diccionario unificado de imágenes, 
+                                        donde las claves son los nombres de las categorías.
+        split_ratios (Tuple[float, float, float]): Ratios de división para 
+                                                   (train, val, test). Deben sumar 1.0.
+
+    Returns:
+        Dict[str, Dict[str, List[Any]]]: Diccionario con los conjuntos divididos:
+                                        {'train': {'cat_1': [...], ...}, 'val': {...}, 'test': {...}}
+    """
+    
+    # 1. Validación de ratios
+    if not math.isclose(sum(split_ratios), 1.0):
+        raise ValueError(f"Los ratios de división deben sumar 1.0. Suma actual: {sum(split_ratios):.2f}")
+
+    train_ratio, val_ratio, test_ratio = split_ratios
+    
+    # 2. Inicializar los diccionarios de salida
+    split_sets = {
+        'train': defaultdict(list),
+        'val': defaultdict(list),
+        'test': defaultdict(list)
+    }
+
+    print("📊 Iniciando división estratificada...")
+    
+    # 3. Iterar por categoría para realizar la división
+    for category, image_list in dataset.items():
         
+        # Mezclar la lista de imágenes de la categoría para aleatoriedad
+        random.shuffle(image_list)
+        total_count = len(image_list)
+        
+        if total_count == 0:
+            print(f"⚠️ Advertencia: La categoría '{category}' está vacía. Se saltará.")
+            continue
+
+        # Calcular los tamaños de los subconjuntos
+        # Usamos math.floor para el entrenamiento y la validación para asegurar que el resto 
+        # se asigne al conjunto de prueba.
+        n_train = math.floor(total_count * train_ratio)
+        n_val = math.floor(total_count * val_ratio)
+        # El resto de las imágenes se asigna a test
+        n_test = total_count - n_train - n_val
+        
+        # Ajustar para asegurar que n_test sea al menos 0 (solo por robustez)
+        if n_test < 0:
+            n_test = 0
+            n_val = total_count - n_train # Reajustar val si los floats causaron exceso
+            
+        print(f"  [{category:<20}] Total: {total_count} -> Train: {n_train}, Val: {n_val}, Test: {n_test}")
+
+        # 4. Asignar las imágenes a los conjuntos
+        
+        # Asignar a Train
+        split_sets['train'][category] = image_list[:n_train]
+        
+        # Asignar a Val (comienza donde Train termina)
+        start_val = n_train
+        end_val = n_train + n_val
+        split_sets['val'][category] = image_list[start_val:end_val]
+        
+        # Asignar a Test (comienza donde Val termina)
+        start_test = end_val
+        split_sets['test'][category] = image_list[start_test:]
+
+
+    print("✅ División estratificada completada.")
+    return split_sets
 
 ##################################
 # ---- Data-related Utilities ----
