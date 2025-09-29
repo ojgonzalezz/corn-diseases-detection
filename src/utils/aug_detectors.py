@@ -8,18 +8,20 @@
 #########################
 
 import os
+import sys
 from PIL import Image
 import pathlib
 from typing import Dict, Any, Set
 from collections import defaultdict
 import ast
-from core.load_env import EnvLoader 
 import tensorflow as tf
 import numpy as np
 import ast
 from tensorflow.keras.applications.resnet50 import ResNet50, preprocess_input
 from tensorflow.keras.preprocessing import image
 from sklearn.metrics.pairwise import cosine_similarity
+# Environment variables loading
+sys.path.append(os.path.abspath(os.path.join("..", "src")))
 from src.core.load_env import EnvLoader
 
 #################################################
