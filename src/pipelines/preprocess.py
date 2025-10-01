@@ -556,3 +556,52 @@ def split_and_balance_dataset(balanced: str = "downsample") -> Dict[str, Any]:
     print("="*60)
 
     return datasets_for_model
+
+
+###########################################
+# ---- Save Splitted-augmented dataset ----
+###########################################
+
+def project_dataset(data_aug_split: dict):
+    """
+    Exporta el dataset dividido y balanceado a carpetas por tipo de set y por clase.
+    """
+    try:
+        # Se asume que el script se ejecuta desde la raíz del proyecto o una ruta conocida
+        PROJECT_ROOT = pathlib.Path(__file__).resolve().parent.parent.parent 
+    except NameError:
+        PROJECT_ROOT = pathlib.Path(os.getcwd())
+        
+    SPLIT_DIR = PROJECT_ROOT / "data" / "processed" / "split"
+    
+    total_images_saved = 0
+
+    # Bucle 1: Iterar sobre el tipo de conjunto (train, val, test)
+    for set_type, categories_dict in data_aug_split.items():
+        if set_type not in ['train', 'val', 'test']:
+            continue
+            
+        set_images_count = 0
+        
+        # Bucle 2: Iterar sobre las categorías (clases de la enfermedad)
+        for category, img_list in categories_dict.items():
+            dataset_type_dir = SPLIT_DIR / set_type / category # Ruta completa: .../split/train/Blight
+            dataset_type_dir.mkdir(parents=True, exist_ok=True)
+
+            print(f"  Guardando {len(img_list)} imágenes en: {dataset_type_dir.relative_to(PROJECT_ROOT)}")
+
+            # Bucle 3: Guardar cada imagen individualmente
+            for i, img in enumerate(img_list):
+                file_name = f"{category}_{i:04d}.png" 
+                file_path = dataset_type_dir / file_name
+                try:
+                    # Guardar la imagen (asumimos que es un objeto PIL.Image)
+                    img.save(file_path)
+                    set_images_count += 1
+                except Exception as e:
+                    print(f"    ⚠️ Fallo al guardar {file_name} en {category}: {e}")
+
+        total_images_saved += set_images_count
+        print(f"  ✨ Total imágenes exportadas en '{set_type}': {set_images_count}")
+
+    print(f"\n✅ Exportación a '{SPLIT_DIR.relative_to(PROJECT_ROOT)}' completada. Total guardado: {total_images_saved} imágenes.")

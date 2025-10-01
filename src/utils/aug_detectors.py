@@ -67,7 +67,7 @@ def detect_similar_images_embeddings(datasets, threshold=0.95):
     - Dict[str, Dict[str, List[Tuple]]]: Diccionario con pares similares por dataset/categoría
     """
     
-    # ⚠️ CORRECCIÓN 1: Cargar env_vars dentro de la función o pasar como argumento
+    # Cargar env_vars dentro de la función o pasar como argumento
     env_vars = EnvLoader().get_all()
     
     try:
@@ -212,7 +212,8 @@ def filter_similar_images(datasets: Dict[str, Any], threshold=0.95) -> Dict[str,
     print("\n📦 Iniciando exportación a 'data/processed'...")
     try:
         # Se asume que el script está en src/utils/
-        PROJECT_ROOT = pathlib.Path(__file__).resolve().parent.parent.parent.parent 
+        PROJECT_ROOT = pathlib.Path(__file__).resolve().parent.parent.parent
+
     except NameError:
         # Fallback si el script se ejecuta directamente
         PROJECT_ROOT = pathlib.Path(os.getcwd())
