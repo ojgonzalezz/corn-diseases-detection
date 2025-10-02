@@ -4,7 +4,7 @@ Gestión centralizada de configuración usando Pydantic.
 Este módulo proporciona validación de tipos y configuración robusta
 para todo el proyecto, reemplazando el manejo manual de variables de entorno.
 """
-from typing import List, Tuple, Literal
+from typing import List, Tuple, Literal, Optional
 from pathlib import Path
 from pydantic import Field, field_validator, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
@@ -58,7 +58,7 @@ class DataConfig(BaseSettings):
     )
 
     # Compatibilidad con typo legacy (deprecado)
-    im_sim_treshold: float = Field(
+    im_sim_treshold: Optional[float] = Field(
         default=None,
         validation_alias='IM_SIM_TRESHOLD',  # Typo legacy
         ge=0.0,
