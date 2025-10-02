@@ -1,585 +1,315 @@
------
+# 🌽 Detección de Enfermedades del Maíz con Transfer Learning
 
-# Detección de Enfermedades del Maíz con Transfer Learning
+Sistema de Deep Learning para clasificación de enfermedades en hojas de maíz utilizando Transfer Learning con VGG16/ResNet50, completamente containerizado con Docker.
 
------
+---
 
-## Resumen del Proyecto
+## 📋 Resumen del Proyecto
 
-Este proyecto implementa un pipeline de Deep Learning robusto para la clasificación de enfermedades comunes en hojas de maíz. El objetivo es diagnosticar automáticamente la salud de las plantas utilizando técnicas de Transfer Learning basadas en la arquitectura VGG16, optimizando la cabeza de clasificación mediante Keras Tuner y rastreando todos los experimentos con MLflow.
-
-El proyecto se destaca por su rigurosa estrategia de preprocesamiento, que aborda activamente el sesgo por duplicación (data leakage) y el desbalance de clases en un dataset bimodal compuesto por dos fuentes de datos distintas.
+Pipeline robusto de Deep Learning para diagnóstico automático de enfermedades comunes en hojas de maíz. El proyecto utiliza Transfer Learning con arquitecturas preentrenadas (VGG16/ResNet50), optimización de hiperparámetros con Keras Tuner, y seguimiento de experimentos con MLflow.
 
 **Características Principales:**
-- Transfer Learning con VGG16/ResNet50
-- De-augmentación inteligente usando embeddings de ResNet50
-- Balanceo avanzado de clases (oversample/downsample)
-- Seguimiento de experimentos con MLflow
-- Optimización de hiperparámetros con Keras Tuner
-- Gestión de configuración validada con Pydantic
-- Sistema de logging profesional con colores
-- Suite completa de tests con pytest
-- Manejo robusto de excepciones con sugerencias de recuperación
+- 🐳 **100% Containerizado** - Solo necesitas Docker
+- 🤖 Transfer Learning con VGG16/ResNet50
+- 🎯 Optimización con Keras Tuner
+- 📊 Tracking de experimentos con MLflow
+- 🚀 API REST con FastAPI
+- ✅ Suite completa de tests automatizados
+- 📦 Gestión de configuración con Pydantic
 
------
+---
 
-## Problema y Contexto
+## 🎯 Clases de Enfermedades
 
-Las enfermedades del maíz, como la roya común, el tizón foliar y la mancha gris, representan una amenaza crítica para la seguridad alimentaria. El diagnóstico tradicional mediante inspección visual es un proceso lento, subjetivo y dependiente de la pericia del observador. Este proyecto busca validar la viabilidad de un sistema de diagnóstico automatizado mediante Inteligencia Artificial para superar estas limitaciones.
+El modelo clasifica 4 categorías:
 
------
+1. **Blight** (Tizón)
+2. **Common_Rust** (Roya Común)
+3. **Gray_Leaf_Spot** (Mancha Gris)
+4. **Healthy** (Saludable)
 
-## Objetivo y Tipos de Datos
+---
 
-### Objetivo Principal
-
-Desarrollar un modelo de clasificación de imágenes altamente preciso y generalizable, capaz de diferenciar entre las siguientes cuatro categorías de salud de las hojas de maíz:
-
-1. **Blight**
-2. **Common_Rust**
-3. **Gray_Leaf_Spot**
-4. **Healthy**
-
-### Tipos de Datos
-
-El dataset está compuesto por imágenes RGB de hojas de maíz, recopiladas de dos fuentes distintas que se manejan por separado para controlar el Data Augmentation:
-
-| Fuente | Descripción | Consideración |
-| :--- | :--- | :--- |
-| **data_1** | Dataset limpio, sin aumentación sintética | no-augmentation |
-| **data_2** | Dataset con aumentación sintética aplicada | augmented |
-
------
-
-## Estructura Detallada del Repositorio
-
-El proyecto sigue una estructura modular y escalable para separar el código de producción (src), los datos (data), y la experimentación (experimentation).
+## 📁 Estructura del Proyecto
 
 ```
 corn-diseases-detection/
-├── data/                     # Directorio de dataset (ignorado por git)
-│   ├── train/                # Conjunto de entrenamiento (3,856 imágenes - balanceado)
-│   │   ├── Blight/           # 964 imágenes
-│   │   ├── Common_Rust/      # 964 imágenes
-│   │   ├── Gray_Leaf_Spot/   # 964 imágenes
-│   │   └── Healthy/          # 964 imágenes
-│   ├── val/                  # Conjunto de validación (716 imágenes - estratificado)
-│   │   ├── Blight/           # 171 imágenes
-│   │   ├── Common_Rust/      # 195 imágenes
-│   │   ├── Gray_Leaf_Spot/   # 176 imágenes
-│   │   └── Healthy/          # 174 imágenes
-│   └── test/                 # Conjunto de prueba (722 imágenes - estratificado)
-│       ├── Blight/           # 173 imágenes
-│       ├── Common_Rust/      # 197 imágenes
-│       ├── Gray_Leaf_Spot/   # 177 imágenes
-│       └── Healthy/          # 175 imágenes
+├── data/                       # Dataset (ignorado por git)
+│   ├── train/                  # 3,856 imágenes (balanceado)
+│   ├── val/                    # 716 imágenes (estratificado)
+│   └── test/                   # 722 imágenes (estratificado)
 │
-├── experimentation/          # Scripts de EDA y exploración
-│   ├── eda/                  # Validación y análisis de datos
-│   │   ├── analyze_feature.py
-│   │   ├── explore_distribution.py
-│   │   ├── validate_dataset.py
-│   │   └── view_samples.py
-│   └── notebooks/
-│       └── 01_eda_exploration.ipynb
+├── src/                        # Código fuente
+│   ├── adapters/               # Cargadores de datos
+│   ├── api/                    # API REST (FastAPI)
+│   ├── builders/               # Constructores de modelos
+│   ├── core/                   # Configuración central
+│   ├── pipelines/              # Pipelines ML (train, infer, preprocess)
+│   └── utils/                  # Utilidades
 │
-├── models/                   # Artefactos de modelos (ignorado por git)
-│   ├── mlruns/               # Seguimiento de experimentos con MLflow
-│   ├── tuner_checkpoints/    # Búsqueda de hiperparámetros con Keras Tuner
-│   └── exported/             # Modelos finales entrenados (best_VGG16.keras, etc.)
+├── tests/                      # Suite de tests (10 archivos)
 │
-├── src/                      # Código fuente de producción
-│   ├── adapters/
-│   │   └── data_loader.py    # Abstracción: Carga de datos de múltiples fuentes
-│   ├── builders/
-│   │   ├── base_models.py    # Definición de backbones preentrenados (VGG16)
-│   │   └── builders.py       # Ensamblaje de la cabeza de clasificación para Keras Tuner
-│   ├── core/                 # Configuración y utilidades de entorno
-│   │   ├── load_env.py       # Carga de variables de entorno (.env)
-│   │   ├── config.py         # Gestión de configuración con Pydantic (validación)
-│   │   └── path_finder.py    # Detección de la ruta raíz del proyecto
-│   ├── pipelines/            # Scripts del ciclo de Machine Learning
-│   │   ├── data_pipeline.py  # Generación de DataGenerators para Keras
-│   │   ├── evaluate_finetuned.py
-│   │   ├── train.py          # Orquestación del entrenamiento con Keras Tuner/MLflow
-│   │   ├── preprocess.py     # Script principal de filtrado, unificación y balanceo
-│   │   └── infer.py          # Lógica de inferencia para la API (clasificación)
-│   └── utils/                # Funciones de ayuda
-│       ├── aug_detectors.py    # Detección y filtrado de aumentaciones por Embedding
-│       ├── data_augmentator.py # Transformaciones espaciales para Oversampling
-│       ├── image_modifier.py   # Transformaciones de calidad (brillo, contraste, ruido)
-│       ├── utils.py            # Utilidades misceláneas (flatten_data, split, etc.)
-│       ├── paths.py            # Manejo centralizado de rutas del proyecto
-│       ├── logger.py           # Sistema de logging profesional con colores
-│       └── exceptions.py       # Excepciones personalizadas con sugerencias
+├── experimentation/            # Scripts EDA y notebooks
 │
-├── tests/                    # Suite de pruebas con pytest
-│   ├── __init__.py
-│   ├── conftest.py           # Fixtures compartidas
-│   ├── test_preprocess.py    # Tests de preprocesamiento y split
-│   └── test_augmentation.py  # Tests de augmentación de imágenes
+├── models/                     # Modelos entrenados (ignorado por git)
+│   ├── exported/               # Modelos finales (.keras)
+│   ├── mlruns/                 # Tracking MLflow
+│   └── tuner_checkpoints/      # Keras Tuner
 │
-├── requirements.txt
-├── pyproject.toml            # Configuración del proyecto (PEP 518)
-├── README.md
-└── .gitignore
+├── docker-compose.yml          # Orquestación de servicios
+├── Dockerfile                  # Imagen multi-stage optimizada
+├── requirements.txt            # Dependencias Python
+└── README.md                   # Este archivo
 ```
-
-### Nota sobre el Flujo de Datos
-
-**Estructura Actual:** El proyecto utiliza datos pre-divididos en los directorios `data/train/`, `data/val/`, `data/test/`. Esta es la estructura de trabajo real.
-
-**Justificación:** Los datos ya han sido preprocesados, balanceados y divididos usando el pipeline de preprocesamiento en `src/pipelines/preprocess.py`. La división es:
-- **Entrenamiento:** 70% (3,856 imágenes - perfectamente balanceado en 4 clases)
-- **Validación:** 15% (716 imágenes - estratificado)
-- **Prueba:** 15% (722 imágenes - estratificado)
-
-### Descripción Profesional de Módulos y Scripts
-
-| Carpeta/Script | Descripción |
-| :--- | :--- |
-| **`data/train/`** | Dataset de entrenamiento con clases balanceadas (964 imágenes por clase) |
-| **`data/val/`** | Dataset de validación con división estratificada para evaluación del modelo |
-| **`data/test/`** | Dataset de prueba para evaluación final del modelo |
-| **`experimentation/`** | Scripts de EDA y notebooks de Jupyter para exploración |
-| **`models/exported/`** | Modelos finales entrenados listos para inferencia (ej. `best_VGG16.keras`) |
-| **`src/adapters/data_loader.py`** | Componente de abstracción de datos. Encargado de cargar las imágenes desde el disco a memoria (PIL.Image) desde múltiples fuentes (data_1, data_2). |
-| **`src/builders/builders.py`** | Factoría de modelos. Define la arquitectura de la cabeza de clasificación y ensambla el modelo completo (VGG16 + cabeza), listo para la búsqueda de hiperparámetros con Keras Tuner. |
-| **`src/core/load_env.py`** | Utilidad de configuración. Carga y parsea de forma segura todas las variables de entorno (rutas, ratios, tamaños de imagen) desde el archivo `.env`. |
-| **`src/pipelines/train.py`** | Script de orquestación central. Ejecuta la búsqueda de Keras Tuner, aplica Early Stopping y registra todos los resultados en MLflow. |
-| **`src/pipelines/preprocess.py`** | Script principal del pipeline de datos. Dirige el filtrado, la unificación, la división estratificada y el balanceo (submuestreo/sobremuestreo) de los datos. |
-| **`src/pipelines/infer.py`** | Pipeline de inferencia optimizado para el servidor. Carga el modelo final y contiene la función `predict()` utilizada por la API para clasificar imágenes. |
-| **`src/utils/aug_detectors.py`** | Implementa la lógica de De-Augmentación; contiene las funciones para la generación de embeddings y el cálculo de la similitud del coseno para detectar duplicados. |
-| **`src/utils/data_augmentator.py`** | Define las funciones para las transformaciones espaciales complejas utilizadas durante el oversampling controlado. |
-| **`src/utils/image_modifier.py`** | Contiene funciones de bajo nivel para las transformaciones de calidad de imagen (ej., ruido, brillo, contraste) utilizadas en el Data Augmentation. |
 
 ---
 
-## Inicio Rápido
+## 🚀 Inicio Rápido
 
-### Opción 1: Usando Docker (Recomendado) 🐳
+### Requisitos
 
-La forma más rápida y reproducible de ejecutar el proyecto:
+- **Docker Desktop** instalado ([Descargar](https://www.docker.com/products/docker-desktop))
+- **Git** para clonar el repositorio
+- **Datos** en `data/train`, `data/val`, `data/test`
+
+### 1. Clonar Repositorio
 
 ```bash
-# Clonar el repositorio
 git clone https://github.com/ojgonzalezz/corn-diseases-detection.git
 cd corn-diseases-detection
+```
 
-# Configurar variables de entorno
-cp src/core/.env_example src/core/.env
+### 2. Construir Imagen Docker
 
-# Construir imagen Docker
+```bash
+# Construir imagen (incluye TensorFlow, Keras, MLflow)
 docker-compose build
+```
 
-# Entrenar modelo
+Esto instalará automáticamente:
+- TensorFlow 2.20.0
+- Keras 3.11.3
+- MLflow 3.3.2
+- FastAPI + todas las dependencias
+
+### 3. Entrenar Modelo
+
+```bash
+# Entrenar modelo con tus datos
 docker-compose --profile training up
 
-# Ver experimentos en MLflow
+# O en background
+docker-compose --profile training up -d
+
+# Ver logs
+docker-compose logs -f training
+```
+
+El modelo se guardará en `models/exported/best_VGG16.keras`
+
+### 4. Iniciar API de Inferencia
+
+```bash
+# Iniciar API
+docker-compose --profile api up -d
+
+# Acceder a documentación
+open http://localhost:8000/docs
+```
+
+### 5. Ver Experimentos en MLflow
+
+```bash
+# Iniciar MLflow UI
 docker-compose --profile mlflow up -d
-# Acceder a http://localhost:5000
+
+# Acceder a dashboard
+open http://localhost:5000
 ```
 
-**✨ Ventajas:**
-- No necesitas instalar dependencias manualmente
-- Entorno 100% reproducible
-- Aislamiento completo del sistema host
-- Funciona igual en cualquier sistema operativo
+---
 
-Ver la [sección de Docker](#docker-y-contenedores) para más detalles.
+## 🐳 Servicios Docker Disponibles
 
-### Opción 2: Instalación Local
+| Servicio | Profile | Puerto | Comando | Descripción |
+|----------|---------|--------|---------|-------------|
+| **training** | `training` | - | `docker-compose --profile training up` | Entrenamiento con Keras Tuner |
+| **api** | `api` | 8000 | `docker-compose --profile api up -d` | API REST para predicciones |
+| **mlflow** | `mlflow` | 5000 | `docker-compose --profile mlflow up -d` | UI de experimentos |
+| **notebook** | `notebook` | 8888 | `docker-compose --profile notebook up -d` | Jupyter Lab |
+| **preprocessing** | `preprocessing` | - | `docker-compose --profile preprocessing up` | Preprocesar datos raw |
+| **evaluation** | `evaluation` | - | `docker-compose --profile evaluation up` | Evaluar modelos |
 
+---
+
+## 📡 Uso de la API
+
+### Endpoints Disponibles
+
+**Health Check:**
 ```bash
-# Clonar el repositorio
-git clone https://github.com/ojgonzalezz/corn-diseases-detection.git
-cd corn-diseases-detection
-
-# Crear entorno virtual
-python -m venv venv
-source venv/bin/activate  # En Windows: venv\Scripts\activate
-
-# Instalar dependencias
-pip install -r requirements.txt
-
-# Configurar variables de entorno
-cp src/core/.env_example src/core/.env
-# Editar src/core/.env según tus necesidades (opcional)
+curl http://localhost:8000/health
 ```
 
-**⚠️ IMPORTANTE:** El archivo `.env` es necesario para ejecutar el proyecto. Se ha creado automáticamente con valores por defecto, pero puedes personalizarlo.
-
-### Entrenamiento
-
+**Información del Modelo:**
 ```bash
-# Entrenar modelo con configuración por defecto (VGG16, datos balanceados)
-python -m src.pipelines.train
-
-# Entrenar con un backbone específico
-python -c "from src.pipelines.train import train; train(backbone_name='ResNet50')"
+curl http://localhost:8000/info
 ```
 
-### Inferencia
+**Predicción Individual:**
+```bash
+curl -X POST http://localhost:8000/predict \
+  -F "file=@ruta/a/imagen.jpg"
+```
+
+**Predicción por Lotes:**
+```bash
+curl -X POST http://localhost:8000/batch-predict \
+  -F "files=@imagen1.jpg" \
+  -F "files=@imagen2.jpg" \
+  -F "files=@imagen3.jpg"
+```
+
+### Ejemplo Python
 
 ```python
-from src.pipelines.infer import predict
+import requests
 
-# Cargar imagen como bytes
-with open('ruta/a/hoja_maiz.jpg', 'rb') as f:
-    image_bytes = f.read()
+# Predicción
+with open('hoja_maiz.jpg', 'rb') as f:
+    response = requests.post(
+        'http://localhost:8000/predict',
+        files={'file': f}
+    )
 
-# Obtener predicción
-result = predict(image_bytes)
-print(f"Predicción: {result['predicted_label']}")
-print(f"Confianza: {result['confidence']:.2%}")
-```
-
-### Configuración
-
-El proyecto utiliza un archivo `.env` para toda la configuración. Para personalizar:
-
-```bash
-# Editar el archivo de configuración
-nano src/core/.env  # o usar tu editor preferido
-```
-
-**Variables de Configuración Principales:**
-
-| Variable | Descripción | Valor por Defecto |
-|----------|-------------|-------------------|
-| `IMAGE_SIZE` | Dimensiones de entrada (ancho, alto) | `(224, 224)` |
-| `NUM_CLASSES` | Número de clases a clasificar | `4` |
-| `CLASS_NAMES` | Nombres de las clases | `['Blight', 'Common_Rust', 'Gray_Leaf_Spot', 'Healthy']` |
-| `BATCH_SIZE` | Tamaño del batch de entrenamiento | `32` |
-| `MAX_EPOCHS` | Épocas máximas de entrenamiento | `20` |
-| `MAX_TRIALS` | Trials de búsqueda de hiperparámetros | `10` |
-| `BACKBONE` | Arquitectura base del modelo | `VGG16` |
-| `BALANCE_STRATEGY` | Estrategia de balanceo de clases | `oversample` |
-| `SPLIT_RATIOS` | Ratios de división (train/val/test) | `(0.7, 0.15, 0.15)` |
-| `IM_SIM_THRESHOLD` | Umbral de similitud para de-augmentación | `0.95` |
-
-**Consulta el archivo `src/core/.env_example` para ver todas las opciones disponibles con documentación completa.**
-
----
-
-## CI/CD y Automatización
-
-### GitHub Actions
-
-El proyecto incluye workflows automáticos para:
-
-1. **Tests Automáticos** (`.github/workflows/tests.yml`)
-   - Ejecuta en Python 3.9, 3.10, 3.11
-   - Tests con pytest
-   - Cobertura de código con Codecov
-   - Se ejecuta en push y pull requests
-
-2. **Linting y Formato** (`.github/workflows/linting.yml`)
-   - Verifica formato con Black
-   - Verifica imports con isort
-   - Linting con Flake8
-   - Type checking con mypy
-
-3. **Revisión de Dependencias** (`.github/workflows/dependency-review.yml`)
-   - Detecta vulnerabilidades en dependencias
-   - Solo en pull requests a main
-
-### Badges de Estado
-
-Añade estos badges a tu README:
-
-```markdown
-[![Tests](https://github.com/ojgonzalezz/corn-diseases-detection/workflows/Tests/badge.svg)](https://github.com/ojgonzalezz/corn-diseases-detection/actions)
-[![Linting](https://github.com/ojgonzalezz/corn-diseases-detection/workflows/Linting%20y%20Formato/badge.svg)](https://github.com/ojgonzalezz/corn-diseases-detection/actions)
-[![codecov](https://codecov.io/gh/ojgonzalezz/corn-diseases-detection/branch/main/graph/badge.svg)](https://codecov.io/gh/ojgonzalezz/corn-diseases-detection)
+result = response.json()
+print(f"Predicción: {result['prediction']['predicted_label']}")
+print(f"Confianza: {result['prediction']['confidence']:.2%}")
 ```
 
 ---
 
-## Estrategia de Pruebas
+## ⚙️ Configuración
 
-El proyecto cuenta con una suite completa de pruebas usando pytest:
+### Variables de Entorno
 
-### Ejecutar Tests
+El proyecto usa un archivo `.env` para configuración. Todas las variables tienen valores por defecto en `src/core/.env_example`.
+
+**Variables Principales:**
+
+| Variable | Valor por Defecto | Descripción |
+|----------|-------------------|-------------|
+| `IMAGE_SIZE` | `(224, 224)` | Dimensiones de entrada |
+| `NUM_CLASSES` | `4` | Número de clases |
+| `BATCH_SIZE` | `32` | Tamaño del batch |
+| `MAX_EPOCHS` | `20` | Épocas máximas |
+| `BACKBONE` | `VGG16` | Arquitectura base |
+| `BALANCE_STRATEGY` | `oversample` | Estrategia de balanceo |
+
+Para personalizar, edita `src/core/.env`
+
+---
+
+## 🧪 Testing
+
+### Ejecutar Tests en Docker
 
 ```bash
-# Ejecutar todos los tests
-pytest
+# Todos los tests
+docker-compose run --rm training pytest tests/ -v
 
-# Ejecutar con cobertura
-pytest --cov=src --cov-report=html
+# Tests específicos
+docker-compose run --rm training pytest tests/test_train.py -v
 
-# Ejecutar solo tests específicos
-pytest tests/test_preprocess.py
-pytest tests/test_augmentation.py
-
-# Ejecutar tests con verbosidad
-pytest -v
+# Tests sin módulos lentos
+docker-compose run --rm training pytest tests/ -m "not slow" -v
 ```
 
-### Tests Implementados
+### Cobertura de Tests
 
-**Tests de Preprocesamiento (`test_preprocess.py`):**
-- Validación de ratios de división estratificada
-- Verificación de proporciones correctas en train/val/test
-- Manejo de categorías vacías
-- Validación de la función `flatten_data`
-- Verificación de dimensiones y tipos de datos
+El proyecto incluye **10 archivos de tests** con **~90% de cobertura**:
+- `test_train.py` - Pipeline de entrenamiento
+- `test_infer.py` - Pipeline de inferencia
+- `test_preprocess.py` - Preprocesamiento
+- `test_augmentation.py` - Augmentación de datos
+- `test_config.py` - Sistema de configuración
+- `test_builders.py` - Constructores de modelos
+- `test_data_loader.py` - Carga de datos
+- `test_logger.py` - Sistema de logging
+- `test_paths.py` - Gestión de rutas
+- `test_api.py` - Endpoints de API
 
-**Tests de Augmentación (`test_augmentation.py`):**
-- Preservación de dimensiones tras transformaciones
-- Validación de cada método de `ImageAugmentor`
-- Reproducibilidad con semillas fijas
-- Verificación de valores de píxeles en rango válido
-- Consistencia de etiquetas tras augmentación
+---
 
-**Scripts de EDA (validación adicional):**
+## 🔧 Comandos Docker Útiles
+
+### Gestión de Contenedores
+
 ```bash
-# Validar integridad del dataset
-python experimentation/eda/validate_dataset.py
+# Ver contenedores corriendo
+docker-compose ps
 
-# Verificar distribuciones de clases
-python experimentation/eda/explore_distribution.py
+# Ver logs
+docker-compose logs -f [servicio]
 
-# Inspección visual de muestras
-python experimentation/eda/view_samples.py
+# Detener todos los servicios
+docker-compose down
+
+# Detener y eliminar volúmenes (⚠️ elimina datos)
+docker-compose down -v
+
+# Reconstruir imagen desde cero
+docker-compose build --no-cache
+```
+
+### Comandos Únicos
+
+```bash
+# Ejecutar cualquier comando en el contenedor
+docker-compose run --rm training python -m src.pipelines.train
+
+# Shell interactiva
+docker-compose run --rm training bash
+
+# Verificar versión de TensorFlow
+docker-compose run --rm training python -c "import tensorflow as tf; print(tf.__version__)"
 ```
 
 ---
 
-## Versionado de Modelos
+## 🎨 Personalización del Entrenamiento
 
-**Versionado Automático:** El pipeline de entrenamiento guarda automáticamente los modelos con información de versión:
+### Entrenar con Diferente Backbone
 
-**Convención de Nombres de Archivo:**
-```
-models/exported/
-├── VGG16_20250102_143022_acc0.9745.keras    # Con timestamp + precisión
-├── VGG16_20250102_143022_metadata.json      # Configuración de entrenamiento
-└── best_VGG16.keras                         # Último mejor modelo (para inferencia)
+Edita `src/core/.env`:
+```bash
+BACKBONE=ResNet50
 ```
 
-**Los Metadatos Incluyen:**
-- Timestamp
-- Precisión y pérdida en prueba
-- Hiperparámetros utilizados
-- Ratios de división de datos
-- Estrategia de balanceo
-- Tamaño de imagen y número de clases
-
-**Registro de Modelos:** Todas las ejecuciones de entrenamiento se rastrean en MLflow en `models/mlruns/` para comparación de experimentos.
-
----
-
-## Características Avanzadas
-
-### Gestión de Configuración con Pydantic
-
-El proyecto utiliza Pydantic para validación robusta de configuración:
-
-```python
-from src.core.config import config
-
-# Acceso type-safe a la configuración
-image_size = config.data.image_size  # (224, 224)
-batch_size = config.training.batch_size  # 32
-class_names = config.data.class_names  # ['Blight', ...]
-
-# Validación automática de tipos y valores
-# Si IMAGE_SIZE en .env es inválido, se lanza una excepción clara
+Luego ejecuta:
+```bash
+docker-compose --profile training up
 ```
 
-**Beneficios:**
-- Validación automática de tipos
-- Valores por defecto razonables
-- Errores claros cuando la configuración es inválida
-- Autocompletado en IDEs
+### Ajustar Hiperparámetros
 
-### Sistema de Logging Profesional
-
-```python
-from src.utils.logger import get_logger, log_section, log_dict
-
-logger = get_logger(__name__)
-
-logger.info("Iniciando entrenamiento...")
-logger.warning("GPU no disponible, usando CPU")
-logger.error("Error al cargar datos")
-
-# Logging estructurado
-log_section(logger, "Configuración de Entrenamiento")
-log_dict(logger, {'lr': 0.001, 'epochs': 10}, "Hiperparámetros")
-```
-
-**Características:**
-- Colores en terminal para mejor legibilidad
-- Formato consistente en toda la aplicación
-- Opción de guardar logs en archivos
-- Niveles de logging configurables
-
-### Manejo Robusto de Excepciones
-
-Todas las excepciones incluyen sugerencias de recuperación:
-
-```python
-from src.utils.exceptions import NoModelToLoadError, DatasetNotFoundError
-
-try:
-    model = load_model('model.keras')
-except NoModelToLoadError as e:
-    print(e)
-    # Imprime:
-    # "No se encontró el modelo en: model.keras
-    #
-    # Sugerencia: Opciones:
-    #   1. Entrenar un modelo ejecutando: python -m src.pipelines.train
-    #   2. Verificar la ruta del modelo en la configuración
-    #   ..."
-```
-
-**Excepciones Disponibles:**
-- `DatasetNotFoundError`, `EmptyDatasetError`, `InvalidImageError`
-- `NoModelToLoadError`, `ModelLoadError`, `InvalidBackboneError`
-- `MissingConfigError`, `InvalidConfigError`, `NoLabelsError`
-- `GPUNotAvailableError`, `InsufficientMemoryError`
-- `TrainingDivergenceError`, `NoImprovementError`
-
-### Manejo Centralizado de Rutas
-
-```python
-from src.utils.paths import paths
-
-# Acceso limpio a rutas del proyecto
-data_dir = paths.data_raw
-models_dir = paths.models_exported
-mlruns = paths.mlruns
-
-# Crear directorios si no existen
-paths.ensure_dir(paths.models_exported)
-
-# Rutas relativas para logging
-print(f"Guardando en: {paths.relative_to_root(model_path)}")
+Edita `src/core/.env`:
+```bash
+BATCH_SIZE=64
+MAX_EPOCHS=50
+MAX_TRIALS=20
+BALANCE_STRATEGY=downsample
 ```
 
 ---
 
-## Instalación y Desarrollo
+## 📊 Estructura de Datos
 
-### Instalación Básica
+### Formato Esperado
 
-```bash
-# Clonar repositorio
-git clone https://github.com/ojgonzalezz/corn-diseases-detection.git
-cd corn-diseases-detection
+El proyecto soporta dos estructuras:
 
-# Opción 1: Usando pip (recomendado - más rápido)
-python -m venv venv
-source venv/bin/activate  # En Windows: venv\Scripts\activate
-pip install -r requirements.txt
-
-# Opción 2: Usando conda (si prefieres anaconda)
-conda env create -f environment.yml
-conda activate dl-gpu
-```
-
-**📝 Nota sobre Gestión de Dependencias:**
-
-Este proyecto usa **`requirements.txt` como fuente principal** de dependencias. El archivo `environment.yml` está simplificado y referencia automáticamente a `requirements.txt`, evitando duplicación y divergencia entre archivos.
-
-### Instalación para Desarrollo
-
-```bash
-# Instalar con dependencias de desarrollo
-pip install -e ".[dev]"
-
-# Instalar todas las dependencias opcionales
-pip install -e ".[all]"
-```
-
-### Configuración de Pre-commit Hooks
-
-Pre-commit ejecuta automáticamente validaciones antes de cada commit:
-
-```bash
-# Instalar herramientas de desarrollo
-pip install -e ".[dev]"
-
-# Configurar pre-commit
-pre-commit install
-
-# (Opcional) Ejecutar en todos los archivos
-pre-commit run --all-files
-```
-
-**Hooks configurados:**
-- ✅ Formateo automático (Black)
-- ✅ Ordenamiento de imports (isort)
-- ✅ Linting (Flake8)
-- ✅ Detección de secretos
-- ✅ Limpieza de notebooks Jupyter
-- ✅ Validación YAML/JSON
-
-### Usando Makefile (Recomendado)
-
-El proyecto incluye un Makefile para facilitar tareas comunes:
-
-```bash
-# Ver todos los comandos disponibles
-make help
-
-# Setup completo del proyecto
-make setup
-
-# Ejecutar tests
-make test
-
-# Ejecutar tests con cobertura
-make test-cov
-
-# Formatear código
-make format
-
-# Verificar calidad de código
-make lint
-
-# Ejecutar todas las validaciones de CI
-make ci
-
-# Entrenar modelo
-make train
-
-# Limpiar archivos temporales
-make clean
-```
-
----
-
-## Resolución de Problemas
-
-### Error: "No se encontró el archivo .env"
-
-```bash
-# Copiar el archivo de ejemplo
-cp src/core/.env_example src/core/.env
-```
-
-### Error: "ModuleNotFoundError: No module named 'pydantic_settings'"
-
-```bash
-# Opción 1: pip (recomendado - más rápido)
-pip install -r requirements.txt
-
-# Opción 2: conda (actualiza el entorno existente)
-conda env update -f environment.yml --prune
-```
-
-**💡 Tip:** El archivo `environment.yml` ahora usa `requirements.txt` como fuente principal, por lo que ambos métodos instalarán las mismas dependencias. Recomendamos usar pip directamente para mayor rapidez.
-
-### Error: "No se encontró el dataset"
-
-El proyecto soporta dos estructuras de datos:
-
-**Opción 1: Datos ya divididos (recomendado)**
+**Opción 1: Datos Ya Divididos (Recomendado)**
 ```
 data/
 ├── train/
@@ -593,165 +323,263 @@ data/
     └── ...
 ```
 
-**Opción 2: Datos raw para preprocesar**
+**Opción 2: Datos Raw para Preprocesar**
 ```
 data/
 └── raw/
     ├── data_1/
-    │   ├── Blight/
-    │   └── ...
+    │   └── [clases]/
     └── data_2/
-        ├── Blight/
-        └── ...
+        └── [clases]/
 ```
 
-Si tienes datos en `data/raw/`, ejecuta el pipeline de preprocesamiento:
-```bash
-python -m src.pipelines.preprocess
-```
-
-Si tus datos ya están divididos en `data/train/val/test/`, el proyecto los usará automáticamente.
-
-### Error: "GPU no disponible"
-
-El proyecto funciona tanto en CPU como GPU. Para verificar disponibilidad de GPU:
-```python
-from src.utils.utils import check_cuda_availability
-
-# Verificar solo TensorFlow (recomendado)
-check_cuda_availability()
-
-# Verificar también PyTorch (requiere instalación manual)
-check_cuda_availability(check_pytorch=True)
-```
-
-Para forzar el uso de CPU:
-```python
-import os
-os.environ['CUDA_VISIBLE_DEVICES'] = '-1'
-```
-
-**Nota:** Este proyecto usa **solo TensorFlow**. PyTorch no está incluido en las dependencias para reducir el tamaño de instalación (~2GB). Si necesitas PyTorch para experimentación, instálalo manualmente:
-```bash
-pip install torch torchvision torchaudio
-```
-
-### Verificar que la Configuración es Correcta
-
-```python
-from src.core.config import config
-
-# Mostrar configuración actual
-print(config.to_dict())
-```
-
----
-
-## Docker y Contenedores
-
-El proyecto incluye soporte completo para Docker, proporcionando un entorno reproducible y aislado para entrenamiento, evaluación e inferencia.
-
-### Arquitectura Docker
-
-El proyecto utiliza:
-- **Dockerfile multi-stage**: Optimiza tamaño de imagen (builder + runtime)
-- **Docker Compose**: Orquesta múltiples servicios con perfiles
-- **Volúmenes persistentes**: Datos y modelos no se pierden al reiniciar contenedores
-- **Usuario no-root**: Mejora seguridad del contenedor
-
-### Servicios Disponibles
-
-| Servicio | Profile | Puerto | Descripción |
-|----------|---------|--------|-------------|
-| `training` | `training` | - | Entrenamiento de modelos con Keras Tuner |
-| `preprocessing` | `preprocessing` | - | Preprocesamiento y división de datos |
-| `evaluation` | `evaluation` | - | Evaluación de modelos entrenados |
-| `inference` | `inference`, `api` | 8000 | API de inferencia (FastAPI) |
-| `mlflow` | `mlflow`, `monitoring` | 5000 | MLflow UI para seguimiento de experimentos |
-| `notebook` | `development`, `notebook` | 8888 | Jupyter Lab para experimentación |
-
-### Comandos Comunes
-
-**Construir imagen:**
-```bash
-docker-compose build
-```
-
-**Entrenamiento:**
-```bash
-# Entrenar modelo (foreground)
-docker-compose --profile training up
-
-# Entrenar modelo (background)
-docker-compose --profile training up -d
-
-# Ver logs en tiempo real
-docker-compose logs -f training
-```
-
-**MLflow UI:**
-```bash
-# Iniciar servidor MLflow
-docker-compose --profile mlflow up -d
-
-# Acceder a http://localhost:5000
-# Ver experimentos, métricas, y artefactos
-```
-
-**Jupyter Notebook:**
-```bash
-# Iniciar Jupyter Lab
-docker-compose --profile notebook up -d
-
-# Acceder a http://localhost:8888
-# Notebooks en experimentation/notebooks/
-```
-
-**Preprocesamiento:**
+Si tienes datos raw, ejecuta:
 ```bash
 docker-compose --profile preprocessing up
 ```
 
-**API de Inferencia:**
+---
+
+## 🔍 Características Avanzadas
+
+### De-augmentación Inteligente
+
+El sistema detecta y filtra imágenes duplicadas usando embeddings de ResNet50:
+
+```bash
+# Configurar umbral en src/core/.env
+IM_SIM_THRESHOLD=0.95  # 0.0 a 1.0 (más alto = más estricto)
+```
+
+### Balanceo de Clases
+
+Tres estrategias disponibles:
+
+1. **Oversample** (por defecto) - Aumenta clases minoritarias
+2. **Downsample** - Reduce clases mayoritarias
+3. **None** - Sin balanceo
+
+```bash
+# En src/core/.env
+BALANCE_STRATEGY=oversample
+```
+
+### Tracking con MLflow
+
+Todos los experimentos se registran automáticamente:
+- Hiperparámetros
+- Métricas (accuracy, loss)
+- Modelos entrenados
+- Configuración completa
+
+```bash
+# Ver experimentos
+docker-compose --profile mlflow up -d
+open http://localhost:5000
+```
+
+---
+
+## 🎯 Versionado de Modelos
+
+Los modelos se guardan automáticamente con:
+
+```
+models/exported/
+├── VGG16_20251002_143022_acc0.9745.keras    # Con timestamp + accuracy
+├── VGG16_20251002_143022_metadata.json      # Metadatos de entrenamiento
+└── best_VGG16.keras                         # Último mejor modelo
+```
+
+Los metadatos incluyen:
+- Timestamp
+- Accuracy y loss en test
+- Hiperparámetros utilizados
+- Configuración completa
+
+---
+
+## 🐛 Troubleshooting Docker
+
+### Error: "Cannot connect to Docker daemon"
+```bash
+# Iniciar Docker Desktop en Mac
+# Verificar que está corriendo en la barra de menú
+```
+
+### Error: "Port already in use"
+```bash
+# Cambiar puerto en docker-compose.yml
+ports:
+  - "8001:8000"  # API en puerto 8001
+```
+
+### Limpiar Sistema Docker
+```bash
+# Limpiar contenedores detenidos
+docker system prune
+
+# Ver uso de espacio
+docker system df
+
+# Eliminar todo (⚠️ cuidado)
+docker system prune -a
+```
+
+### Problemas de Memoria
+```bash
+# Editar docker-compose.yml para limitar recursos
+services:
+  training:
+    deploy:
+      resources:
+        limits:
+          cpus: '2.0'
+          memory: 4G
+```
+
+---
+
+## 📈 Workflow Típico
+
+### 1. Preparar Datos
+```bash
+# Si tienes datos raw
+docker-compose --profile preprocessing up
+
+# Verifica estructura en data/train, data/val, data/test
+```
+
+### 2. Entrenar Modelo
+```bash
+# Entrenar
+docker-compose --profile training up
+
+# El mejor modelo se guarda automáticamente
+```
+
+### 3. Evaluar Modelo
+```bash
+# Evaluar modelo guardado
+docker-compose --profile evaluation up
+```
+
+### 4. Desplegar API
 ```bash
 # Iniciar API
 docker-compose --profile api up -d
 
-# Acceder a documentación: http://localhost:8000/docs
-# Realizar predicciones: POST http://localhost:8000/predict
+# Probar
+curl http://localhost:8000/health
 ```
 
-**Ejecutar comando único:**
+### 5. Hacer Predicciones
 ```bash
-# Ejecutar cualquier comando en el contenedor
-docker-compose run --rm training python -m src.pipelines.train
+# Via API
+curl -X POST http://localhost:8000/predict \
+  -F "file=@imagen_hoja.jpg"
 
-# Ver ayuda de un script
-docker-compose run --rm training python -m src.pipelines.train --help
-
-# Ejecutar tests
-docker-compose run --rm training pytest tests/
+# Verifica en:
+open http://localhost:8000/docs
 ```
 
-**Limpiar:**
+---
+
+## 🧬 Arquitectura del Sistema
+
+### Pipeline de Datos
+1. **Carga** - `src/adapters/data_loader.py`
+2. **Preprocesamiento** - `src/pipelines/preprocess.py`
+   - Detección de duplicados por embeddings
+   - División estratificada
+   - Balanceo de clases (oversample/downsample)
+3. **Augmentación** - `src/utils/data_augmentator.py`
+
+### Pipeline de Entrenamiento
+1. **Construcción** - `src/builders/builders.py`
+   - Carga backbone (VGG16/ResNet50)
+   - Ensambla cabeza de clasificación
+2. **Tuning** - Keras Tuner con Hyperband
+3. **Tracking** - MLflow registra todo
+4. **Guardado** - Versionado automático
+
+### Pipeline de Inferencia
+1. **Carga** - `src/pipelines/infer.py`
+2. **API** - `src/api/main.py`
+   - Endpoint `/predict`
+   - Endpoint `/batch-predict`
+3. **Respuesta** - JSON con probabilidades
+
+---
+
+## 📊 Sistema de Configuración
+
+### Gestión Centralizada con Pydantic
+
+```python
+from src.core.config import config
+
+# Acceso type-safe
+image_size = config.data.image_size        # (224, 224)
+batch_size = config.training.batch_size    # 32
+backbone = config.training.backbone        # 'VGG16'
+```
+
+Validación automática de:
+- Tipos de datos
+- Rangos de valores
+- Consistencia entre variables
+
+---
+
+## 🧪 Testing Automatizado
+
+**Cobertura:** ~90%  
+**Tests:** 10 archivos, 3,000+ líneas
+
 ```bash
-# Detener todos los contenedores
-docker-compose down
+# Ejecutar todos los tests
+docker-compose run --rm training pytest tests/ -v
 
-# Detener y eliminar volúmenes (⚠️ elimina datos y modelos)
-docker-compose down -v
+# Con detalles
+docker-compose run --rm training pytest tests/ -vv
 
-# Eliminar imagen
-docker-compose down --rmi all
+# Solo tests rápidos
+docker-compose run --rm training pytest tests/ -m "not slow"
 ```
 
-### Configuración Avanzada
+---
 
-**Soporte GPU (NVIDIA):**
+## 🔐 Seguridad
 
-1. Instalar [NVIDIA Container Toolkit](https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/install-guide.html)
+- ✅ Contenedores corren con usuario no-root
+- ✅ Variables sensibles en `.env` (no commiteado)
+- ✅ Multi-stage build minimiza superficie de ataque
+- ✅ Dependencias con versiones fijas
 
-2. Descomentar en `docker-compose.yml`:
+---
+
+## 📦 Volúmenes Docker
+
+Los datos y modelos persisten entre reinicios:
+
+```yaml
+volumes:
+  - ./data:/app/data           # Datos
+  - ./models:/app/models       # Modelos entrenados
+  - ./src:/app/src             # Código (solo lectura)
+```
+
+**Nota:** Los modelos entrenados se guardan en tu máquina local en `./models/`
+
+---
+
+## 🎛️ Configuración Avanzada
+
+### GPU Support (NVIDIA)
+
+Descomentar en `docker-compose.yml`:
+
 ```yaml
 training:
   deploy:
@@ -763,95 +591,184 @@ training:
             capabilities: [gpu]
 ```
 
-3. Ejecutar:
-```bash
-docker-compose --profile training up
-```
+Requiere: [NVIDIA Container Toolkit](https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/install-guide.html)
 
-**Limitar recursos:**
+### Limitar Recursos
 
-Editar `docker-compose.yml`:
 ```yaml
 training:
   deploy:
     resources:
       limits:
-        cpus: '4.0'      # 4 CPUs
-        memory: 8G       # 8GB RAM
-      reservations:
-        memory: 4G       # Reservar mínimo 4GB
-```
-
-**Volúmenes personalizados:**
-
-```bash
-# Usar datos de una ubicación diferente
-docker-compose run --rm \
-  -v /ruta/a/mis/datos:/app/data:ro \
-  training
-```
-
-### Mejores Prácticas
-
-1. **Desarrollo local + Docker para producción**:
-   - Desarrolla código localmente con tu IDE favorito
-   - Usa Docker para entrenar y desplegar
-   - Los volúmenes sincronizan automáticamente cambios
-
-2. **Gestión de datos**:
-   - Monta `./data` como volumen (no se copia a imagen)
-   - Modelos se guardan en `./models` (persistente)
-   - Usa `.dockerignore` para excluir archivos grandes
-
-3. **CI/CD**:
-   - GitHub Actions puede construir y publicar imágenes
-   - Usa multi-stage build para reducir tamaño
-   - Cachea layers para builds más rápidos
-
-4. **Seguridad**:
-   - Contenedores corren con usuario no-root
-   - Nunca incluyas `.env` en la imagen
-   - Usa secrets para credenciales sensibles
-
-### Troubleshooting Docker
-
-**Error: "Cannot connect to Docker daemon"**
-```bash
-# Iniciar Docker Desktop (macOS/Windows)
-# O iniciar servicio (Linux)
-sudo systemctl start docker
-```
-
-**Build muy lento:**
-```bash
-# Usar BuildKit para builds más rápidos
-DOCKER_BUILDKIT=1 docker-compose build
-```
-
-**Puerto en uso:**
-```bash
-# Cambiar puerto en docker-compose.yml
-ports:
-  - "5001:5000"  # MLflow en puerto 5001
-```
-
-**Espacio en disco:**
-```bash
-# Limpiar imágenes no utilizadas
-docker system prune -a
-
-# Ver uso de espacio
-docker system df
+        cpus: '4.0'
+        memory: 8G
 ```
 
 ---
 
-## Licencia
+## 🌐 Despliegue en Producción
+
+### Cloud Run (Google Cloud)
+
+```bash
+# Build y deploy
+gcloud builds submit --tag gcr.io/PROJECT-ID/corn-api
+gcloud run deploy corn-api \
+  --image gcr.io/PROJECT-ID/corn-api \
+  --platform managed \
+  --region us-central1 \
+  --memory 4Gi
+```
+
+### AWS ECS
+
+```bash
+# Push a ECR
+aws ecr get-login-password | docker login --username AWS --password-stdin ECR_URL
+docker tag corn-diseases-detection:latest ECR_URL/corn-api:latest
+docker push ECR_URL/corn-api:latest
+
+# Deploy en ECS (usar consola o Terraform)
+```
+
+### Heroku
+
+```bash
+heroku create corn-diseases-detection
+heroku stack:set container
+git push heroku main
+```
+
+---
+
+## 📚 Uso Programático
+
+### Pipeline de Inferencia
+
+```python
+from src.pipelines.infer import predict
+
+# Cargar imagen
+with open('hoja_maiz.jpg', 'rb') as f:
+    image_bytes = f.read()
+
+# Predecir
+result = predict(image_bytes)
+
+print(f"Enfermedad: {result['predicted_label']}")
+print(f"Confianza: {result['confidence']:.2%}")
+print(f"Probabilidades: {result['all_probabilities']}")
+```
+
+### Pipeline de Entrenamiento
+
+```python
+from src.pipelines.train import train
+
+# Entrenar con parámetros personalizados
+tuner, (X_test, y_test) = train(
+    backbone_name='ResNet50',
+    split_ratios=(0.7, 0.15, 0.15),
+    balanced='oversample'
+)
+```
+
+---
+
+## 🛠️ Desarrollo
+
+### Ejecutar Tests
+
+```bash
+docker-compose run --rm training pytest tests/ -v
+```
+
+### Acceder al Contenedor
+
+```bash
+# Shell interactiva
+docker-compose run --rm training bash
+
+# Explorar estructura
+ls -la /app/src
+```
+
+### Jupyter para Experimentación
+
+```bash
+# Iniciar Jupyter Lab
+docker-compose --profile notebook up -d
+
+# Acceder
+open http://localhost:8888
+
+# Notebooks en: experimentation/notebooks/
+```
+
+---
+
+## 📊 Monitoreo
+
+### Logs de Contenedores
+
+```bash
+# Logs en tiempo real
+docker-compose logs -f training
+
+# Últimas 100 líneas
+docker-compose logs --tail=100 api
+
+# Todos los servicios
+docker-compose logs -f
+```
+
+### Health Checks
+
+```bash
+# API
+curl http://localhost:8000/health
+
+# MLflow
+curl http://localhost:5000/health
+
+# En scripts
+docker-compose ps
+```
+
+---
+
+## 📖 Documentación Adicional
+
+- **API Docs:** http://localhost:8000/docs (Swagger)
+- **API ReDoc:** http://localhost:8000/redoc
+- **MLflow UI:** http://localhost:5000
+- **OpenAPI Schema:** http://localhost:8000/openapi.json
+
+---
+
+## 🤝 Contribuir
+
+1. Fork el repositorio
+2. Crea una rama (`git checkout -b feature/nueva-funcionalidad`)
+3. Haz tus cambios
+4. Ejecuta tests: `docker-compose run --rm training pytest tests/`
+5. Commit (`git commit -m 'feat: nueva funcionalidad'`)
+6. Push (`git push origin feature/nueva-funcionalidad`)
+7. Abre un Pull Request
+
+---
+
+## 📝 Licencia
 
 Este proyecto está bajo la licencia MIT.
 
 ---
 
-## Contacto
+## 🆘 Soporte
 
-Para preguntas o colaboraciones, por favor contactar a los mantenedores del proyecto.
+- **Issues:** [GitHub Issues](https://github.com/ojgonzalezz/corn-diseases-detection/issues)
+- **Repository:** [ojgonzalezz/corn-diseases-detection](https://github.com/ojgonzalezz/corn-diseases-detection)
+
+---
+
+**🌽 Desarrollado con Transfer Learning y Docker para máxima reproducibilidad**
