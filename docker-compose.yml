@@ -155,12 +155,11 @@ services:
   edge-experiments:
     <<: *base-service
     container_name: corn-diseases-edge-experiments
+    entrypoint: ["/bin/bash", "-c"]
     command: >
-      bash -c "
       python experiments/edge_models/train_all_models.py &&
       python experiments/edge_models/compare_models.py &&
       python experiments/edge_models/select_best_model.py
-      "
     profiles:
       - edge-experiments
       - edge
