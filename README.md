@@ -16,6 +16,10 @@ El proyecto se destaca por su rigurosa estrategia de preprocesamiento, que abord
 - Balanceo avanzado de clases (oversample/downsample)
 - Seguimiento de experimentos con MLflow
 - Optimización de hiperparámetros con Keras Tuner
+- Gestión de configuración validada con Pydantic
+- Sistema de logging profesional con colores
+- Suite completa de tests con pytest
+- Manejo robusto de excepciones con sugerencias de recuperación
 
 -----
 
@@ -94,6 +98,7 @@ corn-diseases-detection/
 │   │   └── builders.py       # Ensamblaje de la cabeza de clasificación para Keras Tuner
 │   ├── core/                 # Configuración y utilidades de entorno
 │   │   ├── load_env.py       # Carga de variables de entorno (.env)
+│   │   ├── config.py         # Gestión de configuración con Pydantic (validación)
 │   │   └── path_finder.py    # Detección de la ruta raíz del proyecto
 │   ├── pipelines/            # Scripts del ciclo de Machine Learning
 │   │   ├── data_pipeline.py  # Generación de DataGenerators para Keras
@@ -105,9 +110,19 @@ corn-diseases-detection/
 │       ├── aug_detectors.py    # Detección y filtrado de aumentaciones por Embedding
 │       ├── data_augmentator.py # Transformaciones espaciales para Oversampling
 │       ├── image_modifier.py   # Transformaciones de calidad (brillo, contraste, ruido)
-│       └── utils.py          # Utilidades misceláneas
+│       ├── utils.py            # Utilidades misceláneas (flatten_data, split, etc.)
+│       ├── paths.py            # Manejo centralizado de rutas del proyecto
+│       ├── logger.py           # Sistema de logging profesional con colores
+│       └── exceptions.py       # Excepciones personalizadas con sugerencias
+│
+├── tests/                    # Suite de pruebas con pytest
+│   ├── __init__.py
+│   ├── conftest.py           # Fixtures compartidas
+│   ├── test_preprocess.py    # Tests de preprocesamiento y split
+│   └── test_augmentation.py  # Tests de augmentación de imágenes
 │
 ├── requirements.txt
+├── pyproject.toml            # Configuración del proyecto (PEP 518)
 ├── README.md
 └── .gitignore
 ```
@@ -192,25 +207,52 @@ Editar `src/core/.env` para personalizar:
 
 ## Estrategia de Pruebas
 
-**Estado Actual:** El proyecto actualmente utiliza scripts de EDA en `experimentation/eda/` para validación de datos:
-- `validate_dataset.py`: Verifica la integridad de las imágenes y cuenta por clase
-- `explore_distribution.py`: Analiza las distribuciones de clases
-- `view_samples.py`: Inspección visual de muestras
+El proyecto cuenta con una suite completa de pruebas usando pytest:
 
-**Enfoque Recomendado para Pruebas:**
+### Ejecutar Tests
+
+```bash
+# Ejecutar todos los tests
+pytest
+
+# Ejecutar con cobertura
+pytest --cov=src --cov-report=html
+
+# Ejecutar solo tests específicos
+pytest tests/test_preprocess.py
+pytest tests/test_augmentation.py
+
+# Ejecutar tests con verbosidad
+pytest -v
+```
+
+### Tests Implementados
+
+**Tests de Preprocesamiento (`test_preprocess.py`):**
+- Validación de ratios de división estratificada
+- Verificación de proporciones correctas en train/val/test
+- Manejo de categorías vacías
+- Validación de la función `flatten_data`
+- Verificación de dimensiones y tipos de datos
+
+**Tests de Augmentación (`test_augmentation.py`):**
+- Preservación de dimensiones tras transformaciones
+- Validación de cada método de `ImageAugmentor`
+- Reproducibilidad con semillas fijas
+- Verificación de valores de píxeles en rango válido
+- Consistencia de etiquetas tras augmentación
+
+**Scripts de EDA (validación adicional):**
 ```bash
 # Validar integridad del dataset
 python experimentation/eda/validate_dataset.py
 
 # Verificar distribuciones de clases
 python experimentation/eda/explore_distribution.py
-```
 
-**Mejoras Futuras:**
-- Agregar directorio `tests/` con pytest
-- Pruebas unitarias para funciones de preprocesamiento
-- Pruebas de integración para el pipeline de entrenamiento
-- Pruebas de regresión de rendimiento del modelo
+# Inspección visual de muestras
+python experimentation/eda/view_samples.py
+```
 
 ---
 
@@ -238,9 +280,137 @@ models/exported/
 
 ---
 
+## Características Avanzadas
+
+### Gestión de Configuración con Pydantic
+
+El proyecto utiliza Pydantic para validación robusta de configuración:
+
+```python
+from src.core.config import config
+
+# Acceso type-safe a la configuración
+image_size = config.data.image_size  # (224, 224)
+batch_size = config.training.batch_size  # 32
+class_names = config.data.class_names  # ['Blight', ...]
+
+# Validación automática de tipos y valores
+# Si IMAGE_SIZE en .env es inválido, se lanza una excepción clara
+```
+
+**Beneficios:**
+- Validación automática de tipos
+- Valores por defecto razonables
+- Errores claros cuando la configuración es inválida
+- Autocompletado en IDEs
+
+### Sistema de Logging Profesional
+
+```python
+from src.utils.logger import get_logger, log_section, log_dict
+
+logger = get_logger(__name__)
+
+logger.info("Iniciando entrenamiento...")
+logger.warning("GPU no disponible, usando CPU")
+logger.error("Error al cargar datos")
+
+# Logging estructurado
+log_section(logger, "Configuración de Entrenamiento")
+log_dict(logger, {'lr': 0.001, 'epochs': 10}, "Hiperparámetros")
+```
+
+**Características:**
+- Colores en terminal para mejor legibilidad
+- Formato consistente en toda la aplicación
+- Opción de guardar logs en archivos
+- Niveles de logging configurables
+
+### Manejo Robusto de Excepciones
+
+Todas las excepciones incluyen sugerencias de recuperación:
+
+```python
+from src.utils.exceptions import NoModelToLoadError, DatasetNotFoundError
+
+try:
+    model = load_model('model.keras')
+except NoModelToLoadError as e:
+    print(e)
+    # Imprime:
+    # "No se encontró el modelo en: model.keras
+    #
+    # Sugerencia: Opciones:
+    #   1. Entrenar un modelo ejecutando: python -m src.pipelines.train
+    #   2. Verificar la ruta del modelo en la configuración
+    #   ..."
+```
+
+**Excepciones Disponibles:**
+- `DatasetNotFoundError`, `EmptyDatasetError`, `InvalidImageError`
+- `NoModelToLoadError`, `ModelLoadError`, `InvalidBackboneError`
+- `MissingConfigError`, `InvalidConfigError`, `NoLabelsError`
+- `GPUNotAvailableError`, `InsufficientMemoryError`
+- `TrainingDivergenceError`, `NoImprovementError`
+
+### Manejo Centralizado de Rutas
+
+```python
+from src.utils.paths import paths
+
+# Acceso limpio a rutas del proyecto
+data_dir = paths.data_raw
+models_dir = paths.models_exported
+mlruns = paths.mlruns
+
+# Crear directorios si no existen
+paths.ensure_dir(paths.models_exported)
+
+# Rutas relativas para logging
+print(f"Guardando en: {paths.relative_to_root(model_path)}")
+```
+
+---
+
+## Instalación y Desarrollo
+
+### Instalación Básica
+
+```bash
+# Clonar repositorio
+git clone https://github.com/ojgonzalezz/corn-diseases-detection.git
+cd corn-diseases-detection
+
+# Crear entorno virtual
+python -m venv venv
+source venv/bin/activate  # En Windows: venv\Scripts\activate
+
+# Instalar dependencias
+pip install -e .
+```
+
+### Instalación para Desarrollo
+
+```bash
+# Instalar con dependencias de desarrollo
+pip install -e ".[dev]"
+
+# Instalar todas las dependencias opcionales
+pip install -e ".[all]"
+```
+
+### Configuración de pre-commit (opcional)
+
+```bash
+pip install pre-commit
+pre-commit install
+```
+
+---
+
 ## Licencia
 
-Este proyecto está bajo la licencia especificada en el archivo LICENSE.
+Este proyecto está bajo la licencia MIT.
 
 ---
 

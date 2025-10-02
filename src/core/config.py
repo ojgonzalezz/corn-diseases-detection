@@ -1,0 +1,288 @@
+"""
+Gestión centralizada de configuración usando Pydantic.
+
+Este módulo proporciona validación de tipos y configuración robusta
+para todo el proyecto, reemplazando el manejo manual de variables de entorno.
+"""
+from typing import List, Tuple, Literal
+from pathlib import Path
+from pydantic import Field, field_validator, model_validator
+from pydantic_settings import BaseSettings, SettingsConfigDict
+
+
+class DataConfig(BaseSettings):
+    """Configuración relacionada con datos e imágenes."""
+
+    model_config = SettingsConfigDict(
+        env_file='src/core/.env',
+        env_file_encoding='utf-8',
+        extra='ignore'
+    )
+
+    # Parámetros de imagen
+    image_size: Tuple[int, int] = Field(
+        default=(224, 224),
+        description="Tamaño de las imágenes (ancho, alto)"
+    )
+
+    num_classes: int = Field(
+        default=4,
+        ge=2,
+        description="Número de clases a clasificar"
+    )
+
+    class_names: List[str] = Field(
+        default=['Blight', 'Common_Rust', 'Gray_Leaf_Spot', 'Healthy'],
+        description="Nombres de las clases"
+    )
+
+    # Parámetros de división de datos
+    split_ratios: Tuple[float, float, float] = Field(
+        default=(0.7, 0.15, 0.15),
+        description="Ratios de división (train, val, test)"
+    )
+
+    # Parámetros de augmentación
+    max_added_balance: int = Field(
+        default=50,
+        ge=0,
+        description="Máximo número de imágenes a agregar al balancear"
+    )
+
+    im_sim_threshold: float = Field(
+        default=0.95,
+        alias='im_sim_treshold',  # Tolerar typo en .env
+        ge=0.0,
+        le=1.0,
+        description="Umbral de similitud para detección de imágenes duplicadas"
+    )
+
+    datasets_consideration: List[str] = Field(
+        default=["no-augmentation", "augmented"],
+        description="Tipos de datasets a considerar"
+    )
+
+    @field_validator('class_names')
+    @classmethod
+    def validate_class_names(cls, v: List[str], info) -> List[str]:
+        """Valida que los nombres de clase coincidan con num_classes."""
+        num_classes = info.data.get('num_classes', 4)
+        if len(v) != num_classes:
+            raise ValueError(
+                f"El número de class_names ({len(v)}) debe coincidir "
+                f"con num_classes ({num_classes})"
+            )
+        return v
+
+    @field_validator('split_ratios')
+    @classmethod
+    def validate_split_ratios(cls, v: Tuple[float, float, float]) -> Tuple[float, float, float]:
+        """Valida que los ratios sumen aproximadamente 1.0."""
+        if abs(sum(v) - 1.0) > 0.01:
+            raise ValueError(
+                f"Los split_ratios deben sumar 1.0, suma actual: {sum(v):.4f}"
+            )
+        for ratio in v:
+            if not (0.0 < ratio < 1.0):
+                raise ValueError(
+                    f"Cada ratio debe estar entre 0 y 1, se encontró: {ratio}"
+                )
+        return v
+
+
+class TrainingConfig(BaseSettings):
+    """Configuración relacionada con entrenamiento de modelos."""
+
+    model_config = SettingsConfigDict(
+        env_file='src/core/.env',
+        env_file_encoding='utf-8',
+        extra='ignore'
+    )
+
+    # Hiperparámetros de entrenamiento
+    batch_size: int = Field(
+        default=32,
+        ge=1,
+        description="Tamaño del batch"
+    )
+
+    max_epochs: int = Field(
+        default=20,
+        ge=1,
+        description="Número máximo de épocas"
+    )
+
+    # Parámetros de Keras Tuner
+    max_trials: int = Field(
+        default=10,
+        ge=1,
+        description="Número máximo de trials para Keras Tuner"
+    )
+
+    tuner_epochs: int = Field(
+        default=10,
+        ge=1,
+        description="Épocas por trial en Keras Tuner"
+    )
+
+    factor: int = Field(
+        default=3,
+        ge=2,
+        description="Factor de reducción para Hyperband"
+    )
+
+    # Estrategia de balanceo
+    balance_strategy: Literal["oversample", "downsample", "none"] = Field(
+        default="oversample",
+        description="Estrategia de balanceo de clases"
+    )
+
+    # Arquitectura del modelo
+    backbone: Literal["VGG16", "ResNet50", "YOLO"] = Field(
+        default="VGG16",
+        description="Arquitectura base del modelo"
+    )
+
+
+class ProjectConfig(BaseSettings):
+    """Configuración general del proyecto."""
+
+    model_config = SettingsConfigDict(
+        env_file='src/core/.env',
+        env_file_encoding='utf-8',
+        extra='ignore'
+    )
+
+    # Información del proyecto
+    project_name: str = Field(
+        default="corn-diseases-detection",
+        description="Nombre del proyecto"
+    )
+
+    version: str = Field(
+        default="0.1.0",
+        description="Versión del proyecto"
+    )
+
+    # Configuración de logging
+    log_level: Literal["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"] = Field(
+        default="INFO",
+        description="Nivel de logging"
+    )
+
+    log_to_file: bool = Field(
+        default=False,
+        description="Si se debe guardar logs en archivo"
+    )
+
+    # Configuración de MLflow
+    mlflow_experiment_name: str = Field(
+        default="image_classification_experiment",
+        description="Nombre del experimento en MLflow"
+    )
+
+    # Semilla para reproducibilidad
+    random_seed: int = Field(
+        default=42,
+        ge=0,
+        description="Semilla para reproducibilidad"
+    )
+
+
+class Config:
+    """
+    Clase principal de configuración que agrupa todas las sub-configuraciones.
+
+    Esta clase proporciona acceso unificado a toda la configuración del proyecto,
+    con validación automática y valores por defecto razonables.
+
+    Example:
+        >>> from src.core.config import config
+        >>> print(config.data.image_size)
+        (224, 224)
+        >>> print(config.training.batch_size)
+        32
+        >>> print(config.project.project_name)
+        'corn-diseases-detection'
+    """
+
+    def __init__(self):
+        """Inicializa todas las sub-configuraciones."""
+        self._data = None
+        self._training = None
+        self._project = None
+
+    @property
+    def data(self) -> DataConfig:
+        """Configuración de datos."""
+        if self._data is None:
+            self._data = DataConfig()
+        return self._data
+
+    @property
+    def training(self) -> TrainingConfig:
+        """Configuración de entrenamiento."""
+        if self._training is None:
+            self._training = TrainingConfig()
+        return self._training
+
+    @property
+    def project(self) -> ProjectConfig:
+        """Configuración del proyecto."""
+        if self._project is None:
+            self._project = ProjectConfig()
+        return self._project
+
+    def reload(self):
+        """Recarga toda la configuración desde archivos."""
+        self._data = None
+        self._training = None
+        self._project = None
+
+    def to_dict(self) -> dict:
+        """
+        Exporta toda la configuración como diccionario.
+
+        Returns:
+            dict: Configuración completa.
+        """
+        return {
+            'data': self.data.model_dump(),
+            'training': self.training.model_dump(),
+            'project': self.project.model_dump()
+        }
+
+    def __repr__(self) -> str:
+        """Representación legible de la configuración."""
+        return (
+            f"Config(\n"
+            f"  data={self.data.model_dump()},\n"
+            f"  training={self.training.model_dump()},\n"
+            f"  project={self.project.model_dump()}\n"
+            f")"
+        )
+
+
+# Instancia global para uso en todo el proyecto
+config = Config()
+
+
+# Funciones de conveniencia para retrocompatibilidad
+def get_image_size() -> Tuple[int, int]:
+    """Obtiene el tamaño de imagen configurado."""
+    return config.data.image_size
+
+
+def get_num_classes() -> int:
+    """Obtiene el número de clases."""
+    return config.data.num_classes
+
+
+def get_class_names() -> List[str]:
+    """Obtiene los nombres de las clases."""
+    return config.data.class_names
+
+
+def get_batch_size() -> int:
+    """Obtiene el tamaño de batch."""
+    return config.training.batch_size
