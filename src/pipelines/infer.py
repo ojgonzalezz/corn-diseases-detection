@@ -47,7 +47,7 @@ try:
     if not MODEL_PATH.exists():
         raise NoModelToLoadError(f"Model file not found at {MODEL_PATH}")
 except NoModelToLoadError as e:
-    print(f"⚠️ Warning: {e}")
+    print(f"[ADVERTENCIA] Warning: {e}")
     MODEL_PATH = None
 
 try:
@@ -56,7 +56,7 @@ try:
         raise NoLabelsError("CLASS_NAMES not found in environment variables")
     _labels = ast.literal_eval(LABELS)
 except (NoLabelsError, KeyError, ValueError, SyntaxError) as e:
-    print(f"⚠️ Warning: Could not load labels - {e}")
+    print(f"[ADVERTENCIA] Warning: Could not load labels - {e}")
     _labels = None
 
 # Get NUM_CLASSES from config
@@ -64,7 +64,7 @@ try:
     NUM_CLASSES = int(env_vars.get("NUM_CLASSES", 4))
 except (ValueError, TypeError):
     NUM_CLASSES = 4
-    print(f"⚠️ Warning: Could not parse NUM_CLASSES. Using default: {NUM_CLASSES}")
+    print(f"[ADVERTENCIA] Warning: Could not parse NUM_CLASSES. Using default: {NUM_CLASSES}")
 
 # --- Carga de modelo ---
 _model = None
@@ -73,12 +73,12 @@ if MODEL_PATH and MODEL_PATH.exists():
         with tf.device('/CPU:0'):
             # Dentro de este bloque, todas las operaciones se ejecutarán en la CPU
             _model = tf.keras.models.load_model(MODEL_PATH)
-        print(f"✅ Model loaded successfully from {MODEL_PATH}")
+        print(f"[OK] Model loaded successfully from {MODEL_PATH}")
     except Exception as e:
-        print(f"❌ Error loading model: {e}")
+        print(f"[ERROR] Error loading model: {e}")
         _model = None
 else:
-    print("⚠️ Warning: Model path not set or file doesn't exist. Inference will not work until model is trained.")
+    print("[ADVERTENCIA] Warning: Model path not set or file doesn't exist. Inference will not work until model is trained.")
 
 
 # ---- Image preprocessing ----
@@ -118,11 +118,11 @@ def predict(file_bytes: bytes):
         expected_classes = NUM_CLASSES  # Get from config instead of hardcoded
 
         if num_classes != expected_classes:
-            print(f"⚠️  Advertencia: Modelo devuelve {num_classes} clases, esperaba {expected_classes}")
+            print(f"[ADVERTENCIA]  Advertencia: Modelo devuelve {num_classes} clases, esperaba {expected_classes}")
         
         if _labels:
             if len(_labels) != expected_classes:
-                print(f"⚠️  Advertencia: {len(_labels)} labels para {expected_classes} clases")
+                print(f"[ADVERTENCIA]  Advertencia: {len(_labels)} labels para {expected_classes} clases")
             label = _labels[idx] if idx < len(_labels) else f"class_{idx}"
         else:
             label = str(idx)

@@ -31,7 +31,7 @@ def load_raw_data():
     manteniendo la separación e incluyendo las consideraciones de balanceo.
     """
     
-    print("🔎 Inicializando adaptador de rutas y variables de entorno...")
+    print("[BUSQUEDA] Inicializando adaptador de rutas y variables de entorno...")
     
     # 1. Inicializar Path Finder y Environment Loader
     pp = ProjectPaths(data_subpath=("data", "raw")) 
@@ -48,7 +48,7 @@ def load_raw_data():
         if not isinstance(datasets_consideration, (list, tuple)):
              raise ValueError("DATASETS_CONSIDERATION no es una lista/tupla válida.")
     except (ValueError, SyntaxError, TypeError) as e:
-        print(f"❌ ERROR: Fallo al parsear DATASETS_CONSIDERATION. Error: {e}")
+        print(f"[ERROR] ERROR: Fallo al parsear DATASETS_CONSIDERATION. Error: {e}")
         datasets_consideration = [] # Fallback seguro
 
     # 3. Inicializar la estructura de datos final
@@ -73,7 +73,7 @@ def load_raw_data():
         
         dataset_path_structure = data_paths[dataset_key]
         
-        print(f"\n📂 Procesando dataset: {dataset_key} (Consideración: {consideration})")
+        print(f"\n[INFO] Procesando dataset: {dataset_key} (Consideración: {consideration})")
 
         # 5. Iterar sobre las categorías (Blight, Common_Rust, etc.)
         for category, path in dataset_path_structure.items():
@@ -86,17 +86,17 @@ def load_raw_data():
                 # Se asume que 'load_images_from_folder' convierte las imágenes en objetos PIL.Image
                 images = load_images_from_folder(path)
                 raw_data[dataset_key]["images"][category] = images
-                print(f"  ✅ '{category}' cargadas: {len(images)} imágenes.")
+                print(f"  [OK] '{category}' cargadas: {len(images)} imágenes.")
             except Exception as e:
-                print(f"  ❌ Fallo al cargar '{category}' en {dataset_key}: {e}")
+                print(f"  [ERROR] Fallo al cargar '{category}' en {dataset_key}: {e}")
                 # Mantener la entrada vacía para indicar el fallo
                 raw_data[dataset_key]["images"][category] = [] 
 
     # 6. Finalización
     if any(len(d["images"]) > 0 for d in raw_data.values()):
-        print("\n✅ Las imágenes de todos los datasets considerados se han cargado exitosamente.")
+        print("\n[OK] Las imágenes de todos los datasets considerados se han cargado exitosamente.")
     else:
-        print("\n⚠️ No se cargó ninguna imagen. Verifique las rutas o el contenido de las carpetas.")
+        print("\n[ADVERTENCIA] No se cargó ninguna imagen. Verifique las rutas o el contenido de las carpetas.")
         
     return raw_data
 

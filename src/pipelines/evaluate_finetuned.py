@@ -41,7 +41,7 @@ def evaluate_model(model_filename: str, split_ratios=(0.7, 0.15, 0.15)):
         raise FileNotFoundError(f"El modelo no fue encontrado en '{MODEL_PATH}'. Verifica el nombre del archivo.")
 
     # --- 2. CARGAR Y PREPARAR EL CONJUNTO DE PRUEBA ---
-    print("\n📦 Cargando y preparando los datos de prueba en memoria...")
+    print("\n[CARGA] Cargando y preparando los datos de prueba en memoria...")
     
     # Cargar el dataset usando la función de preprocesamiento
     raw_dataset = split_and_balance_dataset(
@@ -60,14 +60,14 @@ def evaluate_model(model_filename: str, split_ratios=(0.7, 0.15, 0.15)):
     label_to_int = {label: i for i, label in enumerate(class_names)}
     y_test = np.array([label_to_int[l] for l in y_test_labels])
     
-    print("✅ Datos de prueba cargados y listos para evaluación.")
+    print("[OK] Datos de prueba cargados y listos para evaluación.")
 
     # --- 3. CARGAR EL MODELO Y EVALUAR ---
-    print(f"\n🧠 Cargando el modelo desde: '{MODEL_PATH.name}'")
+    print(f"\n[ML] Cargando el modelo desde: '{MODEL_PATH.name}'")
     model = tf.keras.models.load_model(MODEL_PATH)
 
     print("\n" + "="*70)
-    print("📊 Evaluando el modelo en el conjunto de prueba...")
+    print("[EVAL] Evaluando el modelo en el conjunto de prueba...")
     print("="*70)
     
     # Evaluación con los datos en arrays
@@ -77,7 +77,7 @@ def evaluate_model(model_filename: str, split_ratios=(0.7, 0.15, 0.15)):
 
     # --- 4. GENERAR MATRIZ DE CONFUSIÓN Y REPORTE ---
     print("\n" + "="*70)
-    print("📈 Generando reporte de clasificación y matriz de confusión...")
+    print("[GRAFICO] Generando reporte de clasificación y matriz de confusión...")
     print("="*70)
 
     predictions = model.predict(X_test)
@@ -130,7 +130,7 @@ def augmented_evaluation(model_filename: str, aug_type="spacial"):
         raise FileNotFoundError(f"El modelo no fue encontrado en '{MODEL_PATH}'. Verifica el nombre del archivo.")
 
     # --- 2. CARGAR Y PREPARAR EL CONJUNTO DE PRUEBA ---
-    print("\n📦 Cargando y preparando los datos de prueba en memoria...")
+    print("\n[CARGA] Cargando y preparando los datos de prueba en memoria...")
     
     raw_dataset = split_and_balance_dataset(
         # Solo necesitas cargar el set de prueba para la evaluacion
@@ -155,31 +155,31 @@ def augmented_evaluation(model_filename: str, aug_type="spacial"):
     label_to_int = {label: i for i, label in enumerate(class_names)}
     y_test_original = np.array([label_to_int[l] for l in y_test_labels])
     
-    # 💥 Aplicar data augmentation al conjunto de prueba original
+    # [PROCESO] Aplicar data augmentation al conjunto de prueba original
     X_test_augmented, y_test_augmented = augmenter.augment_dataset(
         images=X_test_original,
         labels=y_test_original,
         p=0.4
     )
     
-    print("✅ Datos de prueba originales y aumentados listos para la evaluación.")
+    print("[OK] Datos de prueba originales y aumentados listos para la evaluación.")
 
     # --- 3. CARGAR EL MODELO Y EVALUAR ---
-    print(f"\n🧠 Cargando el modelo desde: '{MODEL_PATH.name}'")
+    print(f"\n[ML] Cargando el modelo desde: '{MODEL_PATH.name}'")
     model = tf.keras.models.load_model(MODEL_PATH)
 
     print("\n" + "="*70)
-    print("📊 Evaluando el modelo en el conjunto de prueba AUMENTADO...")
+    print("[EVAL] Evaluando el modelo en el conjunto de prueba AUMENTADO...")
     print("="*70)
     
-    # ⭐ La evaluación y predicción se hacen sobre los datos aumentados ⭐
+    # [NOTA] La evaluación y predicción se hacen sobre los datos aumentados [NOTA]
     loss, accuracy = model.evaluate(x=X_test_augmented, y=tf.keras.utils.to_categorical(y_test_augmented))
     print(f"\nExactitud en el conjunto de prueba AUMENTADO: {accuracy * 100:.2f}%")
     print(f"Pérdida en el conjunto de prueba AUMENTADO: {loss:.4f}")
 
     # --- 4. GENERAR MATRIZ DE CONFUSIÓN Y REPORTE ---
     print("\n" + "="*70)
-    print("📈 Generando reporte de clasificación y matriz de confusión (con datos AUMENTADOS)...")
+    print("[GRAFICO] Generando reporte de clasificación y matriz de confusión (con datos AUMENTADOS)...")
     print("="*70)
 
     predictions = model.predict(X_test_augmented)

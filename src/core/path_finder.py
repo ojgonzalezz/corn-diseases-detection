@@ -26,7 +26,7 @@ class ProjectPaths:
         self.data_path = self.project_root.joinpath(*data_subpath)
 
         if not self.data_path.exists():
-            raise FileNotFoundError(f"❌ No existe la ruta esperada: {self.data_path}")
+            raise FileNotFoundError(f"[ERROR] No existe la ruta esperada: {self.data_path}")
 
         # Construir automáticamente la estructura JSON de rutas
         self.rutas_data = self._build_structure(self.data_path)
@@ -77,7 +77,7 @@ class ProjectPaths:
         """
         Imprime información sobre la carpeta de datos y sus subcarpetas.
         """
-        print("📂 Estructura detectada en data:")
+        print("[INFO] Estructura detectada en data:")
         self._print_dict(self.rutas_data)
 
     def _print_dict(self, d: Dict, indent: int = 0):

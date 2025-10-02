@@ -82,7 +82,7 @@ def detect_similar_images_embeddings(datasets, threshold=0.95):
     embeddings_store = {} # Almacena {uid: embedding} para la comparación
     pairs = {} # Almacena el resultado final {dataset_key: {category: List}}
 
-    print("🔎 Fase 1: Generando Embeddings para datasets 'augmented'...")
+    print("[BUSQUEDA] Fase 1: Generando Embeddings para datasets 'augmented'...")
 
     # 2. Generar embeddings SOLAMENTE para datasets 'augmented'
     for dataset_key, dataset in datasets.items():
@@ -108,11 +108,11 @@ def detect_similar_images_embeddings(datasets, threshold=0.95):
                     embeddings_store[category].append(emb)
                     uid_map.append(uid)
                 except Exception as e:
-                    print(f"❌ Error al generar embedding para {uid}: {e}")
+                    print(f"[ERROR] Error al generar embedding para {uid}: {e}")
                     # No añadimos este embedding ni su UID si falla
 
             # 3. Comparar Embeddings y detectar pares
-            print(f"  ✨ Comparando {len(embeddings_store[category])} embeddings en '{dataset_key}/{category}'...")
+            print(f"  [INFO] Comparando {len(embeddings_store[category])} embeddings en '{dataset_key}/{category}'...")
             
             if len(embeddings_store[category]) < 2:
                 pairs[dataset_key][category] = []
@@ -130,7 +130,7 @@ def detect_similar_images_embeddings(datasets, threshold=0.95):
                         detected_pairs.append((uid_map[i], uid_map[j], sims[i, j]))
 
             pairs[dataset_key][category] = detected_pairs
-            print(f"  ✅ Pares detectados: {len(detected_pairs)} pares encontrados.")
+            print(f"  [OK] Pares detectados: {len(detected_pairs)} pares encontrados.")
             
     return pairs
 
@@ -152,7 +152,7 @@ def filter_similar_images(datasets: Dict[str, Any], threshold=0.95) -> Dict[str,
     Returns:
         Dict: Una nueva estructura de datasets con imágenes duplicadas eliminadas.
     """
-    print("🔬 Fase de Filtrado: Detectando y eliminando imágenes similares (duplicados).")
+    print("[CONFIG] Fase de Filtrado: Detectando y eliminando imágenes similares (duplicados).")
 
     # 1. Ejecutar la detección de pares similares
     # Se usa el umbral por defecto (0.95) o se ajusta si es necesario
@@ -174,7 +174,7 @@ def filter_similar_images(datasets: Dict[str, Any], threshold=0.95) -> Dict[str,
                     # Esto garantiza que al menos una versión se mantenga.
                     uids_to_remove.add(uid2)
 
-    print(f"🗑️ Total de imágenes a remover (duplicados detectados): {len(uids_to_remove)}")
+    print(f"[ELIMINAR] Total de imágenes a remover (duplicados detectados): {len(uids_to_remove)}")
     
     # 3. Construir el nuevo dataset filtrado
     filtered_datasets = {}
@@ -207,9 +207,9 @@ def filter_similar_images(datasets: Dict[str, Any], threshold=0.95) -> Dict[str,
             removed_count = len(img_list) - kept_count
             print(f"  [{dataset_key}/{category}] Mantenidas: {kept_count}, Eliminadas: {removed_count}")
 
-    print("✅ Filtrado de duplicados completado. Los datasets filtrados han sido retornados.")
+    print("[OK] Filtrado de duplicados completado. Los datasets filtrados han sido retornados.")
 
-    print("\n📦 Iniciando exportación a 'data/processed'...")
+    print("\n[CARGA] Iniciando exportación a 'data/processed'...")
     try:
         # Se asume que el script está en src/utils/
         PROJECT_ROOT = pathlib.Path(__file__).resolve().parent.parent.parent
@@ -243,7 +243,7 @@ def filter_similar_images(datasets: Dict[str, Any], threshold=0.95) -> Dict[str,
                     # Guardar la imagen (asumimos que es un objeto PIL.Image)
                     img.save(file_path)
                 except Exception as e:
-                    print(f"    ⚠️ Fallo al guardar {file_name}: {e}")
+                    print(f"    [ADVERTENCIA] Fallo al guardar {file_name}: {e}")
 
-    print("✅ Exportación a 'data/processed' completada.")
+    print("[OK] Exportación a 'data/processed' completada.")
     return filtered_datasets

@@ -29,7 +29,7 @@ def create_data_generators(base_dir, image_size=(224, 224), batch_size=32):
         raise FileNotFoundError(f"El subdirectorio 'train' no fue encontrado en '{base_dir}'. "
                                 "Asegúrate de que la división del dataset se completó correctamente.")
 
-    print("🚀 Configurando generador de entrenamiento con aumento de datos...")
+    print("[INICIO] Configurando generador de entrenamiento con aumento de datos...")
     train_datagen = tf.keras.preprocessing.image.ImageDataGenerator(
         #rescale=1./255,
         #rotation_range=40,
@@ -51,7 +51,7 @@ def create_data_generators(base_dir, image_size=(224, 224), batch_size=32):
         fill_mode='nearest'
     )
 
-    print("🔬 Configurando generadores de validación y prueba (solo normalización)...")
+    print("[CONFIG] Configurando generadores de validación y prueba (solo normalización)...")
     validation_test_datagen = tf.keras.preprocessing.image.ImageDataGenerator(rescale=1./255)
 
     train_generator = train_datagen.flow_from_directory(
@@ -76,12 +76,12 @@ def create_data_generators(base_dir, image_size=(224, 224), batch_size=32):
         shuffle=False
     )
     
-    print("\n✅ Generadores de datos creados exitosamente.")
+    print("\n[OK] Generadores de datos creados exitosamente.")
     return train_generator, validation_generator, test_generator
 
 def plot_augmented_images(generator):
     """Función de utilidad para visualizar el efecto del Data Augmentation."""
-    print("\n🎨 Mostrando ejemplos de imágenes aumentadas del primer lote de entrenamiento:")
+    print("\n[VISUAL] Mostrando ejemplos de imágenes aumentadas del primer lote de entrenamiento:")
     images, labels = next(generator)
     
     plt.figure(figsize=(12, 12))
@@ -112,12 +112,12 @@ if __name__ == '__main__':
         SPLIT_DATA_DIR = dir_standard
     else:
         raise FileNotFoundError(
-            f"❌ No se encontró el directorio de datos divididos. \n"
+            f"[ERROR] No se encontró el directorio de datos divididos. \n"
             f"Asegúrate de haber ejecutado 'preprocessing/preprocess.py' y que la carpeta "
             f"'{dir_balanced.name}' o '{dir_standard.name}' exista en el directorio raíz del proyecto."
         )
     
-    print(f"✅ Directorio de datos encontrado: '{SPLIT_DATA_DIR.name}'")
+    print(f"[OK] Directorio de datos encontrado: '{SPLIT_DATA_DIR.name}'")
     
     IMAGE_SIZE = (224, 224)
     BATCH_SIZE = 32

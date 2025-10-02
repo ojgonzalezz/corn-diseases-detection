@@ -69,7 +69,7 @@ def train(backbone_name: str = 'VGG16', split_ratios: tuple = (0.7, 0.15, 0.15),
     mlruns_uri = f"file:///{os.path.abspath(MLRUNS_PATH).replace(os.sep, '/')}"
     mlflow.set_tracking_uri(mlruns_uri)
 
-    print("📂 Tracking URI actual:", mlflow.get_tracking_uri())
+    print("[INFO] Tracking URI actual:", mlflow.get_tracking_uri())
 
     # Asegurar que el experimento existe
     experiment_name = "image_classification_experiment"
@@ -92,7 +92,7 @@ def train(backbone_name: str = 'VGG16', split_ratios: tuple = (0.7, 0.15, 0.15),
             raise TypeError("IMAGE_SIZE must be a sequence of length 2.")
 
     except (ValueError, SyntaxError, TypeError) as e:
-        print(f"❌ Error: La variable de entorno IMAGE_SIZE no es válida. Usando valor por defecto. Error: {e}")
+        print(f"[ERROR] Error: La variable de entorno IMAGE_SIZE no es válida. Usando valor por defecto. Error: {e}")
         IMAGE_SIZE = (224, 224)
 
 
@@ -110,7 +110,7 @@ def train(backbone_name: str = 'VGG16', split_ratios: tuple = (0.7, 0.15, 0.15),
     print(f"Número de clases: {NUM_CLASSES}")
 
     # --- 3. CARGAR Y PREPARAR LOS DATOS ---
-    print("\n📦 Cargando y preparando los datos en memoria...")
+    print("\n[CARGA] Cargando y preparando los datos en memoria...")
     
     raw_dataset = split_and_balance_dataset(
         balanced=balanced,
@@ -142,10 +142,10 @@ def train(backbone_name: str = 'VGG16', split_ratios: tuple = (0.7, 0.15, 0.15),
     y_val = tf.keras.utils.to_categorical(y_val, num_classes=NUM_CLASSES)
     y_test = tf.keras.utils.to_categorical(y_test, num_classes=NUM_CLASSES)
     
-    print("✅ Datos convertidos a tensores de NumPy.")
+    print("[OK] Datos convertidos a tensores de NumPy.")
     
     # --- 4. INICIALIZAR EL MODEL BUILDER E INSTANCIAR EL TUNER ---
-    print("\n🛠️  Inicializando el constructor de modelos para el Tuner...")
+    print("\n[CONFIG]  Inicializando el constructor de modelos para el Tuner...")
     
     hypermodel = ModelBuilder(
         backbone_name=backbone_name,
@@ -169,7 +169,7 @@ def train(backbone_name: str = 'VGG16', split_ratios: tuple = (0.7, 0.15, 0.15),
     tuner.search_space_summary()
     
     # --- 5. CONFIGURAR CALLBACKS ---
-    print("\n⚙️  Configurando Callbacks para la búsqueda...")
+    print("\n[CONFIG]  Configurando Callbacks para la búsqueda...")
     
     checkpoint_cb = ModelCheckpoint(
         filepath=tuner_dir / 'best_trial_model.keras',
@@ -192,7 +192,7 @@ def train(backbone_name: str = 'VGG16', split_ratios: tuple = (0.7, 0.15, 0.15),
 
     # --- 6. EJECUTAR LA BÚSQUEDA DE HIPERPARÁMETROS CON MLflow ---
     print("\n" + "="*70)
-    print("🚀 ¡Comenzando la búsqueda de hiperparámetros con MLflow!")
+    print("[INICIO] ¡Comenzando la búsqueda de hiperparámetros con MLflow!")
     print("="*70)
 
     # Iniciar un run de MLflow que encapsula toda la búsqueda
@@ -208,7 +208,7 @@ def train(backbone_name: str = 'VGG16', split_ratios: tuple = (0.7, 0.15, 0.15),
 
         # Al terminar, log de cada trial manualmente
         print("\n" + "="*70)
-        print("📊 Registrando métricas con MLflow:")
+        print("[EVAL] Registrando métricas con MLflow:")
         for trial in tuner.oracle.trials.values():
             with mlflow.start_run(nested=True, run_name=f"trial-{trial.trial_id}"):
                 for hp_name, hp_value in trial.hyperparameters.values.items():
@@ -244,25 +244,25 @@ def train(backbone_name: str = 'VGG16', split_ratios: tuple = (0.7, 0.15, 0.15),
     best_model = tuner.get_best_models(num_models=1)[0]
 
     if best_hps:
-        print("\n✅ Best Hyperparameters found. Report in progress.")
+        print("\n[OK] Best Hyperparameters found. Report in progress.")
     else:
-        print("⚠️ No se encontraron hiperparámetros óptimos, usando los iniciales por defecto")
+        print("[ADVERTENCIA] No se encontraron hiperparámetros óptimos, usando los iniciales por defecto")
         best_hps = tuner.oracle.get_space().get_hyperparameters()  
 
     with mlflow.start_run(run_name=f"{backbone_name}_best_model", nested=True):
-        print("\n📊 Evaluando el mejor modelo en el conjunto de prueba...")
+        print("\n[EVAL] Evaluando el mejor modelo en el conjunto de prueba...")
         test_loss, test_acc = best_model.evaluate(x=X_test, y=y_test)
-        print(f"\n✅ Precisión en el conjunto de prueba: {test_acc:.4f}")
+        print(f"\n[OK] Precisión en el conjunto de prueba: {test_acc:.4f}")
         mlflow.log_params(best_hps.values)
         mlflow.keras.log_model(best_model, "final_corn_model")
         mlflow.log_metric("test_accuracy", test_acc)
 
-    print(f"\n🏆 El mejor modelo se encontró con los siguientes hiperparámetros:")
+    print(f"\n[RESULTADO] El mejor modelo se encontró con los siguientes hiperparámetros:")
     for hp_name, value in best_hps.values.items():
         print(f"   - {hp_name}: {value}")
 
     print("\n" + "="*70)
-    print("✅ ¡Búsqueda de hiperparámetros completada exitosamente!")
+    print("[OK] ¡Búsqueda de hiperparámetros completada exitosamente!")
     print("="*70)
 
     exported_model_dir = PROJECT_ROOT / 'models' / 'exported'
@@ -275,12 +275,12 @@ def train(backbone_name: str = 'VGG16', split_ratios: tuple = (0.7, 0.15, 0.15),
     # Save versioned model
     versioned_model_path = exported_model_dir / f'{backbone_name}_{timestamp}_acc{test_acc:.4f}.keras'
     best_model.save(versioned_model_path)
-    print(f"\n💾 Modelo versionado guardado en: {versioned_model_path}")
+    print(f"\n[GUARDADO] Modelo versionado guardado en: {versioned_model_path}")
 
     # Also save as "best" for easy loading
     best_model_path = exported_model_dir / f'best_{backbone_name}.keras'
     best_model.save(best_model_path)
-    print(f"💾 Modelo 'best' actualizado en: {best_model_path}")
+    print(f"[GUARDADO] Modelo 'best' actualizado en: {best_model_path}")
 
     # Save hyperparameters as JSON
     import json
@@ -298,14 +298,14 @@ def train(backbone_name: str = 'VGG16', split_ratios: tuple = (0.7, 0.15, 0.15),
     metadata_path = exported_model_dir / f'{backbone_name}_{timestamp}_metadata.json'
     with open(metadata_path, 'w') as f:
         json.dump(metadata, f, indent=2)
-    print(f"📄 Metadatos guardados en: {metadata_path}")
+    print(f"[ARCHIVO] Metadatos guardados en: {metadata_path}")
 
     # --- 8. EVALUAR EL MEJOR MODELO EN EL CONJUNTO DE PRUEBA ---
     print("\n" + "="*70)
-    print("📊 Evaluando el mejor modelo en el conjunto de prueba...")
+    print("[EVAL] Evaluando el mejor modelo en el conjunto de prueba...")
     print("="*70)
     
     test_loss, test_acc = best_model.evaluate(x=X_test, y=y_test)
-    print(f"\n✅ Precisión en el conjunto de prueba: {test_acc:.4f}")
+    print(f"\n[OK] Precisión en el conjunto de prueba: {test_acc:.4f}")
     
     return tuner, (X_test, y_test)

@@ -63,7 +63,7 @@ class ModelBuilder(kt.HyperModel):
 
         # --- 2. Congelar el Backbone ---
         base_model.trainable = False
-        print(f"✅ Backbone '{self.backbone_name}' cargado y congelado.")
+        print(f"[OK] Backbone '{self.backbone_name}' cargado y congelado.")
         
         # --- 3. Construir la Cabeza de Clasificación ---
         model = models.Sequential()
@@ -96,6 +96,6 @@ class ModelBuilder(kt.HyperModel):
             metrics=self.metrics
         )
         
-        print("✅ Modelo final construido y compilado.")
+        print("[OK] Modelo final construido y compilado.")
         return model
     

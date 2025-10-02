@@ -47,7 +47,7 @@ def data_split(datasets: Dict[str, Any], environment_variables: Dict[str, Any]) 
             raise ValueError("CLASS_NAMES no contiene categorías válidas.")
     except (ValueError, SyntaxError, KeyError) as e:
         # Fallback robusto: Derivar categorías directamente de los datos
-        print(f"⚠️ Warning: Could not parse CLASS_NAMES from env ({e}). Deriving from data...")
+        print(f"[ADVERTENCIA] Warning: Could not parse CLASS_NAMES from env ({e}). Deriving from data...")
         categories = set()
         for dataset_key in datasets.keys():
             categories.update(datasets[dataset_key]["images"].keys())
@@ -60,25 +60,25 @@ def data_split(datasets: Dict[str, Any], environment_variables: Dict[str, Any]) 
             raise ValueError("Los ratios deben ser una tupla de 3 elementos que sumen 1.0.")
     except (ValueError, SyntaxError, TypeError) as e:
         split_ratios = (0.7, 0.15, 0.15)
-        print(f"⚠️ Split ratios: Error al cargar ({e}). Usando el tuple de emergencia: {split_ratios}")
+        print(f"[ADVERTENCIA] Split ratios: Error al cargar ({e}). Usando el tuple de emergencia: {split_ratios}")
         
     # 1c. Carga de umbral de similaridad (threshold)
     try:
         sim_treshold = float(ast.literal_eval(env_varss.get("IM_SIM_TRESHOLD", "0.95")))
     except (ValueError, SyntaxError, TypeError) as e:
         sim_treshold = 0.95
-        print(f"⚠️ Umbral de similaridad: Error al cargar ({e}). Usando el valor por defecto: {sim_treshold}")
+        print(f"[ADVERTENCIA] Umbral de similaridad: Error al cargar ({e}). Usando el valor por defecto: {sim_treshold}")
 
 
-    print(f"📊 Configuración de Split: Ratios={split_ratios}, Umbral de Filtrado={sim_treshold}")
+    print(f"[EVAL] Configuración de Split: Ratios={split_ratios}, Umbral de Filtrado={sim_treshold}")
     raw_keys_to_iterate = [key for key in datasets.keys() if key.startswith("data_")]
 
     # 2. De-aumentar (filtrar) imágenes duplicadas
-    print("\n🔍 Fase 1: Filtrando imágenes similares (De-augmentación)...")
+    print("\n[BUSQUEDA] Fase 1: Filtrando imágenes similares (De-augmentación)...")
     datasets_aug_filtered = filter_similar_images(datasets, sim_treshold) # Asume que filter_similar_images acepta el threshold
 
     # 3. Inicialización y Unificación del Dataset
-    print("🔄 Fase 2: Unificando datasets por categoría...")
+    print("[PROCESO] Fase 2: Unificando datasets por categoría...")
     all_images_dataset = {
         cat: [] for cat in categories
     }
@@ -99,10 +99,10 @@ def data_split(datasets: Dict[str, Any], environment_variables: Dict[str, Any]) 
 
 
     # 4. Data split estratificado
-    print("\n✂️ Fase 3: Realizando el Split Estratificado...")
+    print("\n[SPLIT] Fase 3: Realizando el Split Estratificado...")
     splited_dataset = stratified_split_dataset(all_images_dataset, split_ratios)
 
-    print("\n✅ Pipeline de Data Split y Filtrado completado.")
+    print("\n[OK] Pipeline de Data Split y Filtrado completado.")
     return splited_dataset
 
 ######################################
@@ -139,13 +139,13 @@ def downsample_dataset(split_datasets: Dict[str, Dict[str, List[Any]]], environm
     # Filtrar categorías vacías antes de buscar el mínimo para evitar mínimo=0 si hay una clase sin datos
     non_empty_lengths = [length for length in category_lengths.values() if length > 0]
     if not non_empty_lengths:
-        print("⚠️ Advertencia: El conjunto de entrenamiento está vacío. No se aplicó downsampling.")
+        print("[ADVERTENCIA] Advertencia: El conjunto de entrenamiento está vacío. No se aplicó downsampling.")
         return split_datasets
         
     minimum_lenght = min(non_empty_lengths)
     
-    print(f"\n⚖️  Iniciando Downsampling en el conjunto '{TRAIN_SET_KEY}'.")
-    print(f"📐 Tamaño objetivo por clase: {minimum_lenght} imágenes.")
+    print(f"\n[BALANCE]  Iniciando Downsampling en el conjunto '{TRAIN_SET_KEY}'.")
+    print(f"[CALCULO] Tamaño objetivo por clase: {minimum_lenght} imágenes.")
     
     # 2. Inicializar el diccionario de salida downsampled (solo para el conjunto 'train')
     downsampled_train_set = defaultdict(list)
@@ -167,7 +167,7 @@ def downsample_dataset(split_datasets: Dict[str, Dict[str, List[Any]]], environm
         sampled_images = image_list[:minimum_lenght]
         downsampled_train_set[category] = sampled_images
         
-        print(f"  ⚖️  Categoría '{category}' submuestreada: {current_total} -> {minimum_lenght} imágenes.")
+        print(f"  [BALANCE]  Categoría '{category}' submuestreada: {current_total} -> {minimum_lenght} imágenes.")
 
 
     # 4. Reconstruir el diccionario de splits final
@@ -179,7 +179,7 @@ def downsample_dataset(split_datasets: Dict[str, Dict[str, List[Any]]], environm
 
     # 5. Generar resumen final
     final_train_count = sum(len(v) for v in final_split_datasets[TRAIN_SET_KEY].values())
-    print(f"\n✅ Downsampling de 'train' completado. Nuevo Total en 'train': {final_train_count}")
+    print(f"\n[OK] Downsampling de 'train' completado. Nuevo Total en 'train': {final_train_count}")
             
     return final_split_datasets
 
@@ -212,7 +212,7 @@ def downsample_dataset_importancia(datasets: Dict[str, Any], environment_variabl
         categories = set(ast.literal_eval(env_varss.get("CLASS_NAMES", "[]")))
     except (ValueError, SyntaxError, KeyError) as e:
         # Si falla la carga, derivar categorías de los datos
-        print(f"⚠️ Warning: Could not parse CLASS_NAMES ({e}). Deriving from data...")
+        print(f"[ADVERTENCIA] Warning: Could not parse CLASS_NAMES ({e}). Deriving from data...")
         categories = set()
         for dataset_key in datasets.keys():
             categories.update(datasets[dataset_key]["images"].keys())
@@ -242,7 +242,7 @@ def downsample_dataset_importancia(datasets: Dict[str, Any], environment_variabl
     # El mínimo total de imágenes en todas las categorías
     minimum_lenght = min(list(total_lenghts.values()))
     
-    print(f"📐 Tamaño objetivo total por clase (Total): {minimum_lenght} imágenes.")
+    print(f"[CALCULO] Tamaño objetivo total por clase (Total): {minimum_lenght} imágenes.")
     
     # 3. Inicializar el diccionario de salida
     downsampled_datasets = {
@@ -297,11 +297,11 @@ def downsample_dataset_importancia(datasets: Dict[str, Any], environment_variabl
         for img, dataset_key, _ in sampled_images_with_keys:
             downsampled_datasets[dataset_key]["images"][category].append(img)
         
-        print(f"  ⚖️  Categoría '{category}' submuestreada a {minimum_lenght} imágenes.")
+        print(f"  [BALANCE]  Categoría '{category}' submuestreada a {minimum_lenght} imágenes.")
 
 
     # 5. Generar un resumen de la nueva distribución (opcional, pero útil)
-    print("\n✅ Resumen de la Nueva Distribución Downsampled:")
+    print("\n[OK] Resumen de la Nueva Distribución Downsampled:")
     for dataset_key, data in downsampled_datasets.items():
         total = sum(len(imgs) for imgs in data["images"].values())
         print(f"  {dataset_key} ({data['dataset_consideration']}): Total {total} imágenes")
@@ -340,7 +340,7 @@ def oversample_dataset(split_datasets: Dict[str, Dict[str, List[Any]]], environm
     try:
         categories = list(ast.literal_eval(env_vars.get("CLASS_NAMES", "[]")))
     except (ValueError, SyntaxError, KeyError) as e:
-        print(f"⚠️ Warning: Could not parse CLASS_NAMES ({e}). Using keys from train set...")
+        print(f"[ADVERTENCIA] Warning: Could not parse CLASS_NAMES ({e}). Using keys from train set...")
         categories = list(split_datasets[TRAIN_SET_KEY].keys())
             
     if not categories:
@@ -361,7 +361,7 @@ def oversample_dataset(split_datasets: Dict[str, Dict[str, List[Any]]], environm
     
     non_empty_lengths = [length for length in category_lengths.values() if length > 0]
     if not non_empty_lengths:
-        print("⚠️ Advertencia: El conjunto de entrenamiento está vacío. No se aplicó oversampling.")
+        print("[ADVERTENCIA] Advertencia: El conjunto de entrenamiento está vacío. No se aplicó oversampling.")
         return split_datasets
         
     # Calcular el tamaño de la clase mayoritaria (el máximo)
@@ -371,14 +371,14 @@ def oversample_dataset(split_datasets: Dict[str, Dict[str, List[Any]]], environm
     try:
         MAX_ADDED_BALANCE = int(env_vars.get("MAX_ADDED_BALANCE", 50))
     except (ValueError, TypeError) as e:
-        print(f"⚠️ Warning: Could not parse MAX_ADDED_BALANCE ({e}). Using default: 50")
+        print(f"[ADVERTENCIA] Warning: Could not parse MAX_ADDED_BALANCE ({e}). Using default: 50")
         MAX_ADDED_BALANCE = 50
         
-    # 🎯 Tamaño objetivo: Clase mayoritaria + límite extra
+    # [OBJETIVO] Tamaño objetivo: Clase mayoritaria + límite extra
     target_size = max_train_size + MAX_ADDED_BALANCE
     
-    print(f"\n⚖️  Iniciando Oversampling en el conjunto '{TRAIN_SET_KEY}'.")
-    print(f"📐 Tamaño objetivo por clase: {target_size} imágenes.")
+    print(f"\n[BALANCE]  Iniciando Oversampling en el conjunto '{TRAIN_SET_KEY}'.")
+    print(f"[CALCULO] Tamaño objetivo por clase: {target_size} imágenes.")
     
     # 3. Inicializar el diccionario de salida para el conjunto 'train'
     oversampled_train_set = {cat: image_list.copy() for cat, image_list in train_data.items()}
@@ -451,7 +451,7 @@ def oversample_dataset(split_datasets: Dict[str, Dict[str, List[Any]]], environm
                 # Añadir la imagen aumentada
                 oversampled_train_set[category].append(final_augmented_img)
         
-            print(f"  📈 Categoría '{category}' aumentada: {current_total} -> {target_size} imágenes.")
+            print(f"  [GRAFICO] Categoría '{category}' aumentada: {current_total} -> {target_size} imágenes.")
 
     # 6. Reconstruir el diccionario de splits final
     final_split_datasets = {
@@ -462,7 +462,7 @@ def oversample_dataset(split_datasets: Dict[str, Dict[str, List[Any]]], environm
 
     # 7. Generar resumen final
     final_train_count = sum(len(v) for v in final_split_datasets[TRAIN_SET_KEY].values())
-    print(f"\n✅ Oversampling de 'train' completado. Nuevo Total en 'train': {final_train_count}")
+    print(f"\n[OK] Oversampling de 'train' completado. Nuevo Total en 'train': {final_train_count}")
             
     return final_split_datasets
 
@@ -487,11 +487,11 @@ def split_and_balance_dataset(balanced: str = "downsample", split_ratios: tuple 
               donde cada conjunto es un diccionario de la forma {'clase': [lista de imágenes]}.
     """
 
-    print("\n📦 Llamando a la función de carga de datos...")
+    print("\n[CARGA] Llamando a la función de carga de datos...")
     # Asumo que load_raw_data() devuelve la estructura {data_1: {...}, data_2: {...}}
     datasets = load_raw_data()
     env_vars = EnvLoader().get_all()
-    print("✅ Carga de datos completada.")
+    print("[OK] Carga de datos completada.")
 
     if not datasets:
         raise ValueError("No se cargó ninguna imagen. Verifica las rutas y los tipos de archivo.")
@@ -507,15 +507,15 @@ def split_and_balance_dataset(balanced: str = "downsample", split_ratios: tuple 
     # 2. Balanceo de datos
     if balanced == "downsample":
         datasets_for_model = downsample_dataset(split_datasets, env_vars)
-        print(f"\n⚖️  Modo balanceado: Submuestreo de datos exitoso.")
+        print(f"\n[BALANCE]  Modo balanceado: Submuestreo de datos exitoso.")
 
     elif balanced == "oversample":
         datasets_for_model = oversample_dataset(split_datasets, env_vars)
-        print("\n📈 Modo balanceado: Sobremuestreo de datos exitoso.")
+        print("\n[GRAFICO] Modo balanceado: Sobremuestreo de datos exitoso.")
 
     else: # balanced = 'none' o cualquier otro valor
         datasets_for_model = split_datasets 
-        print("\n📈 Modo desbalanceado: Usando todas las imágenes disponibles.")
+        print("\n[GRAFICO] Modo desbalanceado: Usando todas las imágenes disponibles.")
     
     # El diccionario final debe ser {set_type: {category: count}}
     final_counts = {}
@@ -533,9 +533,9 @@ def split_and_balance_dataset(balanced: str = "downsample", split_ratios: tuple 
     
     # --- Resumen y retorno ---
     print("\n" + "="*60)
-    print("✅ Proceso de división y balanceo completado exitosamente.")
+    print("[OK] Proceso de división y balanceo completado exitosamente.")
     print("="*60)
-    print("📊 Resumen de la Distribución Final:")
+    print("[EVAL] Resumen de la Distribución Final:")
     
     # Cabecera dinámica
     header = f"{'Clase':<20} | {'Train':>7} | {'Val':>7} | {'Test':>7} | {'Total':>7}"
@@ -609,9 +609,9 @@ def project_dataset(data_aug_split: dict):
                     img.save(file_path)
                     set_images_count += 1
                 except Exception as e:
-                    print(f"    ⚠️ Fallo al guardar {file_name} en {category}: {e}")
+                    print(f"    [ADVERTENCIA] Fallo al guardar {file_name} en {category}: {e}")
 
         total_images_saved += set_images_count
-        print(f"  ✨ Total imágenes exportadas en '{set_type}': {set_images_count}")
+        print(f"  [INFO] Total imágenes exportadas en '{set_type}': {set_images_count}")
 
-    print(f"\n✅ Exportación a '{SPLIT_DIR.relative_to(PROJECT_ROOT)}' completada. Total guardado: {total_images_saved} imágenes.")
+    print(f"\n[OK] Exportación a '{SPLIT_DIR.relative_to(PROJECT_ROOT)}' completada. Total guardado: {total_images_saved} imágenes.")

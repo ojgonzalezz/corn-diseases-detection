@@ -30,30 +30,30 @@ def check_cuda_availability():
     """
     Verifica si PyTorch y TensorFlow pueden usar una GPU con soporte CUDA.
     """
-    print("⚡⚡ Verificando si la GPU está disponible... ⚡⚡\n")
+    print("[GPU][GPU] Verificando si la GPU está disponible... [GPU][GPU]\n")
 
-    print("🔹 Verificando GPU en PyTorch 🔹")
+    print("[INFO] Verificando GPU en PyTorch [INFO]")
     
     is_available = torch.cuda.is_available()
     
     if is_available:
-        print("✅ ¡La GPU está disponible! PyTorch puede usar CUDA 🎉🚀")
+        print("[OK] ¡La GPU está disponible! PyTorch puede usar CUDA [SUCCESS][INICIO]")
         # Opcional: muestra el nombre de la GPU que se está utilizando
-        print(f"   💻 Nombre de la GPU: {torch.cuda.get_device_name(0)}\n")
+        print(f"   [SISTEMA] Nombre de la GPU: {torch.cuda.get_device_name(0)}\n")
     else:
-        print("❌ La GPU no está disponible ❌. PyTorch se ejecutará en CPU 🖥️")
-        print("   ⚠️ Asegúrate de haber instalado la versión correcta de PyTorch con soporte CUDA.\n")
+        print("[ERROR] La GPU no está disponible [ERROR]. PyTorch se ejecutará en CPU [CPU]")
+        print("   [ADVERTENCIA] Asegúrate de haber instalado la versión correcta de PyTorch con soporte CUDA.\n")
 
-    print("🔹 Verificando GPU en TensorFlow 🔹")
+    print("[INFO] Verificando GPU en TensorFlow [INFO]")
      
-    print(f"📌 TensorFlow version: {tf.__version__}")
-    print(f"⚙️ Built with CUDA: {tf.test.is_built_with_cuda()} 🌟")
-    print(f"⚙️ Built with cuDNN: {tf.test.is_built_with_gpu_support()} 🌟\n")
+    print(f"[NOTA] TensorFlow version: {tf.__version__}")
+    print(f"[CONFIG] Built with CUDA: {tf.test.is_built_with_cuda()} [INFO]")
+    print(f"[CONFIG] Built with cuDNN: {tf.test.is_built_with_gpu_support()} [INFO]\n")
 
     if tf.test.is_built_with_cuda() and tf.test.is_built_with_gpu_support():
-        print("🎯 ¡TensorFlow puede usar la GPU con CUDA y cuDNN! 🚀🔥")
+        print("[OBJETIVO] ¡TensorFlow puede usar la GPU con CUDA y cuDNN! [INICIO][ACTIVO]")
     else:
-        print("⚠️ TensorFlow no puede usar la GPU. Se ejecutará en CPU 🖥️")
+        print("[ADVERTENCIA] TensorFlow no puede usar la GPU. Se ejecutará en CPU [CPU]")
 
 
 #################################
@@ -94,7 +94,7 @@ def stratified_split_dataset(
         'test': defaultdict(list)
     }
 
-    print("📊 Iniciando división estratificada...")
+    print("[EVAL] Iniciando división estratificada...")
     
     # 3. Iterar por categoría para realizar la división
     for category, image_list in dataset.items():
@@ -104,7 +104,7 @@ def stratified_split_dataset(
         total_count = len(image_list)
         
         if total_count == 0:
-            print(f"⚠️ Advertencia: La categoría '{category}' está vacía. Se saltará.")
+            print(f"[ADVERTENCIA] Advertencia: La categoría '{category}' está vacía. Se saltará.")
             continue
 
         # Calcular los tamaños de los subconjuntos
@@ -137,7 +137,7 @@ def stratified_split_dataset(
         split_sets['test'][category] = image_list[start_test:]
 
 
-    print("✅ División estratificada completada.")
+    print("[OK] División estratificada completada.")
     return split_sets
 
 ##################################
@@ -262,7 +262,7 @@ def plot_images(images, titles=None, cols=2, figsize=(10, 5)):
 
 def plot_augmented_images(generator):
     """Función de utilidad para visualizar el efecto del Data Augmentation."""
-    print("\n🎨 Mostrando ejemplos de imágenes aumentadas del primer lote de entrenamiento:")
+    print("\n[VISUAL] Mostrando ejemplos de imágenes aumentadas del primer lote de entrenamiento:")
     images, labels = next(generator)
     
     plt.figure(figsize=(12, 12))
