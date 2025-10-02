@@ -16,7 +16,7 @@ import tensorflow as tf
 import os
 os.environ['CUDA_VISIBLE_DEVICES'] = '-1'
 
-from src.core.load_env import EnvLoader
+from src.core.config import config
 from src.utils.paths import paths
 
 # Custom Exceptions for Inference Pipeline
@@ -33,13 +33,11 @@ class NoLabelsError(Exception):
 #####################
 
 # ---- Config ----
-env_vars = EnvLoader().get_all()
-
 try:
-    IMG_SIZE = ast.literal_eval(env_vars.get("IMAGE_SIZE", None))
+    IMG_SIZE = config.data.image_size
     if not isinstance(IMG_SIZE, tuple) or len(IMG_SIZE) != 2:
         raise ValueError("IMAGE_SIZE must be a tuple of two integers.")
-except (ValueError, SyntaxError) as e:
+except (ValueError, AttributeError) as e:
     IMG_SIZE = (224, 224)
 
 try:
@@ -52,18 +50,17 @@ except NoModelToLoadError as e:
     MODEL_PATH = None
 
 try:
-    LABELS = env_vars.get("CLASS_NAMES")
-    if not LABELS:
-        raise NoLabelsError("CLASS_NAMES not found in environment variables")
-    _labels = ast.literal_eval(LABELS)
-except (NoLabelsError, KeyError, ValueError, SyntaxError) as e:
+    _labels = config.data.class_names
+    if not _labels:
+        raise NoLabelsError("CLASS_NAMES not found in configuration")
+except (NoLabelsError, AttributeError) as e:
     print(f"[ADVERTENCIA] Warning: Could not load labels - {e}")
     _labels = None
 
 # Get NUM_CLASSES from config
 try:
-    NUM_CLASSES = int(env_vars.get("NUM_CLASSES", 4))
-except (ValueError, TypeError):
+    NUM_CLASSES = config.data.num_classes
+except (ValueError, TypeError, AttributeError):
     NUM_CLASSES = 4
     print(f"[ADVERTENCIA] Warning: Could not parse NUM_CLASSES. Using default: {NUM_CLASSES}")
 

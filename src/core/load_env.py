@@ -1,12 +1,20 @@
 #####################################################################################
 # ----------------------------- Train Protocol Adapter ------------------------------
 #####################################################################################
+# ⚠️ DEPRECADO: Este módulo está deprecado y será eliminado en futuras versiones.
+# Por favor, usa src.core.config en su lugar.
+#
+# Migración:
+#   Antes: env_vars = EnvLoader().get_all(); value = env_vars.get("KEY")
+#   Ahora: from src.core.config import config; value = config.data.key_name
+#####################################################################################
 
 #########################
 # ---- Depdendencies ----
 #########################
 
 import os
+import warnings
 from pathlib import Path
 from dotenv import load_dotenv, dotenv_values
 from typing import Dict, Union, Optional
@@ -17,6 +25,11 @@ from typing import Dict, Union, Optional
 
 class EnvLoader:
     def __init__(self, env_file: Optional[str] = None):
+        warnings.warn(
+            "EnvLoader está deprecado y será eliminado. Usa 'from src.core.config import config' en su lugar.",
+            DeprecationWarning,
+            stacklevel=2
+        )
         # Por defecto: src/core/.env (archivo junto a este módulo)
         if env_file is None:
             env_file = os.path.join(os.path.dirname(__file__), ".env")

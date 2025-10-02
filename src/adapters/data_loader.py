@@ -17,7 +17,7 @@ from PIL import Image
 
 # Environment variables loading
 sys.path.append(os.path.abspath(os.path.join("..", "src")))
-from src.core.load_env import EnvLoader
+from src.core.config import config
 from src.utils.utils import *
 from src.utils.paths import paths
 
@@ -42,12 +42,9 @@ def load_split_data() -> Dict[str, Dict[str, List[Image.Image]]]:
     """
     print("[BUSQUEDA] Cargando datos ya divididos (train/val/test)...")
 
-    # Obtener rutas del sistema centralizado
-    env_vars = EnvLoader().get_all()
-
-    # Obtener las categorías esperadas
+    # Obtener rutas del sistema centralizado y categorías
     try:
-        categories = literal_eval(env_vars.get("CLASS_NAMES", "[]"))
+        categories = config.data.class_names
     except (ValueError, SyntaxError, TypeError) as e:
         print(f"[ADVERTENCIA] No se pudieron parsear CLASS_NAMES: {e}")
         categories = None
@@ -121,12 +118,11 @@ def load_raw_data() -> Dict[str, Dict[str, Any]]:
     
     print("[BUSQUEDA] Inicializando adaptador de rutas y variables de entorno...")
 
-    # 1. Obtener rutas del sistema centralizado y cargar variables de entorno
+    # 1. Obtener rutas del sistema centralizado
     data_raw_path = paths.data_raw
-    env_vars = EnvLoader().get_all()
 
     # 2. Cargar y parsear las consideraciones
-    datasets_consideration_str = env_vars.get("DATASETS_CONSIDERATION", "[]")
+    datasets_consideration_str = str(config.data.datasets_consideration)
     print("consideraciones =", datasets_consideration_str)
 
     try:

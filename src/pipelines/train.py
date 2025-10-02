@@ -9,7 +9,7 @@
 import os
 import pathlib
 import ast
-from src.core.load_env import EnvLoader
+from src.core.config import config
 from src.utils.paths import paths
 from src.utils.logger import get_logger, log_section, log_dict
 import numpy as np
@@ -62,10 +62,7 @@ def train(backbone_name: str = 'VGG16', split_ratios: tuple = (0.7, 0.15, 0.15),
     if balanced not in valid_balance_modes:
         raise ValueError(f"balanced must be one of {valid_balance_modes}, got: {balanced}")
 
-    # --- 1. INICIALIZACION DE VARIABLES ---
-    env_vars = EnvLoader().get_all()
-
-    # --- 2. CONFIGURACIÓN DE RUTAS Y PARÁMETROS ---
+    # --- 1. CONFIGURACIÓN DE RUTAS Y PARÁMETROS ---
     # Usar sistema centralizado de rutas
     mlruns_path = paths.mlruns
     paths.ensure_dir(mlruns_path)
@@ -78,18 +75,17 @@ def train(backbone_name: str = 'VGG16', split_ratios: tuple = (0.7, 0.15, 0.15),
     logger.info(f"Tracking URI: {mlflow.get_tracking_uri()}")
 
     # Asegurar que el experimento existe
-    experiment_name = "image_classification_experiment"
+    experiment_name = config.project.mlflow_experiment_name
     mlflow.set_experiment(experiment_name)
     logger.info(f"Experimento MLflow: {experiment_name}")
-    
+
     try:
-        image_size_str = env_vars.get("IMAGE_SIZE", "(224, 224)")
+        image_size = config.data.image_size
 
-        if not image_size_str or len(image_size_str.strip()) == 0:
-            raise ValueError("IMAGE_SIZE is empty in .env file.")
+        if not image_size:
+            raise ValueError("IMAGE_SIZE is empty in configuration.")
 
-        # ast.literal_eval evalúa la cadena de forma segura
-        IMAGE_SIZE = ast.literal_eval(image_size_str)
+        IMAGE_SIZE = image_size
 
         # Añadir una verificación de seguridad para asegurar que la tupla tiene 2 elementos
         if not isinstance(IMAGE_SIZE, (tuple, list)) or len(IMAGE_SIZE) != 2:
