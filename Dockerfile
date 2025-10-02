@@ -76,6 +76,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libxext6 \
     libxrender1 \
     libgomp1 \
+    libgl1 \
     curl \
     && rm -rf /var/lib/apt/lists/*
 
