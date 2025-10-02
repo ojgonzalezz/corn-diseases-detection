@@ -26,6 +26,7 @@ import mlflow
 import mlflow.keras
 import tensorflow as tf
 from tensorflow.keras import layers, models
+from tensorflow.keras.models import Model
 from tensorflow.keras.callbacks import EarlyStopping, ReduceLROnPlateau
 from sklearn.metrics import classification_report, confusion_matrix, recall_score
 

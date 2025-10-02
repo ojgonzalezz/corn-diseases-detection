@@ -155,15 +155,16 @@ services:
   edge-experiments:
     <<: *base-service
     container_name: corn-diseases-edge-experiments
-    command: bash experiments/edge_models/run_all_experiments.sh
+    entrypoint: []
+    command: ["bash", "experiments/edge_models/run_all_experiments.sh"]
     profiles:
       - edge-experiments
       - edge
     deploy:
       resources:
         limits:
-          cpus: '4.0'
-          memory: 8G
+          cpus: '6.0'
+          memory: 12G
         reservations:
           memory: 4G
 
