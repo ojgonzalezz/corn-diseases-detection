@@ -160,13 +160,15 @@ services:
     profiles:
       - edge-experiments
       - edge
+    mem_limit: 16g
+    memswap_limit: 16g
     deploy:
       resources:
         limits:
           cpus: '6.0'
-          memory: 12G
+          memory: 16G
         reservations:
-          memory: 4G
+          memory: 8G
 
   # ================================================================================
   # Jupyter Notebook (para experimentación)
