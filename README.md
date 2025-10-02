@@ -81,9 +81,7 @@ corn-diseases-detection/
 │   │   ├── validate_dataset.py
 │   │   └── view_samples.py
 │   └── notebooks/
-│   ├── 01_eda_exploracion.ipynb
-│   ├── 02_modelado_basico.ipynb
-│   └── 03_transfer_learning.ipynb
+│       └── 01_eda_exploration.ipynb
 │
 ├── models/                   # Artefactos de modelos (ignorado por git)
 │   ├── mlruns/               # Seguimiento de experimentos con MLflow
@@ -169,7 +167,7 @@ git clone https://github.com/ojgonzalezz/corn-diseases-detection.git
 cd corn-diseases-detection
 
 # Configurar variables de entorno
-cp src/core/.env.example src/core/.env
+cp src/core/.env_example src/core/.env
 
 # Construir imagen Docker
 docker-compose build
@@ -205,7 +203,7 @@ source venv/bin/activate  # En Windows: venv\Scripts\activate
 pip install -r requirements.txt
 
 # Configurar variables de entorno
-cp src/core/.env.example src/core/.env
+cp src/core/.env_example src/core/.env
 # Editar src/core/.env según tus necesidades (opcional)
 ```
 
@@ -260,7 +258,7 @@ nano src/core/.env  # o usar tu editor preferido
 | `SPLIT_RATIOS` | Ratios de división (train/val/test) | `(0.7, 0.15, 0.15)` |
 | `IM_SIM_THRESHOLD` | Umbral de similitud para de-augmentación | `0.95` |
 
-**Consulta el archivo `src/core/.env.example` para ver todas las opciones disponibles con documentación completa.**
+**Consulta el archivo `src/core/.env_example` para ver todas las opciones disponibles con documentación completa.**
 
 ---
 
@@ -562,7 +560,7 @@ make clean
 
 ```bash
 # Copiar el archivo de ejemplo
-cp src/core/.env.example src/core/.env
+cp src/core/.env_example src/core/.env
 ```
 
 ### Error: "ModuleNotFoundError: No module named 'pydantic_settings'"

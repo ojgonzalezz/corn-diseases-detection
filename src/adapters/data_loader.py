@@ -18,7 +18,7 @@ from PIL import Image
 # Environment variables loading
 sys.path.append(os.path.abspath(os.path.join("..", "src")))
 from src.core.config import config
-from src.utils.utils import *
+from src.utils.utils import load_images_from_folder
 from src.utils.paths import paths
 
 ################################

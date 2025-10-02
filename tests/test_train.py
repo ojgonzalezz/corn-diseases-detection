@@ -189,13 +189,11 @@ class TestHyperparameterTuning:
 
     def test_hyperband_configuration(self):
         """Verifica configuración del algoritmo Hyperband."""
-        from src.core.load_env import EnvLoader
+        from src.core.config import config
 
-        env_vars = EnvLoader().get_all()
-
-        max_trials = int(env_vars.get('MAX_TRIALS', 10))
-        max_epochs = int(env_vars.get('MAX_EPOCHS', 20))
-        factor = int(env_vars.get('FACTOR', 3))
+        max_trials = config.training.max_trials
+        max_epochs = config.training.max_epochs
+        factor = config.training.factor
 
         assert max_trials > 0
         assert max_epochs > 0

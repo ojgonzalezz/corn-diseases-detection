@@ -21,8 +21,8 @@ from PIL import Image
 from src.adapters.data_loader import load_raw_data, load_split_data
 from src.utils.image_modifier import ImageAugmentor
 from src.utils.data_augmentator import DataAugmenter
-from src.core.load_env import EnvLoader
-from src.utils.aug_detectors import *
+from src.core.config import config
+from src.utils.aug_detectors import filter_similar_images
 from src.utils.utils import stratified_split_dataset
 from src.utils.paths import paths
 
@@ -498,7 +498,6 @@ def split_and_balance_dataset(balanced: str = "downsample", split_ratios: tuple 
     """
 
     print("\n[CARGA] Llamando a la función de carga de datos...")
-    env_vars = EnvLoader().get_all()
 
     # Verificar qué datos están disponibles
     data_train_exists = paths.data_train.exists()
@@ -524,11 +523,14 @@ def split_and_balance_dataset(balanced: str = "downsample", split_ratios: tuple 
 
         print("[OK] Carga de datos raw completada.")
 
-        # Override split_ratios in env_vars if provided as parameter
-        if split_ratios is not None:
-            env_vars['SPLIT_RATIOS'] = str(split_ratios)
-
         # Realizar split y filtrado de duplicados (De-augmentación)
+        # Crear diccionario de environment variables para compatibilidad
+        env_vars = {
+            'CLASS_NAMES': str(config.data.class_names),
+            'SPLIT_RATIOS': str(split_ratios) if split_ratios else str(config.data.split_ratios),
+            'IM_SIM_THRESHOLD': str(config.data.similarity_threshold),
+            'MAX_ADDED_BALANCE': str(config.data.max_added_balance)
+        }
         split_datasets = data_split(datasets, env_vars)
 
     else:
@@ -543,6 +545,12 @@ def split_and_balance_dataset(balanced: str = "downsample", split_ratios: tuple 
         )
 
     # 2. Balanceo de datos
+    # Crear diccionario de environment variables para compatibilidad con funciones legacy
+    env_vars = {
+        'CLASS_NAMES': str(config.data.class_names),
+        'MAX_ADDED_BALANCE': str(config.data.max_added_balance)
+    }
+    
     if balanced == "downsample":
         datasets_for_model = downsample_dataset(split_datasets, env_vars)
         print(f"\n[BALANCE]  Modo balanceado: Submuestreo de datos exitoso.")

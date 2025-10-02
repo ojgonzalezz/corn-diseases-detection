@@ -95,20 +95,20 @@ def train(backbone_name: str = 'VGG16', split_ratios: tuple = (0.7, 0.15, 0.15),
         logger.error(f"Variable IMAGE_SIZE no válida. Usando valor por defecto. Error: {e}")
         IMAGE_SIZE = (224, 224)
 
-
-    NUM_CLASSES = int(env_vars['NUM_CLASSES']) #4
-    BATCH_SIZE = int(env_vars['BATCH_SIZE']) #32
+    # Cargar parámetros desde config centralizado
+    NUM_CLASSES = config.data.num_classes
+    BATCH_SIZE = config.training.batch_size
     
     # Parámetros para la búsqueda de Keras Tuner
-    MAX_TRIALS = int(env_vars['MAX_TRIALS']) #10  # Número total de modelos a probar
-    TUNER_EPOCHS = int(env_vars['TUNER_EPOCHS']) #10 # Número de épocas para cada modelo durante la búsqueda
-    FACTOR = int(env_vars['FACTOR'])  #3     # Factor de reducción para el algoritmo Hyperband.
-    MAX_EPOCHS = int(env_vars['MAX_EPOCHS']) #20 # Número máximo de épocas para cualquier modelo.
+    MAX_TRIALS = config.training.max_trials
+    TUNER_EPOCHS = config.training.tuner_epochs
+    FACTOR = config.training.factor
+    MAX_EPOCHS = config.training.max_epochs
 
     log_section(logger, "INICIO DE ENTRENAMIENTO")
 
     # Registrar configuración principal
-    config = {
+    train_config = {
         'Backbone': backbone_name,
         'Batch Size': BATCH_SIZE,
         'Num Classes': NUM_CLASSES,
@@ -118,7 +118,7 @@ def train(backbone_name: str = 'VGG16', split_ratios: tuple = (0.7, 0.15, 0.15),
         'Balance Strategy': balanced,
         'Split Ratios': split_ratios
     }
-    log_dict(logger, config, "Configuración de Entrenamiento")
+    log_dict(logger, train_config, "Configuración de Entrenamiento")
 
     # --- 3. CARGAR Y PREPARAR LOS DATOS ---
     logger.info("Cargando y preparando los datos en memoria...")

@@ -32,8 +32,8 @@ setup:  ## Configuración inicial completa del proyecto
 	@echo "=== Configuración inicial del proyecto ==="
 	$(MAKE) install-dev
 	@if [ ! -f src/core/.env ]; then \
-		cp src/core/.env.example src/core/.env; \
-		echo "✓ Archivo .env creado desde .env.example"; \
+		cp src/core/.env_example src/core/.env; \
+		echo "✓ Archivo .env creado desde .env_example"; \
 	else \
 		echo "ℹ Archivo .env ya existe"; \
 	fi

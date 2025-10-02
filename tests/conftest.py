@@ -63,7 +63,7 @@ def mock_env_vars(monkeypatch):
         'FACTOR': '3',
         'MAX_EPOCHS': '20',
         'SPLIT_RATIOS': '(0.7, 0.15, 0.15)',
-        'IM_SIM_TRESHOLD': '0.95',
+        'IM_SIM_THRESHOLD': '0.95',
         'MAX_ADDED_BALANCE': '50'
     }
 
