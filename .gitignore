@@ -1,18 +1,3 @@
-# Archivo: .gitignore
-
-# Ignorar todos los datasets
+# Ignorar la carpeta data y todo su contenido
 data/
-data_2/
-dataset_split_balanced/
-eda/
-eda_balanced/
-
-# Ignorar la carpeta de modelos
 models/
-
-# Ignorar archivos generados por Python
-src/__pycache__/
-__pycache__/
-
-# Ignorar entorno virtual
-venv/

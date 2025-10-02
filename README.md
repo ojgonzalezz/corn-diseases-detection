@@ -1,199 +1,152 @@
-# 🌽 Solución de visión por computadora para la detección de enfermedades en maíz
+🌽 Análisis Exploratorio de Datos
+Detección de Enfermedades en Cultivos de Maíz
+Este documento presenta los hallazgos de la primera fase del proyecto, centrada en el análisis y la comprensión de los datos iniciales.
 
-> Un proyecto de visión por computadora para la clasificación automática de enfermedades comunes en hojas de maíz, diseñado para ofrecer un diagnóstico rápido y preciso a los agricultores.
+📜 Problema y Contexto
+Las enfermedades del maíz, como la roya común, el tizón foliar y la mancha gris, representan una amenaza crítica para la seguridad alimentaria. El diagnóstico tradicional mediante inspección visual es un proceso lento, subjetivo y dependiente de la pericia del observador. Este proyecto busca validar la viabilidad de un sistema de diagnóstico automatizado mediante Inteligencia Artificial para superar estas limitaciones.
 
-Este repositorio contiene todo el código, análisis y datos asociados al desarrollo de un modelo de Deep Learning capaz de identificar si una planta de maíz está sana o si padece una de tres enfermedades comunes: Roya Común, Tizón Foliar o Mancha Gris.
+📊 Dataset Inicial
+Para el análisis, se utilizó el dataset público "Corn or Maize Leaf Disease Dataset" de Kaggle, una compilación de imágenes de las fuentes PlantVillage y PlantDoc.
 
-[![Licencia: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Python: 3.9+](https://img.shields.io/badge/Python-3.9+-blue.svg)](https://www.python.org/downloads/)
-[![TensorFlow: 2.x](https://img.shields.io/badge/TensorFlow-Keras-FF6F00?logo=tensorflow)](https://www.tensorflow.org/)
-[![FastAPI: Backend](https://img.shields.io/badge/Backend-FastAPI-009688?logo=fastapi)](https://fastapi.tiangolo.com/)
+Total de Imágenes: 4,188
 
----
+Formato: JPEG (.jpg)
 
-## 🚀 Demo en Vivo
+Distribución de Clases (Inicial):
 
-Prueba el modelo en tiempo real. Sube o arrastra una imagen de una hoja de maíz y obtén un diagnóstico instantáneo con un historial de tus predicciones.
+Roya Común (Common Rust): 1,306 imágenes (31.2%)
 
-**[➡️ Acceder a la Aplicación Web Desplegada](https://felipepflorezo.github.io/corn-diseases-detection/)**
+Sana (Healthy): 1,162 imágenes (27.7%)
 
----
+Tizón (Blight): 1,146 imágenes (27.4%)
 
-### Tabla de Contenidos
-1. [Descripción del Proyecto](#-descripción-del-proyecto)
-2. [Stack Tecnológico](#-stack-tecnológico)
-3. [Metodología y Arquitectura del Modelo](#-metodología-y-arquitectura-del-modelo)
-4. [Resultados Finales](#-resultados-finales)
-5. [Arquitectura de Despliegue](#-arquitectura-de-despliegue)
-6. [Dataset Utilizado](#-dataset-utilizado)
-7. [Estructura del Repositorio](#-estructura-del-repositorio)
-8. [Cómo Empezar Localmente](#-cómo-empezar-localmente)
-9. [Contribuciones](#-contribuciones)
-10. [Equipo de Trabajo](#-equipo-de-trabajo)
+Mancha Gris (Gray Leaf Spot): 574 imágenes (13.7%)
 
----
+Observación Clave: El dataset inicial presenta un notable desbalance, con la clase "Mancha Gris" significativamente subrepresentada. Este hallazgo es fundamental para las siguientes etapas del proyecto.
 
-## 📜 Descripción del Proyecto
+🔬 Hallazgos del Análisis Exploratorio de Datos (EDA)
+Validación e Integridad de Datos
+Se realizó una validación estructural del dataset para confirmar la cantidad de clases, el número de imágenes y la integridad de los archivos. Se encontró y corrigió una inconsistencia de formato (un archivo .jpeg en lugar de .jpg) en la clase "Blight", asegurando la homogeneidad del conjunto de datos.
 
-### El Problema
-El maíz es un pilar de la seguridad alimentaria global, pero sus cultivos enfrentan amenazas constantes por enfermedades que reducen drásticamente el rendimiento. El método tradicional de diagnóstico es la inspección visual, un proceso lento, subjetivo y que requiere un alto nivel de experticia, lo que impide tomar acciones rápidas y efectivas para frenar la propagación.
+Análisis Cualitativo Visual
+La inspección de muestras aleatorias reveló una buena calidad de imagen general (nitidez y enfoque). Se destacó una alta variabilidad en iluminación, escala y ángulos de captura, lo cual es beneficioso para entrenar un modelo más robusto y generalizable.
 
-### La Solución
-Este proyecto resuelve el problema mediante una **solución de Inteligencia Artificial** que automatiza el diagnóstico. Se desarrolló un modelo de Deep Learning que analiza imágenes de hojas de maíz para identificar con alta precisión si una planta está sana o si padece una de tres enfermedades comunes: **Roya Común (Common Rust)**, **Tizón Foliar (Blight)** o **Mancha Gris (Gray Leaf Spot)**. El objetivo es empoderar a los agricultores con una herramienta de diagnóstico instantánea, objetiva y accesible.
+Desafío Principal Identificado: Se observó una alta similitud morfológica entre las lesiones en etapas avanzadas de "Mancha Gris" y "Tizón", lo que anticipa el principal reto de clasificación para el modelo de IA.
 
----
+Análisis Cuantitativo de Características Físicas
+Dimensiones: Se confirmó una considerable variabilidad en el tamaño (alto y ancho) de las imágenes, lo que fundamenta la necesidad de un paso de redimensionamiento estándar antes de alimentar el modelo.
 
-## 🛠️ Stack Tecnológico
+Distribución de Color: El análisis de histogramas de color, particularmente en el canal verde, demostró ser un rasgo altamente discriminatorio. Las hojas sanas ("Healthy") mostraron un perfil de color verde único y vibrante, claramente distinto al de las hojas enfermas. Esto valida el potencial del color como una característica potente para la clasificación automática y justifica la necesidad de normalizar los valores de los píxeles.
 
-| Área                     | Tecnologías Utilizadas                                                                                                                                                             |
-| ------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Análisis y Modelado** | Python, TensorFlow (Keras), Scikit-learn, Jupyter Notebooks                                                                                                                        |
-| **Procesamiento de Datos** | Pandas, NumPy, Matplotlib, Seaborn, Pillow                                                                                                                                         |
-| **Optimización y Backend** | **ONNX** (con `tf2onnx` y `onnxruntime`), **FastAPI**, Uvicorn, Requests                                                                                                                |
-| **Despliegue y MLOps** | Git, **GitHub** (Código Fuente y Pages), **Hugging Face** (Hub para el modelo, Spaces para la API), **Docker** |
+# Estructura del repositorio
 
----
+mi_proyecto_maiz_dl/
+│
+├── data/
+│   ├── raw/                  # Datos originales, sin modificar (puedes enlazar a ellos)
+│   │   ├── train/
+│   │   │   ├── Healthy/
+│   │   │   └── Blight/
+│   │   │   └── ...
+│   │   └── validation/
+│   │       ├── Healthy/
+│   │       └── Blight/
+│   │       └── ...
+│   │
+│   ├── processed/            # Datos limpios y listos para el entrenamiento
+│   │   ├── images_resized/
+│   │   └── train_labels.csv
+│   │
+│   └── external/             # Conjuntos de datos de terceros
+│
+├── notebooks/
+│   ├── 01_eda_exploracion.ipynb    # Notebooks para el EDA y visualización de datos
+│   ├── 02_modelado_basico.ipynb    # Experimentación con modelos iniciales
+│   └── 03_transfer_learning.ipynb  # Pruebas con técnicas más avanzadas
+│
+├── models/
+│   ├── checkpoints/          # Puntos de control (checkpoints) durante el entrenamiento
+│   │   ├── best_model.h5
+│   │   └── epoch_10.h5
+│   │
+│   └── exported/             # Versiones finales de modelos para producción/uso
+│       ├── final_model.h5
+│       └── tflite_model.tflite
+│
+├── src/                      # Código fuente de producción
+│   ├── __init__.py           # Hace que el directorio sea un paquete Python
+│   │
+│   ├── data_pipeline.py      # Script para carga, preprocesamiento y aumento de datos
+│   ├── model.py              # Definición de la arquitectura del modelo
+│   ├── train.py              # Script principal para el entrenamiento del modelo
+│   └── predict.py            # Script para realizar predicciones
+│
+├── utils/
+│   ├── __init__.py
+│   ├── helpers.py            # Funciones de ayuda (por ejemplo, para graficar)
+│   └── metrics.py            # Funciones para calcular métricas personalizadas
+│
+├── reports/
+│   ├── figures/              # Gráficos generados
+│   │   ├── class_distribution.png
+│   │   └── image_dimensions.png
+│   │
+│   └── report.pdf            # Un informe final con los hallazgos
+│
+├── requirements.txt          # Lista de librerías y dependencias
+├── README.md                 # Descripción del proyecto, cómo instalar y usar
+└── .gitignore                # Archivos a ignorar por Git (ej: datos grandes, checkpoints)
 
-## 📊 Dataset utilizado
 
-El modelo fue entrenado utilizando un conjunto de datos consolidado a partir de dos fuentes públicas para asegurar un volumen y una diversidad adecuados.
-
-1.  **Fuente principal (Kaggle):** [Corn or Maize Leaf Disease Dataset](https://www.kaggle.com/datasets/smaranjitghose/corn-or-maize-leaf-disease-dataset)
-2.  **Fuente de aumento (Roboflow):** [Corn Diseases Dataset](https://universe.roboflow.com/corn-disease-7/corn-diseases-oxojk)
-3. **Dataset aumentado:** https://drive.google.com/drive/folders/16dK4pekmruoguRkIFG9lgdztTWkzBbUo?usp=sharing 
-
-Inicialmente, el dataset de Kaggle presentaba un desbalance de clases. Para mitigarlo, se incorporaron imágenes de la fuente de Roboflow, específicamente en la clase con menor representación (*Gray Leaf Spot*), resultando en un conjunto de datos final y balanceado, ideal para el entrenamiento de un modelo robusto.
-
----
-
-### Distribución inicial de clases
-Inicialmente teniamos: 
-  * **Roya Común (Common Rust):** 1,306 imágenes (27.3%)
-  * **Mancha Gris (Gray Leaf Spot):** 1,171 imágenes (24.5%)
-  * **Sana (Healthy):** 1,162 imágenes (24.3%)
-  * **Tizón (Blight):** 1,146 imágenes (23.9%)
-
----
-
-## ⚙️ Metodología y Arquitectura del Modelo
-
-El proyecto siguió un flujo de trabajo iterativo y completo de Machine Learning:
-
-1.  **Análisis Exploratorio de Datos (EDA):** Se analizaron los datasets, revelando un **desbalance de clases** significativo y una alta similitud visual entre las lesiones de *Blight* y *Gray Leaf Spot*, anticipando un desafío de clasificación.
-
-2.  **Preprocesamiento y Balanceo:** Se aplicó **submuestreo (undersampling)** para crear un dataset perfectamente balanceado de 4,580 imágenes (1,145 por clase). Posteriormente, se dividió de forma estratificada en conjuntos de entrenamiento (70%), validación (15%) y prueba (15%). Se construyó un pipeline de datos para aplicar **aumento de datos en tiempo real** (rotaciones, zoom, etc.) al conjunto de entrenamiento.
-
-3.  **Modelado y Entrenamiento (Iteración 1):**
-    * Se implementó una arquitectura de **Transfer Learning** utilizando **VGG16** pre-entrenado en ImageNet como base.
-    * Se "congeló" la base y se entrenaron capas de clasificación personalizadas, alcanzando una precisión inicial de **91.37%**.
-
-4.  **Optimización (Iteración 2 - Ajuste Fino):**
-    * Para mejorar el rendimiento, se aplicó **Ajuste Fino (Fine-Tuning)**. Se "descongelaron" las últimas 4 capas de VGG16 y se re-entrenó el modelo con una tasa de aprendizaje muy baja (`1e-5`).
-    * Este proceso permitió que el modelo ajustara sus detectores de características a las sutilezas de las enfermedades del maíz.
-
-5.  **Preparación para Despliegue (Conversión a ONNX):**
-    * Para asegurar un despliegue eficiente y evitar problemas de memoria, el modelo final `.keras` fue convertido al formato **ONNX**. Esto redujo drásticamente el consumo de RAM y aceleró las predicciones en el servidor.
-
----
-
-## 📈 Resultados Finales
-
-La evaluación final se realizó sobre el conjunto de prueba utilizando el modelo optimizado tras el ajuste fino, confirmando la efectividad de la estrategia.
-
-* **Exactitud Final (Accuracy):** **92.92%**
-* **Pérdida (Loss):** **0.1989**
-
-### Matriz de Confusión Final
-La matriz confirma la alta efectividad del modelo. La diagonal principal (150, 164, 160, 169) muestra el número de predicciones correctas. Se observa que la confusión principal entre `Gray_Leaf_Spot` y `Blight` se redujo significativamente después del ajuste fino.
-
-![Matriz de Confusión del Modelo Final](Figure_3.png)
-
-### Reporte de Clasificación Final
-
-| Clase          | Precision | Recall | F1-Score |
-| :------------- | :-------: | :----: | :------: |
-| Blight         |   0.90    |  0.87  |   0.88   |
-| Common_Rust    |   0.98    |  0.95  |   0.96   |
-| Gray_Leaf_Spot |   0.85    |  0.92  |   0.88   |
-| Healthy        |   0.99    |  0.98  |   0.99   |
-
----
-
-## ☁️ Arquitectura de Despliegue
-
-La aplicación utiliza una arquitectura moderna y desacoplada:
-
-* **Modelo (`.onnx`):** El artefacto entrenado se aloja en **Hugging Face Hub**.
-* **Backend (API):** Una API construida con **FastAPI** se ejecuta dentro de un contenedor **Docker** en **Hugging Face Spaces**. Al iniciarse, la API descarga el modelo desde el Hub y expone un endpoint `/predict`.
-* **Frontend:** La interfaz de usuario es una página estática (`index.html` con JavaScript) alojada en **GitHub Pages**, que se comunica con la API para ofrecer una experiencia interactiva.
-
----
-
-## 📊 Dataset Utilizado
-
-El modelo fue entrenado utilizando datos de dos fuentes públicas, posteriormente balanceados y procesados.
-1.  **Fuente Principal (Kaggle):** [Corn or Maize Leaf Disease Dataset](https://www.kaggle.com/datasets/smaranjitghose/corn-or-maize-leaf-disease-dataset)
-2.  **Fuente de Aumento (Roboflow):** [Corn Diseases Dataset](https://universe.roboflow.com/corn-disease-7/corn-diseases-oxojk)
-3.  **Dataset Aumentado:** Un tercer dataset fue considerado y se puede encontrar en este [Google Drive](https://drive.google.com/drive/folders/16dK4pekmruoguRkIFG9lgdztTWkzBbUo?usp=sharing).
-
----
-
-## 📁 Estructura del Repositorio
-
-```
-.
-├── src/                      # Contiene todo el código fuente de Python
-│   ├── api.py                # Lógica del backend con FastAPI
-│   ├── model.py              # Arquitectura del modelo VGG16
-│   ├── train.py              # Script para el entrenamiento inicial
-│   ├── fine_tune.py          # Script para el ajuste fino
-│   ├── evaluate.py           # Script para evaluar los modelos
-│   ├── data_pipeline.py      # Generadores de datos con aumento
-│   └── convert_to_onnx.py    # Script para optimizar el modelo
-├── preprocessing/            # Scripts para la preparación inicial de datos
-│   └── preprocess.py         # Balanceo y división del dataset
-├── models/                   # (Local) Modelos generados - Ignorado por .gitignore
-├── data/                     # (Local) Datasets - Ignorado por .gitignore
-├── index.html                # Interfaz de usuario (Frontend)
-├── requirements.txt          # Dependencias de Python
-└── README.md                 # Este archivo
-```
+¡Claro\! Aquí está la información que puedes usar para la sección de instalación de tu archivo `README.md`. He organizado la información de manera clara, agregando comentarios para cada paso y resaltando las especificaciones técnicas de tu equipo.
 
 -----
 
-## 🚀 Cómo Empezar Localmente
+## 💻 Requisitos y Configuración del Entorno
 
-1.  **Clona el repositorio:**
-    ```sh
-    git clone https://github.com/ojgonzalezz/corn-diseases-detection.git
+### Especificaciones Técnicas
+
+El proyecto ha sido desarrollado y probado en la siguiente configuración de hardware:
+
+  * **Tarjeta Gráfica (GPU):** NVIDIA RTX 4060
+  * **Versión Máxima de CUDA Compatible:** 12.5
+
+### Instalación de CUDA y cuDNN
+
+Para replicar el entorno de desarrollo, es necesario instalar las versiones compatibles de CUDA y cuDNN.
+
+1.  **Verificar la Compatibilidad:** Antes de comenzar, ejecuta el siguiente comando en tu terminal para confirmar que el controlador de tu tarjeta gráfica soporta la versión de CUDA que vas a instalar. La versión de CUDA mostrada debe ser mayor o igual a la que se desea instalar.
+
+    ```bash
+    nvidia-smi
     ```
-2.  **Navega al directorio:**
-    ```sh
-    cd corn-diseases-detection
+
+      * **Nota:** Aunque tu tarjeta es compatible con CUDA 12.5, el proyecto utiliza **CUDA 12.4** para mantener la compatibilidad con las librerías de PyTorch.
+
+2.  **Instalación de cuDNN:** Una vez que el entorno de Conda esté activo, instala el kit de desarrollo de cuDNN.
+
+    ```bash
+    conda install nvidia::cudnn cuda-version=12.4
     ```
-3.  **Crea un entorno virtual e instala las dependencias:**
-    ```sh
-    python -m venv venv
-    source venv/bin/activate  # En Windows: venv\Scripts\activate
-    pip install -r requirements.txt
+
+      * **Comentario:** Este comando instala la biblioteca de redes neuronales profundas (cuDNN), que es crucial para acelerar las operaciones de redes neuronales en la GPU.
+
+3.  **Instalación de PyTorch:** Utiliza `pip` para instalar las librerías principales de PyTorch, especificando la versión de CUDA.
+
+    ```bash
+    pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu124
     ```
-4.  **Replicar el Proceso:** Para generar los resultados, ejecuta los scripts de la carpeta `src/` en orden: `train.py`, `fine_tune.py`, y `evaluate.py`.
+
+      * **Comentario:** Este comando descarga las versiones de `torch`, `torchvision` y `torchaudio` compiladas para la versión de CUDA 12.4, asegurando que el soporte de la GPU esté habilitado.
 
 -----
 
-## 🤝 Contribuciones
 
-Este repositorio es público para consulta. Las contribuciones al código son gestionadas de manera controlada para garantizar la integridad del proyecto.
 
-  * El trabajo se organiza en **ramas individuales** por colaborador.
-  * Todos los cambios deben ser integrados a la rama principal a través de **Pull Requests (PRs)**.
-  * Cada PR debe ser **revisado y aprobado** por al menos otro miembro del equipo.
+NOTAS:
+para levantar el aplicativo en local, dirifase a:
+corn-diseases-detection-api
 
------
+ejecute:
 
-## 🧑‍💻 Equipo de Trabajo
-
-  * **Oscar Gonzalez:** Recolección y gestión de datos.
-  * **Luis Macea:** Desarrollo del prototipo y gestión del repositorio GitHub.
-  * **Felipe Florez:** Exploración y descripción de datos, gestión del repositorio DVC.
-  * **Nicolas Castillo:** Exploración y descripción de datos, gestión del repositorio DVC.
+uvicorn main:app --reload
