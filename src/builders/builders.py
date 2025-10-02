@@ -10,7 +10,16 @@ import tensorflow as tf
 from tensorflow.keras import layers, models, Model
 import keras_tuner as kt
 from tensorflow.keras.initializers import HeNormal, GlorotUniform, LecunNormal
-from src.builders.base_models import load_vgg16, load_resnet50, load_yolo
+from src.builders.base_models import (
+    load_vgg16, 
+    load_resnet50, 
+    load_yolo,
+    load_mobilenetv3_small,
+    load_mobilenetv3_large,
+    load_efficientnet_lite,
+    load_mobilevit,
+    load_pmvt
+)
 
 #########################
 # ---- Model Builder ----
@@ -50,7 +59,15 @@ class ModelBuilder(kt.HyperModel):
         backbone_dict = {
             'VGG16': load_vgg16, 
             'ResNet50': load_resnet50,
-            'YOLO': load_yolo
+            'YOLO': load_yolo,
+            # Edge Computing Models
+            'MobileNetV3Small': load_mobilenetv3_small,
+            'MobileNetV3Large': load_mobilenetv3_large,
+            'EfficientNetLite0': lambda: load_efficientnet_lite(lite_version=0),
+            'EfficientNetLite1': lambda: load_efficientnet_lite(lite_version=1),
+            'EfficientNetLite2': lambda: load_efficientnet_lite(lite_version=2),
+            'MobileViT': load_mobilevit,
+            'PMVT': load_pmvt
         }
 
 

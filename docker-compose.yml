@@ -150,6 +150,29 @@ services:
       retries: 3
 
   # ================================================================================
+  # Edge Models Experiments (entrenamiento de arquitecturas livianas)
+  # ================================================================================
+  edge-experiments:
+    <<: *base-service
+    container_name: corn-diseases-edge-experiments
+    command: >
+      bash -c "
+      python experiments/edge_models/train_all_models.py &&
+      python experiments/edge_models/compare_models.py &&
+      python experiments/edge_models/select_best_model.py
+      "
+    profiles:
+      - edge-experiments
+      - edge
+    deploy:
+      resources:
+        limits:
+          cpus: '4.0'
+          memory: 8G
+        reservations:
+          memory: 4G
+
+  # ================================================================================
   # Jupyter Notebook (para experimentación)
   # ================================================================================
   notebook:
@@ -193,8 +216,13 @@ networks:
 # COMANDOS ÚTILES
 # ================================================================================
 #
-# Entrenamiento:
+# Entrenamiento estándar:
 #   docker-compose --profile training up
+#
+# Experimentos Edge Computing (NUEVO):
+#   docker-compose --profile edge-experiments up
+#   Entrena MobileNetV3, EfficientNet-Lite, MobileViT, PMVT
+#   Genera: best_edge_model.json con el mejor modelo seleccionado
 #
 # Preprocesamiento:
 #   docker-compose --profile preprocessing up

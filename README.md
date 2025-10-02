@@ -51,6 +51,15 @@ corn-diseases-detection/
 │
 ├── experimentation/            # Scripts EDA y notebooks
 │
+├── experiments/                # 🆕 Experimentos edge computing
+│   └── edge_models/            # Entrenamiento arquitecturas livianas
+│       ├── train_edge_model.py
+│       ├── train_all_models.py
+│       ├── compare_models.py
+│       ├── select_best_model.py
+│       ├── README.md
+│       └── best_edge_model.json  # Salida: mejor modelo seleccionado
+│
 ├── models/                     # Modelos entrenados (ignorado por git)
 │   ├── exported/               # Modelos finales (.keras)
 │   ├── mlruns/                 # Tracking MLflow
@@ -71,6 +80,52 @@ corn-diseases-detection/
 - **Docker Desktop** instalado ([Descargar](https://www.docker.com/products/docker-desktop))
 - **Git** para clonar el repositorio
 - **Datos** en `data/train`, `data/val`, `data/test`
+
+---
+
+## 🔬 **NUEVO: Experimentos Edge Computing**
+
+### Entrenamiento de Arquitecturas Livianas
+
+El proyecto incluye un sistema completo para evaluar **4 familias de arquitecturas** optimizadas para edge computing:
+
+**Arquitecturas evaluadas:**
+- **MobileNetV3** (Small y Large)
+- **EfficientNet-Lite** (B0, B1, B2)
+- **MobileViT** (Mobile Vision Transformer)
+- **PMVT** (Plant-based Mobile Vision Transformer)
+
+### Ejecutar Experimentos Completos
+
+```bash
+# Entrenar TODAS las arquitecturas edge automáticamente
+docker-compose --profile edge-experiments up
+```
+
+Esto ejecuta:
+1. ✅ Entrenamiento de 7 arquitecturas livianas
+2. ✅ Comparación automática de resultados
+3. ✅ Selección del mejor modelo
+4. ✅ Generación de `best_edge_model.json`
+
+**Criterios de selección:**
+- Precisión global ≥ 85%
+- Recall por clase ≥ 0.80
+- Mejor balance precisión/tamaño
+
+**Salida:** `experiments/edge_models/best_edge_model.json`
+
+### Ver Resultados
+
+```bash
+# MLflow UI para ver todos los experimentos
+docker-compose --profile mlflow up -d
+open http://localhost:5000
+
+# Buscar experimento: "edge_models_comparison"
+```
+
+📖 **Documentación completa:** `experiments/edge_models/README.md`
 
 ### 1. Clonar Repositorio
 
@@ -133,11 +188,12 @@ open http://localhost:5000
 
 | Servicio | Profile | Puerto | Comando | Descripción |
 |----------|---------|--------|---------|-------------|
-| **training** | `training` | - | `docker-compose --profile training up` | Entrenamiento con Keras Tuner |
-| **api** | `api` | 8000 | `docker-compose --profile api up -d` | API REST para predicciones |
-| **mlflow** | `mlflow` | 5000 | `docker-compose --profile mlflow up -d` | UI de experimentos |
+| **training** | `training` | - | `docker-compose --profile training up` | Entrenamiento estándar |
+| **edge-experiments** | `edge-experiments` | - | `docker-compose --profile edge-experiments up` | 🆕 Entrenar modelos edge |
+| **api** | `api` | 8000 | `docker-compose --profile api up -d` | API REST predicciones |
+| **mlflow** | `mlflow` | 5000 | `docker-compose --profile mlflow up -d` | UI experimentos |
 | **notebook** | `notebook` | 8888 | `docker-compose --profile notebook up -d` | Jupyter Lab |
-| **preprocessing** | `preprocessing` | - | `docker-compose --profile preprocessing up` | Preprocesar datos raw |
+| **preprocessing** | `preprocessing` | - | `docker-compose --profile preprocessing up` | Preprocesar datos |
 | **evaluation** | `evaluation` | - | `docker-compose --profile evaluation up` | Evaluar modelos |
 
 ---
