@@ -1,4 +1,3 @@
-Aquí tienes el archivo `README.md` completo y detallado, diseñado para ser profesional y autoexplicativo, cubriendo todos los aspectos de tu proyecto de *Deep Learning* sobre enfermedades del maíz.
 
 -----
 
@@ -9,6 +8,11 @@ Aquí tienes el archivo `README.md` completo y detallado, diseñado para ser pro
 Este proyecto implementa un *pipeline* de *Deep Learning* robusto para la **clasificación de enfermedades comunes en hojas de maíz**. El objetivo es diagnosticar automáticamente la salud de las plantas utilizando técnicas de *Transfer Learning* basadas en la arquitectura VGG16, optimizando la cabeza de clasificación mediante **Keras Tuner** y rastreando todos los experimentos con **MLflow**.
 
 El proyecto se destaca por su rigurosa estrategia de preprocesamiento, que aborda activamente el **sesgo por duplicación (data leakage)** y el **desbalance de clases** en un *dataset* bimodal compuesto por dos fuentes de datos distintas.
+
+-----
+
+📜 Problema y Contexto
+Las enfermedades del maíz, como la roya común, el tizón foliar y la mancha gris, representan una amenaza crítica para la seguridad alimentaria. El diagnóstico tradicional mediante inspección visual es un proceso lento, subjetivo y dependiente de la pericia del observador. Este proyecto busca validar la viabilidad de un sistema de diagnóstico automatizado mediante Inteligencia Artificial para superar estas limitaciones.
 
 -----
 
@@ -146,8 +150,7 @@ mi_proyecto_maiz_dl/
 | **`src/utils/aug_detectors.py`** | Implementa la lógica de **De-Augmentación**; contiene las funciones para la generación de *embeddings* y el cálculo de la similitud del coseno para detectar duplicados. |
 | **`src/utils/data_augmentator.py`** | Define las funciones para las transformaciones espaciales complejas utilizadas durante el *oversampling* controlado. |
 | **`src/utils/image_modifier.py`** | Contiene funciones de bajo nivel para las transformaciones de *calidad* de imagen (ej., ruido, brillo, contraste) utilizadas en el *Data Augmentation*. |
-📜 Problema y Contexto
-Las enfermedades del maíz, como la roya común, el tizón foliar y la mancha gris, representan una amenaza crítica para la seguridad alimentaria. El diagnóstico tradicional mediante inspección visual es un proceso lento, subjetivo y dependiente de la pericia del observador. Este proyecto busca validar la viabilidad de un sistema de diagnóstico automatizado mediante Inteligencia Artificial para superar estas limitaciones.
+
 
 📊 Dataset Inicial
 Para el análisis, se utilizó el dataset público "Corn or Maize Leaf Disease Dataset" de Kaggle, una compilación de imágenes de las fuentes PlantVillage y PlantDoc.
@@ -181,91 +184,3 @@ Análisis Cuantitativo de Características Físicas
 Dimensiones: Se confirmó una considerable variabilidad en el tamaño (alto y ancho) de las imágenes, lo que fundamenta la necesidad de un paso de redimensionamiento estándar antes de alimentar el modelo.
 
 Distribución de Color: El análisis de histogramas de color, particularmente en el canal verde, demostró ser un rasgo altamente discriminatorio. Las hojas sanas ("Healthy") mostraron un perfil de color verde único y vibrante, claramente distinto al de las hojas enfermas. Esto valida el potencial del color como una característica potente para la clasificación automática y justifica la necesidad de normalizar los valores de los píxeles.
-
-# Estructura del repositorio
-
-mi_proyecto_maiz_dl/
-│
-├── data/
-│   ├── raw/                  # Datos originales, sin modificar (puedes enlazar a ellos)
-│   │   ├── train/
-│   │   │   ├── Healthy/
-│   │   │   └── Blight/
-│   │   │   └── ...
-│   │   └── validation/
-│   │       ├── Healthy/
-│   │       └── Blight/
-│   │       └── ...
-│   ├── processed/            # Datos procesados y generados por el dataset de procesamiento
-│       ├── data_1            # Daset Kaggle ( este set realmente no tiene procesamiento)
-│           ├── Healthy/
-│           └── Blight/    
-│           └── ...      
-│       ├── data_2            # Daset Roboflow ( dataset Roboflow desaumentado)
-│           ├── Healthy/
-│           └── Blight/    
-│           └── ...  
-│       ├── split            # Dataset unificado posporcesado usado para el ciclo ML
-│           ├── train/       # Dataset de train
-│               ├── Healthy/
-│               └── Blight/    
-│               └── ... 
-│           ├── val/         # Dataset de validation
-│               ├── Healthy/
-│               └── Blight/    
-│               └── ... 
-│           ├── test/        # Dataset de test
-│               ├── Healthy/
-│               └── Blight/    
-│               └── ...  
-│
-├── notebooks/
-│   ├── 01_eda_exploracion.ipynb    # Notebooks para el EDA y visualización de datos
-│   ├── 02_modelado_basico.ipynb    # Experimentación con modelos iniciales
-│   └── 03_transfer_learning.ipynb  # Pruebas con técnicas más avanzadas
-│
-├── models/
-│   ├── checkpoints/          # Puntos de control (checkpoints) durante el entrenamiento
-│   │   ├── best_model.h5
-│   │   └── epoch_10.h5
-│   │
-│   └── exported/             # Versiones finales de modelos para producción/uso
-│       ├── final_model.h5
-│       └── tflite_model.tflite
-│
-├── src/                      # Código fuente de producción
-│   ├── __init__.py           # Hace que el directorio sea un paquete Python
-│   ├── adapters
-│         ├── data_loader.py
-│   ├── builders
-│         ├── base_models.py #  Script para cargar el modelo prentrenado
-│         ├── builders.py     # Script para instanciar la cabeza de clasificacion del modelo cargardo listo para Keras TUnner
-│   ├── core                 # carpeta donde se almacenan todos los elementos de variables de ambiente
-│         ├── load_env.py    #  Script para cargar las variables de ambiente
-│         ├── path_finder.py #  Script para detectar las rutas del pro0yecto util para cargar paths
-│   ├── pipelines            # carpeta donde se almacenan todos los scripts del ciclo ML
-│   │   ├── data_pipeline.py      # Script para la generacion de generadores de datos para entrenamiento
-│   │   ├── evaluate_finetuned.py # script de evaluacion de modelo entrenado
-│   │   ├── train.py              # Script principal para el entrenamiento del modelo
-│   │   ├── preproces.py          # Script para carga, preprocesamiento y aumento de datos
-│   │   └── infer.py              # Script para realizar predicciones
-│
-├── utils/
-│   ├── __init__.py
-│   ├── aug_detectors.py      #Script para la deteccion y filtrado de datos preaumentados
-│   ├── data_augmentator.py   #Script para generacion la aumentacion de datos por transformaciones espaciales
-│   ├── image_modifier.py     #Script para generacion la aumentacion de datos por transformaciones resolucion
-│   └── utils.py              # Funciones de utilidades
-│
-├── reports/
-│   ├── figures/              # Gráficos generados
-│   │   ├── class_distribution.png
-│   │   └── image_dimensions.png
-│   │
-│   └── report.pdf            # Un informe final con los hallazgos
-│
-├── requirements.txt          # Lista de librerías y dependencias
-├── README.md                 # Descripción del proyecto, cómo instalar y usar
-└── .gitignore                # Archivos a ignorar por Git (ej: datos grandes, checkpoints)
-
-
