@@ -1,152 +1,152 @@
-🌽 Análisis Exploratorio de Datos
-Detección de Enfermedades en Cultivos de Maíz
-Este documento presenta los hallazgos de la primera fase del proyecto, centrada en el análisis y la comprensión de los datos iniciales.
+
+-----
+
+# 🌽 Detección de Enfermedades del Maíz con Transfer Learning
+
+## 🌟 Resumen del Proyecto
+
+Este proyecto implementa un *pipeline* de *Deep Learning* robusto para la **clasificación de enfermedades comunes en hojas de maíz**. El objetivo es diagnosticar automáticamente la salud de las plantas utilizando técnicas de *Transfer Learning* basadas en la arquitectura VGG16, optimizando la cabeza de clasificación mediante **Keras Tuner** y rastreando todos los experimentos con **MLflow**.
+
+El proyecto se destaca por su rigurosa estrategia de preprocesamiento, que aborda activamente el **sesgo por duplicación (data leakage)** y el **desbalance de clases** en un *dataset* bimodal compuesto por dos fuentes de datos distintas.
+
+-----
 
 📜 Problema y Contexto
 Las enfermedades del maíz, como la roya común, el tizón foliar y la mancha gris, representan una amenaza crítica para la seguridad alimentaria. El diagnóstico tradicional mediante inspección visual es un proceso lento, subjetivo y dependiente de la pericia del observador. Este proyecto busca validar la viabilidad de un sistema de diagnóstico automatizado mediante Inteligencia Artificial para superar estas limitaciones.
 
-📊 Dataset Inicial
-Para el análisis, se utilizó el dataset público "Corn or Maize Leaf Disease Dataset" de Kaggle, una compilación de imágenes de las fuentes PlantVillage y PlantDoc.
+-----
 
-Total de Imágenes: 4,188
+## 🎯 Objetivo y Tipos de Datos
 
-Formato: JPEG (.jpg)
+### Objetivo Principal
 
-Distribución de Clases (Inicial):
+Desarrollar un modelo de clasificación de imágenes altamente preciso y generalizable, capaz de diferenciar entre las siguientes cuatro categorías de salud de las hojas de maíz:
 
-Roya Común (Common Rust): 1,306 imágenes (31.2%)
+1.  **Blight**
+2.  **Common\_Rust**
+3.  **Gray\_Leaf\_Spot**
+4.  **Healthy**
 
-Sana (Healthy): 1,162 imágenes (27.7%)
+### Tipos de Datos
 
-Tizón (Blight): 1,146 imágenes (27.4%)
+El *dataset* está compuesto por imágenes RGB de hojas de maíz, recopiladas de dos fuentes distintas que se manejan por separado para controlar el *Data Augmentation*:
 
-Mancha Gris (Gray Leaf Spot): 574 imágenes (13.7%)
+| Fuente | Descripción | Consideración |
+| :--- | :--- | :--- |
+| **`data_1`** | Dataset primario (ej., Kaggle). | **No-Augmentation** (Se considera limpio y original). |
+| **`data_2`** | Dataset secundario (ej., Roboflow). | **Augmented** (Contiene *Data Augmentation* preaplicado, introduciendo riesgo de sesgo). |
 
-Observación Clave: El dataset inicial presenta un notable desbalance, con la clase "Mancha Gris" significativamente subrepresentada. Este hallazgo es fundamental para las siguientes etapas del proyecto.
+-----
 
-🔬 Hallazgos del Análisis Exploratorio de Datos (EDA)
-Validación e Integridad de Datos
-Se realizó una validación estructural del dataset para confirmar la cantidad de clases, el número de imágenes y la integridad de los archivos. Se encontró y corrigió una inconsistencia de formato (un archivo .jpeg en lugar de .jpg) en la clase "Blight", asegurando la homogeneidad del conjunto de datos.
+## 🛠️ Retos de Datos y Pipeline de Preprocesamiento
 
-Análisis Cualitativo Visual
-La inspección de muestras aleatorias reveló una buena calidad de imagen general (nitidez y enfoque). Se destacó una alta variabilidad en iluminación, escala y ángulos de captura, lo cual es beneficioso para entrenar un modelo más robusto y generalizable.
+El mayor desafío del proyecto fue mitigar el **sesgo por duplicación** presente en la fuente `data_2`, lo que habría inflado artificialmente las métricas de prueba. Para garantizar la integridad del modelo, se estableció un *pipeline* de tres fases:
 
-Desafío Principal Identificado: Se observó una alta similitud morfológica entre las lesiones en etapas avanzadas de "Mancha Gris" y "Tizón", lo que anticipa el principal reto de clasificación para el modelo de IA.
+### 1\. Desafío: Sesgo por Duplicación (*Data Leakage*)
 
-Análisis Cuantitativo de Características Físicas
-Dimensiones: Se confirmó una considerable variabilidad en el tamaño (alto y ancho) de las imágenes, lo que fundamenta la necesidad de un paso de redimensionamiento estándar antes de alimentar el modelo.
+El sesgo por duplicación ocurre cuando una misma imagen o una copia casi idéntica (resultado de un *Data Augmentation* simple) se encuentra tanto en el conjunto de entrenamiento como en el de prueba, lo que conduce al **sobreajuste** (el modelo memoriza en lugar de generalizar).
 
-Distribución de Color: El análisis de histogramas de color, particularmente en el canal verde, demostró ser un rasgo altamente discriminatorio. Las hojas sanas ("Healthy") mostraron un perfil de color verde único y vibrante, claramente distinto al de las hojas enfermas. Esto valida el potencial del color como una característica potente para la clasificación automática y justifica la necesidad de normalizar los valores de los píxeles.
+### Estrategia de De-Augmentación por Embedding
 
-# Estructura del repositorio
+Para contrarrestar esto, se aplicó una estrategia innovadora de filtrado antes de la división de datos:
 
+  * **Generación de Embeddings:** Se generaron vectores de características (*embeddings*) para todas las imágenes en la fuente `"augmented"` (`data_2`) utilizando un modelo preentrenado (ej., la base VGG16).
+  * **Similitud del Coseno ($\cos(\theta)$):** Se calculó la similitud del coseno entre todos los pares de *embeddings* dentro de cada categoría. Las imágenes con una similitud superior a un umbral alto ($\tau \ge 0.95$) fueron identificadas como duplicados artificiales.
+  * **Filtrado:** El *pipeline* eliminó una de las imágenes del par similar, asegurando que solo **una versión representativa** de cada imagen original se conservara en el conjunto de datos final.
+
+### 2\. División Estratificada y Balanceo de Clases
+
+Una vez filtrados los duplicados, las imágenes de `data_1` y las filtradas de `data_2` se unificaron y se procesaron para la fase de entrenamiento:
+
+  * **Unificación y División Estratificada:** El conjunto de datos unificado se dividió en `Train`, `Validation` y `Test` utilizando la función **`stratified_split_dataset`**. Esta división garantiza que la proporción de cada clase de enfermedad sea la misma en los tres conjuntos, lo cual es fundamental para una evaluación imparcial.
+  * **Balanceo (Solo en el set de Train):** Para corregir el desbalance, solo se modifica el conjunto de entrenamiento, evitando la contaminación de los sets de validación y prueba.
+      * **Modo Downsampling:** Reduce el número de imágenes de todas las clases al tamaño de la clase minoritaria.
+      * **Modo Oversampling:** Expande las clases minoritarias hasta un tamaño objetivo (clase mayoritaria + N extra) utilizando una estrategia de **aumento en cascada** (doble transformación de calidad seguida de una transformación espacial) para generar variaciones más robustas.
+
+-----
+
+## 🧠 Metodología General de Entrenamiento (Métricas y Optimización)
+
+El proyecto emplea una metodología rigurosa para el entrenamiento y el seguimiento de los experimentos:
+
+1.  **Transfer Learning:** Se utiliza el modelo **VGG16** preentrenado en ImageNet como *backbone*, congelando sus capas convolucionales para aprovechar las características visuales aprendidas.
+2.  **Búsqueda de Hiperparámetros (Keras Tuner):** Se utiliza la técnica **Hyperband** de Keras Tuner para encontrar la arquitectura óptima para la cabeza de clasificación (las capas densas) que se añade al *backbone* de VGG16.
+3.  **Seguimiento de Experimentos (MLflow):** Todos los *trials* generados por Keras Tuner son registrados como *runs* individuales en MLflow. Esto incluye:
+      * Registro de hiperparámetros por *trial*.
+      * Registro de métricas por época (`loss`, `accuracy`, `val_loss`, `val_accuracy`).
+      * Guardado del modelo final (`best_model.h5`) y las métricas de rendimiento en el conjunto de prueba.
+
+-----
+
+## 📂 Estructura Detallada del Repositorio
+
+El proyecto sigue una estructura modular y escalable para separar el código de producción (`src`), los datos (`data`), y la experimentación (`notebooks`).
+
+```
+corn-diseases-detection/
 mi_proyecto_maiz_dl/
-│
 ├── data/
-│   ├── raw/                  # Datos originales, sin modificar (puedes enlazar a ellos)
-│   │   ├── train/
-│   │   │   ├── Healthy/
-│   │   │   └── Blight/
-│   │   │   └── ...
-│   │   └── validation/
-│   │       ├── Healthy/
-│   │       └── Blight/
-│   │       └── ...
-│   │
-│   ├── processed/            # Datos limpios y listos para el entrenamiento
-│   │   ├── images_resized/
-│   │   └── train_labels.csv
-│   │
-│   └── external/             # Conjuntos de datos de terceros
+│   ├── raw/                  # Datos originales (no modificados)
+│   │   ├── train/            # Dataset de entrenamiento original
+│   │   └── validation/       # Dataset de validación original
+│   └── processed/            # Datos limpios y listos para el ciclo ML
+│       ├── data_1            # Fuente 1 (limpia/no-augmentada)
+│       ├── data_2            # Fuente 2 (des-aumentada/filtrada)
+│       └── split             # Conjuntos finales para el modelo
+│           ├── train/        # Conjunto de Entrenamiento (balanceado)
+│           ├── val/          # Conjunto de Validación (estratificado)
+│           └── test/         # Conjunto de Prueba (estratificado)
 │
-├── notebooks/
-│   ├── 01_eda_exploracion.ipynb    # Notebooks para el EDA y visualización de datos
-│   ├── 02_modelado_basico.ipynb    # Experimentación con modelos iniciales
-│   └── 03_transfer_learning.ipynb  # Pruebas con técnicas más avanzadas
+├── notebooks/                # Espacio para experimentación y EDA
+│   ├── 01_eda_exploracion.ipynb 
+│   ├── 02_modelado_basico.ipynb
+│   └── 03_transfer_learning.ipynb
 │
-├── models/
-│   ├── checkpoints/          # Puntos de control (checkpoints) durante el entrenamiento
-│   │   ├── best_model.h5
-│   │   └── epoch_10.h5
-│   │
-│   └── exported/             # Versiones finales de modelos para producción/uso
-│       ├── final_model.h5
-│       └── tflite_model.tflite
+├── models/                   # Artefactos de modelos
+│   ├── checkpoints/          # Puntos de control intermedios (MLflow)
+│   └── exported/             # Versiones finales para inferencia/producción
 │
 ├── src/                      # Código fuente de producción
-│   ├── __init__.py           # Hace que el directorio sea un paquete Python
-│   │
-│   ├── data_pipeline.py      # Script para carga, preprocesamiento y aumento de datos
-│   ├── model.py              # Definición de la arquitectura del modelo
-│   ├── train.py              # Script principal para el entrenamiento del modelo
-│   └── predict.py            # Script para realizar predicciones
+│   ├── adapters/
+│   │   └── data_loader.py    # Abstracción: Carga de datos de múltiples fuentes
+│   ├── builders/
+│   │   ├── base_models.py    # Definición de backbones preentrenados (VGG16)
+│   │   └── builders.py       # Ensamblaje de la cabeza de clasificación para Keras Tuner
+│   ├── core/                 # Configuración y utilidades de entorno
+│   │   ├── load_env.py       # Carga de variables de entorno (.env)
+│   │   └── path_finder.py    # Detección de la ruta raíz del proyecto
+│   ├── pipelines/            # Scripts del ciclo de Machine Learning
+│   │   ├── data_pipeline.py  # Generación de DataGenerators para Keras
+│   │   ├── evaluate_finetuned.py
+│   │   ├── train.py          # Orquestación del entrenamiento con Keras Tuner/MLflow
+│   │   ├── preproces.py      # Script principal de filtrado, unificación y balanceo (Down/Oversampling)
+│   │   └── infer.py          # Lógica de inferencia para la API (clasificación)
+│   └── utils/                # Funciones de ayuda
+│       ├── aug_detectors.py    # Detección y filtrado de aumentaciones por Embedding
+│       ├── data_augmentator.py # Transformaciones espaciales para Oversampling
+│       ├── image_modifier.py   # Transformaciones de calidad (brillo, contraste, ruido)
+│       └── utils.py          # Utilidades misceláneas
 │
-├── utils/
-│   ├── __init__.py
-│   ├── helpers.py            # Funciones de ayuda (por ejemplo, para graficar)
-│   └── metrics.py            # Funciones para calcular métricas personalizadas
-│
-├── reports/
-│   ├── figures/              # Gráficos generados
-│   │   ├── class_distribution.png
-│   │   └── image_dimensions.png
-│   │
-│   └── report.pdf            # Un informe final con los hallazgos
-│
-├── requirements.txt          # Lista de librerías y dependencias
-├── README.md                 # Descripción del proyecto, cómo instalar y usar
-└── .gitignore                # Archivos a ignorar por Git (ej: datos grandes, checkpoints)
+├── reports/                  # Documentación y resultados
+├── requirements.txt
+├── README.md
+└── .gitignore
+```
 
+### Descripción Profesional de Módulos y Scripts
 
-¡Claro\! Aquí está la información que puedes usar para la sección de instalación de tu archivo `README.md`. He organizado la información de manera clara, agregando comentarios para cada paso y resaltando las especificaciones técnicas de tu equipo.
-
------
-
-## 💻 Requisitos y Configuración del Entorno
-
-### Especificaciones Técnicas
-
-El proyecto ha sido desarrollado y probado en la siguiente configuración de hardware:
-
-  * **Tarjeta Gráfica (GPU):** NVIDIA RTX 4060
-  * **Versión Máxima de CUDA Compatible:** 12.5
-
-### Instalación de CUDA y cuDNN
-
-Para replicar el entorno de desarrollo, es necesario instalar las versiones compatibles de CUDA y cuDNN.
-
-1.  **Verificar la Compatibilidad:** Antes de comenzar, ejecuta el siguiente comando en tu terminal para confirmar que el controlador de tu tarjeta gráfica soporta la versión de CUDA que vas a instalar. La versión de CUDA mostrada debe ser mayor o igual a la que se desea instalar.
-
-    ```bash
-    nvidia-smi
-    ```
-
-      * **Nota:** Aunque tu tarjeta es compatible con CUDA 12.5, el proyecto utiliza **CUDA 12.4** para mantener la compatibilidad con las librerías de PyTorch.
-
-2.  **Instalación de cuDNN:** Una vez que el entorno de Conda esté activo, instala el kit de desarrollo de cuDNN.
-
-    ```bash
-    conda install nvidia::cudnn cuda-version=12.4
-    ```
-
-      * **Comentario:** Este comando instala la biblioteca de redes neuronales profundas (cuDNN), que es crucial para acelerar las operaciones de redes neuronales en la GPU.
-
-3.  **Instalación de PyTorch:** Utiliza `pip` para instalar las librerías principales de PyTorch, especificando la versión de CUDA.
-
-    ```bash
-    pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu124
-    ```
-
-      * **Comentario:** Este comando descarga las versiones de `torch`, `torchvision` y `torchaudio` compiladas para la versión de CUDA 12.4, asegurando que el soporte de la GPU esté habilitado.
-
------
-
-
-
-NOTAS:
-para levantar el aplicativo en local, dirifase a:
-corn-diseases-detection-api
-
-ejecute:
-
-uvicorn main:app --reload
+| Carpeta/Script | Descripción |
+| :--- | :--- |
+| **`data/raw/`** | Contiene los datasets originales. Estos archivos nunca deben ser modificados por el código. |
+| **`data/processed/`** | Almacena los datasets limpios, filtrados y listos para el consumo del modelo. Contiene los subdirectorios `data_1`, `data_2` (filtrados) y `split` (conjuntos finales). |
+| **`notebooks/`** | Entorno para la experimentación, EDA, y prototipado inicial. |
+| **`models/exported/`** | Directorio para la versión final del modelo (ej., `final_model.h5`) que está lista para el despliegue. |
+| **`src/adapters/data_loader.py`** | Componente de abstracción de datos. Encargado de cargar las imágenes desde el disco a memoria (`PIL.Image`) desde múltiples fuentes (`data_1`, `data_2`). |
+| **`src/builders/builders.py`** | Factoría de modelos. Define la arquitectura de la cabeza de clasificación y ensambla el modelo completo (VGG16 + cabeza), listo para la búsqueda de hiperparámetros con Keras Tuner. |
+| **`src/core/load_env.py`** | Utilidad de configuración. Carga y parsea de forma segura todas las variables de entorno (rutas, ratios, tamaños de imagen) desde el archivo `.env`. |
+| **`src/pipelines/train.py`** | Script de orquestación central. Ejecuta la búsqueda de Keras Tuner, aplica *Early Stopping* y registra todos los resultados en MLflow. |
+| **`src/pipelines/preprocess.py`** | Script principal del *pipeline* de datos. Dirige el filtrado, la unificación, la división estratificada y el balanceo (submuestreo/sobremuestreo) de los datos. |
+| **`src/pipelines/infer.py`** | Pipeline de inferencia optimizado para el servidor. Carga el modelo final y contiene la función **`predict()`** utilizada por la API para clasificar imágenes. |
+| **`src/utils/aug_detectors.py`** | Implementa la lógica de **De-Augmentación**; contiene las funciones para la generación de *embeddings* y el cálculo de la similitud del coseno para detectar duplicados. |
+| **`src/utils/data_augmentator.py`** | Define las funciones para las transformaciones espaciales complejas utilizadas durante el *oversampling* controlado. |
+| **`src/utils/image_modifier.py`** | Contiene funciones de bajo nivel para las transformaciones de *calidad* de imagen (ej., ruido, brillo, contraste) utilizadas en el *Data Augmentation*. |
