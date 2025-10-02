@@ -39,7 +39,7 @@ def display_image_samples(root_path: pathlib.Path, num_samples: int):
         # Obtener todas las rutas de imágenes y seleccionar una muestra aleatoria
         image_paths = list(class_dir.glob('*.[jp][pn]g')) # Busca .jpg, .jpeg, .png
         if not image_paths:
-            print(f"⚠️ No se encontraron imágenes en la clase '{class_name}'")
+            print(f" No se encontraron imágenes en la clase '{class_name}'")
             continue
             
         sample_paths = random.sample(image_paths, min(num_samples, len(image_paths)))

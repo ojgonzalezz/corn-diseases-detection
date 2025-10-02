@@ -1,25 +1,25 @@
-# 🌽 Detección de Enfermedades del Maíz con Transfer Learning
+#  Detección de Enfermedades del Maíz con Transfer Learning
 
 Sistema de Deep Learning para clasificación de enfermedades en hojas de maíz utilizando Transfer Learning con VGG16/ResNet50, completamente containerizado con Docker.
 
 ---
 
-## 📋 Resumen del Proyecto
+##  Resumen del Proyecto
 
 Pipeline robusto de Deep Learning para diagnóstico automático de enfermedades comunes en hojas de maíz. El proyecto utiliza Transfer Learning con arquitecturas preentrenadas (VGG16/ResNet50), optimización de hiperparámetros con Keras Tuner, y seguimiento de experimentos con MLflow.
 
 **Características Principales:**
-- 🐳 **100% Containerizado** - Solo necesitas Docker
-- 🤖 Transfer Learning con VGG16/ResNet50
-- 🎯 Optimización con Keras Tuner
-- 📊 Tracking de experimentos con MLflow
-- 🚀 API REST con FastAPI
-- ✅ Suite completa de tests automatizados
-- 📦 Gestión de configuración con Pydantic
+-  **100% Containerizado** - Solo necesitas Docker
+-  Transfer Learning con VGG16/ResNet50
+-  Optimización con Keras Tuner
+-  Tracking de experimentos con MLflow
+-  API REST con FastAPI
+-  Suite completa de tests automatizados
+-  Gestión de configuración con Pydantic
 
 ---
 
-## 🎯 Clases de Enfermedades
+##  Clases de Enfermedades
 
 El modelo clasifica 4 categorías:
 
@@ -30,50 +30,50 @@ El modelo clasifica 4 categorías:
 
 ---
 
-## 📁 Estructura del Proyecto
+##  Estructura del Proyecto
 
 ```
 corn-diseases-detection/
-├── data/                       # Dataset (ignorado por git)
-│   ├── train/                  # 3,856 imágenes (balanceado)
-│   ├── val/                    # 716 imágenes (estratificado)
-│   └── test/                   # 722 imágenes (estratificado)
-│
-├── src/                        # Código fuente
-│   ├── adapters/               # Cargadores de datos
-│   ├── api/                    # API REST (FastAPI)
-│   ├── builders/               # Constructores de modelos
-│   ├── core/                   # Configuración central
-│   ├── pipelines/              # Pipelines ML (train, infer, preprocess)
-│   └── utils/                  # Utilidades
-│
-├── tests/                      # Suite de tests (10 archivos)
-│
-├── experimentation/            # Scripts EDA y notebooks
-│
-├── experiments/                # 🆕 Experimentos edge computing
-│   └── edge_models/            # Entrenamiento arquitecturas livianas
-│       ├── train_edge_model.py
-│       ├── train_all_models.py
-│       ├── compare_models.py
-│       ├── select_best_model.py
-│       ├── README.md
-│       └── best_edge_model.json  # Salida: mejor modelo seleccionado
-│
-├── models/                     # Modelos entrenados (ignorado por git)
-│   ├── exported/               # Modelos finales (.keras)
-│   ├── mlruns/                 # Tracking MLflow
-│   └── tuner_checkpoints/      # Keras Tuner
-│
-├── docker-compose.yml          # Orquestación de servicios
-├── Dockerfile                  # Imagen multi-stage optimizada
-├── requirements.txt            # Dependencias Python
-└── README.md                   # Este archivo
+ data/                       # Dataset (ignorado por git)
+    train/                  # 3,856 imágenes (balanceado)
+    val/                    # 716 imágenes (estratificado)
+    test/                   # 722 imágenes (estratificado)
+
+ src/                        # Código fuente
+    adapters/               # Cargadores de datos
+    api/                    # API REST (FastAPI)
+    builders/               # Constructores de modelos
+    core/                   # Configuración central
+    pipelines/              # Pipelines ML (train, infer, preprocess)
+    utils/                  # Utilidades
+
+ tests/                      # Suite de tests (10 archivos)
+
+ experimentation/            # Scripts EDA y notebooks
+
+ experiments/                #  Experimentos edge computing
+    edge_models/            # Entrenamiento arquitecturas livianas
+        train_edge_model.py
+        train_all_models.py
+        compare_models.py
+        select_best_model.py
+        README.md
+        best_edge_model.json  # Salida: mejor modelo seleccionado
+
+ models/                     # Modelos entrenados (ignorado por git)
+    exported/               # Modelos finales (.keras)
+    mlruns/                 # Tracking MLflow
+    tuner_checkpoints/      # Keras Tuner
+
+ docker-compose.yml          # Orquestación de servicios
+ Dockerfile                  # Imagen multi-stage optimizada
+ requirements.txt            # Dependencias Python
+ README.md                   # Este archivo
 ```
 
 ---
 
-## 🚀 Inicio Rápido
+##  Inicio Rápido
 
 ### Requisitos
 
@@ -83,17 +83,17 @@ corn-diseases-detection/
 
 ---
 
-## 🔬 **NUEVO: Experimentos Edge Computing**
+##  **NUEVO: Experimentos Edge Computing**
 
 ### Entrenamiento de Arquitecturas Livianas
 
-El proyecto incluye un sistema completo para evaluar **4 familias de arquitecturas** optimizadas para edge computing:
+El proyecto incluye un sistema completo para evaluar **4 arquitecturas** optimizadas para edge computing:
 
 **Arquitecturas evaluadas:**
-- **MobileNetV3** (Small y Large)
-- **EfficientNet-Lite** (B0, B1, B2)
-- **MobileViT** (Mobile Vision Transformer)
-- **PMVT** (Plant-based Mobile Vision Transformer)
+- **MobileNetV3Large** - Balance óptimo tamaño/precisión (~5.4M params, ~21MB)
+- **EfficientNet-Lite B2** - Máxima eficiencia (~10.1M params, ~42MB)
+- **MobileViT** - Vision Transformer móvil (~6.4M params, ~25MB)
+- **PMVT** - Específico para plantas (~6M params, ~24MB)
 
 ### Ejecutar Experimentos Completos
 
@@ -103,10 +103,10 @@ docker-compose --profile edge-experiments up
 ```
 
 Esto ejecuta:
-1. ✅ Entrenamiento de 7 arquitecturas livianas
-2. ✅ Comparación automática de resultados
-3. ✅ Selección del mejor modelo
-4. ✅ Generación de `best_edge_model.json`
+1.  Entrenamiento de 4 arquitecturas livianas seleccionadas
+2.  Comparación automática de resultados
+3.  Selección del mejor modelo
+4.  Generación de `best_edge_model.json`
 
 **Criterios de selección:**
 - Precisión global ≥ 85%
@@ -125,7 +125,7 @@ open http://localhost:5000
 # Buscar experimento: "edge_models_comparison"
 ```
 
-📖 **Documentación completa:** `experiments/edge_models/README.md`
+ **Documentación completa:** `experiments/edge_models/README.md`
 
 ### 1. Clonar Repositorio
 
@@ -184,12 +184,12 @@ open http://localhost:5000
 
 ---
 
-## 🐳 Servicios Docker Disponibles
+##  Servicios Docker Disponibles
 
 | Servicio | Profile | Puerto | Comando | Descripción |
 |----------|---------|--------|---------|-------------|
 | **training** | `training` | - | `docker-compose --profile training up` | Entrenamiento estándar |
-| **edge-experiments** | `edge-experiments` | - | `docker-compose --profile edge-experiments up` | 🆕 Entrenar modelos edge |
+| **edge-experiments** | `edge-experiments` | - | `docker-compose --profile edge-experiments up` |  Entrenar modelos edge |
 | **api** | `api` | 8000 | `docker-compose --profile api up -d` | API REST predicciones |
 | **mlflow** | `mlflow` | 5000 | `docker-compose --profile mlflow up -d` | UI experimentos |
 | **notebook** | `notebook` | 8888 | `docker-compose --profile notebook up -d` | Jupyter Lab |
@@ -198,7 +198,7 @@ open http://localhost:5000
 
 ---
 
-## 📡 Uso de la API
+##  Uso de la API
 
 ### Endpoints Disponibles
 
@@ -245,7 +245,7 @@ print(f"Confianza: {result['prediction']['confidence']:.2%}")
 
 ---
 
-## ⚙️ Configuración
+##  Configuración
 
 ### Variables de Entorno
 
@@ -266,7 +266,7 @@ Para personalizar, edita `src/core/.env`
 
 ---
 
-## 🧪 Testing
+##  Testing
 
 ### Ejecutar Tests en Docker
 
@@ -297,7 +297,7 @@ El proyecto incluye **10 archivos de tests** con **~90% de cobertura**:
 
 ---
 
-## 🔧 Comandos Docker Útiles
+##  Comandos Docker Útiles
 
 ### Gestión de Contenedores
 
@@ -311,7 +311,7 @@ docker-compose logs -f [servicio]
 # Detener todos los servicios
 docker-compose down
 
-# Detener y eliminar volúmenes (⚠️ elimina datos)
+# Detener y eliminar volúmenes ( elimina datos)
 docker-compose down -v
 
 # Reconstruir imagen desde cero
@@ -333,7 +333,7 @@ docker-compose run --rm training python -c "import tensorflow as tf; print(tf.__
 
 ---
 
-## 🎨 Personalización del Entrenamiento
+##  Personalización del Entrenamiento
 
 ### Entrenar con Diferente Backbone
 
@@ -359,7 +359,7 @@ BALANCE_STRATEGY=downsample
 
 ---
 
-## 📊 Estructura de Datos
+##  Estructura de Datos
 
 ### Formato Esperado
 
@@ -368,25 +368,25 @@ El proyecto soporta dos estructuras:
 **Opción 1: Datos Ya Divididos (Recomendado)**
 ```
 data/
-├── train/
-│   ├── Blight/
-│   ├── Common_Rust/
-│   ├── Gray_Leaf_Spot/
-│   └── Healthy/
-├── val/
-│   └── ...
-└── test/
-    └── ...
+ train/
+    Blight/
+    Common_Rust/
+    Gray_Leaf_Spot/
+    Healthy/
+ val/
+    ...
+ test/
+     ...
 ```
 
 **Opción 2: Datos Raw para Preprocesar**
 ```
 data/
-└── raw/
-    ├── data_1/
-    │   └── [clases]/
-    └── data_2/
-        └── [clases]/
+ raw/
+     data_1/
+        [clases]/
+     data_2/
+         [clases]/
 ```
 
 Si tienes datos raw, ejecuta:
@@ -396,7 +396,7 @@ docker-compose --profile preprocessing up
 
 ---
 
-## 🔍 Características Avanzadas
+##  Características Avanzadas
 
 ### De-augmentación Inteligente
 
@@ -436,15 +436,15 @@ open http://localhost:5000
 
 ---
 
-## 🎯 Versionado de Modelos
+##  Versionado de Modelos
 
 Los modelos se guardan automáticamente con:
 
 ```
 models/exported/
-├── VGG16_20251002_143022_acc0.9745.keras    # Con timestamp + accuracy
-├── VGG16_20251002_143022_metadata.json      # Metadatos de entrenamiento
-└── best_VGG16.keras                         # Último mejor modelo
+ VGG16_20251002_143022_acc0.9745.keras    # Con timestamp + accuracy
+ VGG16_20251002_143022_metadata.json      # Metadatos de entrenamiento
+ best_VGG16.keras                         # Último mejor modelo
 ```
 
 Los metadatos incluyen:
@@ -455,7 +455,7 @@ Los metadatos incluyen:
 
 ---
 
-## 🐛 Troubleshooting Docker
+##  Troubleshooting Docker
 
 ### Error: "Cannot connect to Docker daemon"
 ```bash
@@ -478,7 +478,7 @@ docker system prune
 # Ver uso de espacio
 docker system df
 
-# Eliminar todo (⚠️ cuidado)
+# Eliminar todo ( cuidado)
 docker system prune -a
 ```
 
@@ -496,7 +496,7 @@ services:
 
 ---
 
-## 📈 Workflow Típico
+##  Workflow Típico
 
 ### 1. Preparar Datos
 ```bash
@@ -541,7 +541,7 @@ open http://localhost:8000/docs
 
 ---
 
-## 🧬 Arquitectura del Sistema
+##  Arquitectura del Sistema
 
 ### Pipeline de Datos
 1. **Carga** - `src/adapters/data_loader.py`
@@ -568,7 +568,7 @@ open http://localhost:8000/docs
 
 ---
 
-## 📊 Sistema de Configuración
+##  Sistema de Configuración
 
 ### Gestión Centralizada con Pydantic
 
@@ -588,7 +588,7 @@ Validación automática de:
 
 ---
 
-## 🧪 Testing Automatizado
+##  Testing Automatizado
 
 **Cobertura:** ~90%  
 **Tests:** 10 archivos, 3,000+ líneas
@@ -606,16 +606,16 @@ docker-compose run --rm training pytest tests/ -m "not slow"
 
 ---
 
-## 🔐 Seguridad
+##  Seguridad
 
-- ✅ Contenedores corren con usuario no-root
-- ✅ Variables sensibles en `.env` (no commiteado)
-- ✅ Multi-stage build minimiza superficie de ataque
-- ✅ Dependencias con versiones fijas
+-  Contenedores corren con usuario no-root
+-  Variables sensibles en `.env` (no commiteado)
+-  Multi-stage build minimiza superficie de ataque
+-  Dependencias con versiones fijas
 
 ---
 
-## 📦 Volúmenes Docker
+##  Volúmenes Docker
 
 Los datos y modelos persisten entre reinicios:
 
@@ -630,7 +630,7 @@ volumes:
 
 ---
 
-## 🎛️ Configuración Avanzada
+##  Configuración Avanzada
 
 ### GPU Support (NVIDIA)
 
@@ -662,7 +662,7 @@ training:
 
 ---
 
-## 🌐 Despliegue en Producción
+##  Despliegue en Producción
 
 ### Cloud Run (Google Cloud)
 
@@ -697,7 +697,7 @@ git push heroku main
 
 ---
 
-## 📚 Uso Programático
+##  Uso Programático
 
 ### Pipeline de Inferencia
 
@@ -731,7 +731,7 @@ tuner, (X_test, y_test) = train(
 
 ---
 
-## 🛠️ Desarrollo
+##  Desarrollo
 
 ### Ejecutar Tests
 
@@ -763,7 +763,7 @@ open http://localhost:8888
 
 ---
 
-## 📊 Monitoreo
+##  Monitoreo
 
 ### Logs de Contenedores
 
@@ -793,7 +793,7 @@ docker-compose ps
 
 ---
 
-## 📖 Documentación Adicional
+##  Documentación Adicional
 
 - **API Docs:** http://localhost:8000/docs (Swagger)
 - **API ReDoc:** http://localhost:8000/redoc
@@ -802,7 +802,7 @@ docker-compose ps
 
 ---
 
-## 🤝 Contribuir
+##  Contribuir
 
 1. Fork el repositorio
 2. Crea una rama (`git checkout -b feature/nueva-funcionalidad`)
@@ -814,17 +814,17 @@ docker-compose ps
 
 ---
 
-## 📝 Licencia
+##  Licencia
 
 Este proyecto está bajo la licencia MIT.
 
 ---
 
-## 🆘 Soporte
+##  Soporte
 
 - **Issues:** [GitHub Issues](https://github.com/ojgonzalezz/corn-diseases-detection/issues)
 - **Repository:** [ojgonzalezz/corn-diseases-detection](https://github.com/ojgonzalezz/corn-diseases-detection)
 
 ---
 
-**🌽 Desarrollado con Transfer Learning y Docker para máxima reproducibilidad**
+** Desarrollado con Transfer Learning y Docker para máxima reproducibilidad**

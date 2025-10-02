@@ -38,9 +38,8 @@ from src.utils.logger import get_logger, log_section, log_dict
 from src.pipelines.preprocess import split_and_balance_dataset
 from src.utils.utils import flatten_data
 from src.builders.base_models import (
-    load_mobilenetv3_small,
     load_mobilenetv3_large,
-    load_efficientnet_lite,
+    load_efficientnet_lite_b2,
     load_mobilevit,
     load_pmvt,
     get_model_info
@@ -110,13 +109,10 @@ def train_edge_model(
     mlflow.set_tracking_uri(f"file:///{paths.mlruns.as_posix()}")
     mlflow.set_experiment("edge_models_comparison")
     
-    # Mapeo de nombres a loaders
+    # Mapeo de nombres a loaders (4 arquitecturas seleccionadas)
     model_loaders = {
-        'MobileNetV3Small': lambda: load_mobilenetv3_small(),
         'MobileNetV3Large': lambda: load_mobilenetv3_large(),
-        'EfficientNetLite0': lambda: load_efficientnet_lite(lite_version=0),
-        'EfficientNetLite1': lambda: load_efficientnet_lite(lite_version=1),
-        'EfficientNetLite2': lambda: load_efficientnet_lite(lite_version=2),
+        'EfficientNetLiteB2': lambda: load_efficientnet_lite_b2(),
         'MobileViT': lambda: load_mobilevit(variant='small'),
         'PMVT': lambda: load_pmvt()
     }
@@ -300,9 +296,9 @@ def train_edge_model(
         
         logger.info("=" * 70)
         if meets_requirements:
-            logger.info("✅ CUMPLE REQUISITOS MÍNIMOS PARA EDGE COMPUTING")
+            logger.info(" CUMPLE REQUISITOS MÍNIMOS PARA EDGE COMPUTING")
         else:
-            logger.info("❌ NO CUMPLE REQUISITOS MÍNIMOS")
+            logger.info(" NO CUMPLE REQUISITOS MÍNIMOS")
             if test_accuracy < 0.85:
                 logger.info(f"  - Precisión: {test_accuracy:.2%} < 85%")
             if min_recall < 0.80:
@@ -362,10 +358,8 @@ if __name__ == '__main__':
     
     parser = argparse.ArgumentParser(description='Entrenar modelo edge para clasificación de enfermedades del maíz')
     parser.add_argument('--model', type=str, required=True,
-                        choices=['MobileNetV3Small', 'MobileNetV3Large', 
-                                'EfficientNetLite0', 'EfficientNetLite1', 'EfficientNetLite2',
-                                'MobileViT', 'PMVT'],
-                        help='Arquitectura a entrenar')
+                        choices=['MobileNetV3Large', 'EfficientNetLiteB2', 'MobileViT', 'PMVT'],
+                        help='Arquitectura a entrenar (4 modelos seleccionados)')
     parser.add_argument('--lr', type=float, default=0.001, help='Learning rate')
     parser.add_argument('--dropout', type=float, default=0.3, help='Dropout rate')
     parser.add_argument('--epochs', type=int, default=30, help='Número de épocas')

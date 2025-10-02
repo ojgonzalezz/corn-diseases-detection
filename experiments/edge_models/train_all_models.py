@@ -22,17 +22,9 @@ from src.utils.logger import get_logger, log_section
 logger = get_logger(__name__)
 
 
-# Configuración de experimentos
+# Configuración de experimentos (4 arquitecturas seleccionadas)
 EXPERIMENTS = [
-    # MobileNetV3 variants
-    {
-        'name': 'MobileNetV3Small',
-        'lr': 0.001,
-        'dropout': 0.3,
-        'epochs': 30,
-        'batch_size': 32,
-        'fine_tune': False,
-    },
+    # MobileNetV3Large - Balance tamaño/precisión
     {
         'name': 'MobileNetV3Large',
         'lr': 0.001,
@@ -42,25 +34,9 @@ EXPERIMENTS = [
         'fine_tune': False,
     },
     
-    # EfficientNet-Lite variants
+    # EfficientNet-Lite B2 - Máxima eficiencia
     {
-        'name': 'EfficientNetLite0',
-        'lr': 0.001,
-        'dropout': 0.2,
-        'epochs': 30,
-        'batch_size': 32,
-        'fine_tune': False,
-    },
-    {
-        'name': 'EfficientNetLite1',
-        'lr': 0.001,
-        'dropout': 0.2,
-        'epochs': 30,
-        'batch_size': 32,
-        'fine_tune': False,
-    },
-    {
-        'name': 'EfficientNetLite2',
+        'name': 'EfficientNetLiteB2',
         'lr': 0.0008,
         'dropout': 0.25,
         'epochs': 30,
@@ -68,7 +44,7 @@ EXPERIMENTS = [
         'fine_tune': False,
     },
     
-    # Vision Transformers for mobile
+    # MobileViT - Vision Transformer móvil
     {
         'name': 'MobileViT',
         'lr': 0.001,
@@ -78,6 +54,8 @@ EXPERIMENTS = [
         'fine_tune': True,
         'fine_tune_epochs': 10,
     },
+    
+    # PMVT - Optimizado para plantas
     {
         'name': 'PMVT',
         'lr': 0.001,
@@ -125,10 +103,10 @@ def train_all_models():
         # Ejecutar
         try:
             result = subprocess.run(cmd, check=True, capture_output=False)
-            logger.info(f"✅ {exp['name']} completado exitosamente")
+            logger.info(f" {exp['name']} completado exitosamente")
             results.append({'model': exp['name'], 'status': 'success'})
         except subprocess.CalledProcessError as e:
-            logger.error(f"❌ {exp['name']} falló: {e}")
+            logger.error(f" {exp['name']} falló: {e}")
             results.append({'model': exp['name'], 'status': 'failed', 'error': str(e)})
         
         logger.info("")
@@ -141,20 +119,20 @@ def train_all_models():
     successful = [r for r in results if r['status'] == 'success']
     failed = [r for r in results if r['status'] == 'failed']
     
-    logger.info(f"✅ Exitosos: {len(successful)}/{len(results)}")
-    logger.info(f"❌ Fallidos: {len(failed)}/{len(results)}")
+    logger.info(f" Exitosos: {len(successful)}/{len(results)}")
+    logger.info(f" Fallidos: {len(failed)}/{len(results)}")
     
     if successful:
         logger.info("")
         logger.info("Modelos entrenados exitosamente:")
         for r in successful:
-            logger.info(f"  ✓ {r['model']}")
+            logger.info(f"   {r['model']}")
     
     if failed:
         logger.info("")
         logger.info("Modelos con errores:")
         for r in failed:
-            logger.info(f"  ✗ {r['model']}")
+            logger.info(f"   {r['model']}")
     
     logger.info("")
     logger.info("Próximo paso:")

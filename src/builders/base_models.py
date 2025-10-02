@@ -11,7 +11,6 @@ from typing import Tuple, Optional
 from tensorflow.keras.applications import (
     VGG16, 
     ResNet50,
-    MobileNetV3Small,
     MobileNetV3Large
 )
 from tensorflow.keras.models import Model
@@ -145,44 +144,6 @@ def load_resnet50(input_shape: Optional[Tuple[int, int, int]] = None, weights: s
 #####################################################################################
 
 ##########################
-# ---- MobileNetV3Small ----
-##########################
-
-def load_mobilenetv3_small(input_shape: Optional[Tuple[int, int, int]] = None, weights: str = 'imagenet') -> Model:
-    """
-    Carga MobileNetV3Small - Arquitectura ultra-liviana para edge computing.
-    
-    Características:
-    - Parámetros: ~2.5M
-    - Tamaño: ~10MB
-    - Optimizado para dispositivos móviles
-    - Búsqueda de arquitectura neural (NAS)
-    
-    Args:
-        input_shape: Dimensiones de entrada (alto, ancho, canales).
-                    Recomendado: (224, 224, 3) o mayor
-        weights: Pesos preentrenados ('imagenet' o None).
-        
-    Returns:
-        Modelo MobileNetV3Small sin la capa de clasificación.
-        
-    Example:
-        >>> model = load_mobilenetv3_small()
-        >>> print(f"Parámetros: {model.count_params():,}")
-    """
-    if input_shape is None:
-        img_size = config.data.image_size
-        input_shape = (*img_size, 3)
-    
-    return MobileNetV3Small(
-        include_top=False,
-        weights=weights,
-        input_shape=input_shape,
-        minimalistic=False  # Usar versión completa para mejor accuracy
-    )
-
-
-##########################
 # ---- MobileNetV3Large ----
 ##########################
 
@@ -220,54 +181,46 @@ def load_mobilenetv3_large(input_shape: Optional[Tuple[int, int, int]] = None, w
 
 
 #################################
-# ---- EfficientNet-Lite B0 ----
+# ---- EfficientNet-Lite B2 ----
 #################################
 
-def load_efficientnet_lite(input_shape: Optional[Tuple[int, int, int]] = None, lite_version: int = 0) -> Model:
+def load_efficientnet_lite_b2(input_shape: Optional[Tuple[int, int, int]] = None, weights: str = 'imagenet') -> Model:
     """
-    Carga EfficientNet-Lite - Variantes optimizadas para edge/mobile.
+    Carga EfficientNet-Lite B2 - Optimizado para edge con mayor precisión.
     
     EfficientNet-Lite es una versión simplificada de EfficientNet específicamente
     diseñada para deployment en dispositivos móviles y edge.
     
-    Características según versión:
-    - Lite0: ~4.7M params, ~18MB, mejor para ultra-low latency
-    - Lite1: ~5.4M params, ~22MB, balance tamaño/precisión
-    - Lite2: ~6.1M params, ~24MB, mejor precisión manteniendo eficiencia
+    Características:
+    - Parámetros: ~10.1M
+    - Tamaño: ~42MB
+    - Mayor precisión manteniendo eficiencia
+    - Compound scaling optimizado
     
     NOTA: TensorFlow no incluye EfficientNet-Lite nativamente.
-    Usaremos EfficientNetV2B0 como alternativa compatible que tiene
+    Usaremos EfficientNetV2B2 como alternativa compatible que tiene
     características similares de eficiencia.
     
     Args:
         input_shape: Dimensiones de entrada (mínimo 224x224).
-        lite_version: Versión Lite (0, 1, o 2).
+        weights: Pesos preentrenados ('imagenet' o None).
         
     Returns:
-        Modelo EfficientNet-Lite sin la capa de clasificación.
+        Modelo EfficientNet-Lite B2 sin la capa de clasificación.
         
     Example:
-        >>> model = load_efficientnet_lite(lite_version=0)
+        >>> model = load_efficientnet_lite_b2()
         >>> print(f"Parámetros: {model.count_params():,}")
     """
     if input_shape is None:
         img_size = config.data.image_size
         input_shape = (*img_size, 3)
     
-    # Importar dinámicamente según versión
-    from tensorflow.keras.applications import EfficientNetV2B0, EfficientNetV2B1, EfficientNetV2B2
+    from tensorflow.keras.applications import EfficientNetV2B2
     
-    lite_models = {
-        0: EfficientNetV2B0,
-        1: EfficientNetV2B1,
-        2: EfficientNetV2B2
-    }
-    
-    model_class = lite_models.get(lite_version, EfficientNetV2B0)
-    
-    return model_class(
+    return EfficientNetV2B2(
         include_top=False,
-        weights='imagenet',
+        weights=weights,
         input_shape=input_shape
     )
 

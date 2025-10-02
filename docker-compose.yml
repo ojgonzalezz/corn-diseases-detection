@@ -221,7 +221,7 @@ networks:
 #
 # Experimentos Edge Computing (NUEVO):
 #   docker-compose --profile edge-experiments up
-#   Entrena MobileNetV3, EfficientNet-Lite, MobileViT, PMVT
+#   Entrena: MobileNetV3Large, EfficientNetLiteB2, MobileViT, PMVT
 #   Genera: best_edge_model.json con el mejor modelo seleccionado
 #
 # Preprocesamiento:

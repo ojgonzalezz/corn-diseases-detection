@@ -74,12 +74,12 @@ if __name__ == "__main__":
         
         # --- RESUMEN NUMÉRICO EN TERMINAL ---
         print("\n" + "="*40)
-        print("📊 RESUMEN DEL DESBALANCE DE CLASES")
+        print(" RESUMEN DEL DESBALANCE DE CLASES")
         print("="*40)
-        print(f"📈 Clase con más imágenes: '{distribution_df.iloc[0]['Clase']}' ({distribution_df.iloc[0]['Cantidad']})")
-        print(f"📉 Clase con menos imágenes: '{distribution_df.iloc[-1]['Clase']}' ({distribution_df.iloc[-1]['Cantidad']})")
-        print(f"⚖️ Promedio de imágenes por clase: {distribution_df['Cantidad'].mean():.2f}")
-        print(f"📊 Desviación estándar: {distribution_df['Cantidad'].std():.2f}")
+        print(f" Clase con más imágenes: '{distribution_df.iloc[0]['Clase']}' ({distribution_df.iloc[0]['Cantidad']})")
+        print(f" Clase con menos imágenes: '{distribution_df.iloc[-1]['Clase']}' ({distribution_df.iloc[-1]['Cantidad']})")
+        print(f" Promedio de imágenes por clase: {distribution_df['Cantidad'].mean():.2f}")
+        print(f" Desviación estándar: {distribution_df['Cantidad'].std():.2f}")
         print("="*40, "\n")
         
         plot_enhanced_distribution(distribution_df)

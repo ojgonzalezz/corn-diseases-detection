@@ -1,10 +1,10 @@
-# 🔬 Experimentos de Modelos Edge
+#  Experimentos de Modelos Edge
 
 Sistema completo de experimentación para seleccionar la mejor arquitectura liviana para edge computing.
 
 ---
 
-## 🎯 Objetivo
+##  Objetivo
 
 Determinar cuál arquitectura es la **mejor** para deployment en dispositivos edge basándose en:
 
@@ -15,21 +15,18 @@ Determinar cuál arquitectura es la **mejor** para deployment en dispositivos ed
 
 ---
 
-## 🏗️ Arquitecturas Evaluadas
+##  Arquitecturas Evaluadas (4 Seleccionadas)
 
 | Modelo | Parámetros | Tamaño | Características |
 |--------|------------|--------|-----------------|
-| **MobileNetV3Small** | ~2.5M | ~10MB | Ultra-liviano, latencia mínima |
-| **MobileNetV3Large** | ~5.4M | ~21MB | Balance tamaño/precisión |
-| **EfficientNet-Lite B0** | ~4.7M | ~18MB | Optimizado para mobile |
-| **EfficientNet-Lite B1** | ~5.4M | ~22MB | Mejor precisión |
-| **EfficientNet-Lite B2** | ~6.1M | ~24MB | Mayor precisión |
-| **MobileViT** | ~6.4M | ~25MB | Vision Transformer móvil |
-| **PMVT** | ~6M | ~24MB | Optimizado para plantas |
+| **MobileNetV3Large** | ~5.4M | ~21MB | Balance óptimo tamaño/precisión |
+| **EfficientNet-Lite B2** | ~10.1M | ~42MB | Máxima precisión manteniendo eficiencia |
+| **MobileViT** | ~6.4M | ~25MB | Vision Transformer para móviles |
+| **PMVT** | ~6M | ~24MB | Específico para enfermedades de plantas |
 
 ---
 
-## 🚀 Uso Rápido (Docker)
+##  Uso Rápido (Docker)
 
 ### 1. Entrenar Todas las Arquitecturas
 
@@ -39,12 +36,12 @@ docker-compose --profile edge-experiments up
 ```
 
 Esto ejecutará automáticamente:
-1. Entrenamiento de los 7 modelos
+1. Entrenamiento de los 4 modelos seleccionados
 2. Comparación de resultados
 3. Selección del mejor modelo
 4. Generación de `best_edge_model.json`
 
-**Tiempo estimado:** 3-5 horas (dependiendo de tu hardware)
+**Tiempo estimado:** 2-3 horas (dependiendo de tu hardware)
 
 ### 2. Ver Resultados en MLflow
 
@@ -60,21 +57,28 @@ Filtra por experimento: **edge_models_comparison**
 
 ---
 
-## 📊 Scripts Disponibles
+##  Scripts Disponibles
 
 ### `train_edge_model.py`
 
 Entrena un modelo específico.
 
 ```bash
-# Ejemplo: Entrenar MobileNetV3Small
+# Ejemplo: Entrenar MobileNetV3Large
 docker-compose run --rm training python experiments/edge_models/train_edge_model.py \
-  --model MobileNetV3Small \
+  --model MobileNetV3Large \
   --epochs 30 \
   --lr 0.001 \
   --dropout 0.3
 
-# Con fine-tuning
+# Ejemplo: Entrenar EfficientNetLiteB2
+docker-compose run --rm training python experiments/edge_models/train_edge_model.py \
+  --model EfficientNetLiteB2 \
+  --epochs 30 \
+  --lr 0.0008 \
+  --dropout 0.25
+
+# Con fine-tuning (recomendado para MobileViT y PMVT)
 docker-compose run --rm training python experiments/edge_models/train_edge_model.py \
   --model PMVT \
   --epochs 30 \
@@ -126,7 +130,7 @@ Genera: **`best_edge_model.json`** con toda la información para la siguiente fa
 
 ---
 
-## 📁 Archivos de Salida
+##  Archivos de Salida
 
 ### `best_edge_model.json`
 
@@ -136,13 +140,13 @@ Archivo principal con el modelo seleccionado:
 {
   "selection_info": {
     "timestamp": "2025-10-02T16:30:00",
-    "total_models_evaluated": 7,
-    "models_meeting_requirements": 5,
+    "total_models_evaluated": 4,
+    "models_meeting_requirements": 3,
     "selection_criteria": "Mejor balance precisión/tamaño"
   },
   
   "selected_model": {
-    "name": "MobileNetV3Small",
+    "name": "MobileNetV3Large",
     "run_id": "abc123...",
     "artifact_uri": "file:///app/models/mlruns/...",
     "model_file": "MobileNetV3Small_20251002_selected.keras"
@@ -187,7 +191,7 @@ Tabla con todos los modelos y métricas en formato CSV para análisis.
 
 ---
 
-## 📊 Interpretación de Resultados
+##  Interpretación de Resultados
 
 ### Efficiency Score
 
@@ -202,15 +206,15 @@ efficiency_score = (accuracy × min_recall) / log(size_mb + 1)
 
 ### Cumplimiento de Requisitos
 
-✅ **CUMPLE** si:
+ **CUMPLE** si:
 - `test_accuracy ≥ 0.85` (85%)
 - `min_recall ≥ 0.80` (80% en TODAS las clases)
 
-❌ **NO CUMPLE** si falla alguno de los requisitos.
+ **NO CUMPLE** si falla alguno de los requisitos.
 
 ---
 
-## 🔄 Workflow Completo
+##  Workflow Completo
 
 ```bash
 # 1. Entrenar todos los modelos
@@ -229,7 +233,7 @@ open http://localhost:5000
 
 ---
 
-## 🎨 Personalización
+##  Personalización
 
 ### Modificar Hiperparámetros
 
@@ -256,7 +260,7 @@ EXPERIMENTS = [
 
 ---
 
-## 📈 Próximos Pasos
+##  Próximos Pasos
 
 Una vez seleccionado el mejor modelo (`best_edge_model.json`):
 
@@ -279,5 +283,5 @@ Una vez seleccionado el mejor modelo (`best_edge_model.json`):
 
 ---
 
-**🌽 ¡Listo para encontrar el mejor modelo edge!**
+** ¡Listo para encontrar el mejor modelo edge!**
 

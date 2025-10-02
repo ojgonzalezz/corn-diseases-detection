@@ -14,9 +14,8 @@ from src.builders.base_models import (
     load_vgg16, 
     load_resnet50, 
     load_yolo,
-    load_mobilenetv3_small,
     load_mobilenetv3_large,
-    load_efficientnet_lite,
+    load_efficientnet_lite_b2,
     load_mobilevit,
     load_pmvt
 )
@@ -60,12 +59,9 @@ class ModelBuilder(kt.HyperModel):
             'VGG16': load_vgg16, 
             'ResNet50': load_resnet50,
             'YOLO': load_yolo,
-            # Edge Computing Models
-            'MobileNetV3Small': load_mobilenetv3_small,
+            # Edge Computing Models (4 arquitecturas seleccionadas)
             'MobileNetV3Large': load_mobilenetv3_large,
-            'EfficientNetLite0': lambda: load_efficientnet_lite(lite_version=0),
-            'EfficientNetLite1': lambda: load_efficientnet_lite(lite_version=1),
-            'EfficientNetLite2': lambda: load_efficientnet_lite(lite_version=2),
+            'EfficientNetLiteB2': load_efficientnet_lite_b2,
             'MobileViT': load_mobilevit,
             'PMVT': load_pmvt
         }

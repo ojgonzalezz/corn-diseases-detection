@@ -98,7 +98,7 @@ def select_best_model(df: pd.DataFrame):
     df_qualified = df[df['meets_requirements'] == True].copy()
     
     if df_qualified.empty:
-        logger.warning("⚠️  Ningún modelo cumple los requisitos mínimos")
+        logger.warning("  Ningún modelo cumple los requisitos mínimos")
         logger.info("Usando el mejor modelo disponible sin filtro de requisitos")
         df_qualified = df.copy()
         best_available = True
@@ -205,7 +205,7 @@ def save_output(output: dict):
     with open(output_path, 'w', encoding='utf-8') as f:
         json.dump(output, f, indent=2, ensure_ascii=False)
     
-    logger.info(f"✅ Archivo de salida guardado en: {output_path}")
+    logger.info(f" Archivo de salida guardado en: {output_path}")
     
     return output_path
 
@@ -235,21 +235,21 @@ if __name__ == '__main__':
     log_section(logger, "MODELO SELECCIONADO")
     
     if best_available:
-        logger.warning("⚠️  NOTA: Ningún modelo cumplió los requisitos mínimos")
+        logger.warning("  NOTA: Ningún modelo cumplió los requisitos mínimos")
         logger.warning("Se seleccionó el mejor modelo disponible")
         logger.info("")
     
-    logger.info(f"🏆 Modelo: {output['selected_model']['name']}")
+    logger.info(f" Modelo: {output['selected_model']['name']}")
     logger.info("")
-    logger.info("📊 Métricas:")
+    logger.info(" Métricas:")
     logger.info(f"   Accuracy: {output['performance_metrics']['test_accuracy']:.2%}")
     logger.info(f"   Min Recall: {output['performance_metrics']['min_recall']:.2%}")
     logger.info(f"   Loss: {output['performance_metrics']['test_loss']:.4f}")
     logger.info("")
-    logger.info("💾 Características:")
+    logger.info(" Características:")
     logger.info(f"   Tamaño: {output['model_characteristics']['model_size_mb']} MB")
     logger.info(f"   Parámetros: {output['model_characteristics']['total_parameters']:,}")
-    logger.info(f"   Edge-ready: {'✅ Sí' if output['model_characteristics']['suitable_for_edge'] else '❌ No'}")
+    logger.info(f"   Edge-ready: {' Sí' if output['model_characteristics']['suitable_for_edge'] else ' No'}")
     logger.info("")
     
     # Guardar archivo
@@ -257,18 +257,18 @@ if __name__ == '__main__':
     
     log_section(logger, "ARCHIVO DE SALIDA GENERADO")
     logger.info("")
-    logger.info(f"📁 Ubicación: {output_path}")
+    logger.info(f" Ubicación: {output_path}")
     logger.info("")
     logger.info("Este archivo contiene:")
-    logger.info("  ✓ Modelo seleccionado y métricas")
-    logger.info("  ✓ Configuración de entrenamiento")
-    logger.info("  ✓ Comparación de todos los modelos")
-    logger.info("  ✓ Información para deployment")
+    logger.info("   Modelo seleccionado y métricas")
+    logger.info("   Configuración de entrenamiento")
+    logger.info("   Comparación de todos los modelos")
+    logger.info("   Información para deployment")
     logger.info("")
     logger.info("Úsalo en la siguiente fase del proyecto para:")
     logger.info("  • Exportar modelo a TFLite")
     logger.info("  • Deployment en dispositivos edge")
     logger.info("  • Optimización adicional")
     logger.info("")
-    logger.info("🎉 Proceso de selección completado exitosamente")
+    logger.info(" Proceso de selección completado exitosamente")
 

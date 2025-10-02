@@ -29,7 +29,7 @@ def analyze_dimensions(root_path: pathlib.Path, fraction: float):
     """
     Analiza las dimensiones (ancho y alto) de una fracción de las imágenes.
     """
-    print("📏 Analizando dimensiones de las imágenes...")
+    print(" Analizando dimensiones de las imágenes...")
     image_paths = list(root_path.glob('*/*.[jp][pn]g'))
     
     # Tomar una muestra aleatoria para no procesar todo si no es necesario
@@ -45,7 +45,7 @@ def analyze_dimensions(root_path: pathlib.Path, fraction: float):
             continue # Ignorar archivos corruptos
 
     if not dimensions:
-        print("⚠️ No se pudieron leer las dimensiones de las imágenes.")
+        print(" No se pudieron leer las dimensiones de las imágenes.")
         return
 
     df = pd.DataFrame(dimensions, columns=['Ancho', 'Alto'])
@@ -65,7 +65,7 @@ def analyze_color_histograms(root_path: pathlib.Path, fraction: float):
     """
     Calcula y grafica los histogramas de color promedio para cada clase con colores distintivos.
     """
-    print("\n🎨 Analizando histogramas de color...")
+    print("\n Analizando histogramas de color...")
     class_dirs = sorted([d for d in root_path.iterdir() if d.is_dir()])
     
     fig, ax = plt.subplots(figsize=(12, 7))
@@ -113,7 +113,7 @@ def analyze_color_histograms(root_path: pathlib.Path, fraction: float):
 
 if __name__ == "__main__":
     if not DATA_ROOT.exists():
-        print(f"❌ Error: El directorio '{DATA_ROOT}' no fue encontrado.")
+        print(f" Error: El directorio '{DATA_ROOT}' no fue encontrado.")
     else:
         # Ejecutar ambos análisis
         analyze_dimensions(DATA_ROOT, SAMPLE_FRACTION)

@@ -97,7 +97,7 @@ def print_comparison_table(df: pd.DataFrame):
     logger.info("=" * 120)
     
     for _, row in df_sorted.iterrows():
-        status = "✅ SÍ" if row['meets_requirements'] else "❌ NO"
+        status = " SÍ" if row['meets_requirements'] else " NO"
         logger.info(
             f"{row['model_name']:<20} "
             f"{row['test_accuracy']:>9.2%} "
@@ -121,21 +121,21 @@ def print_best_models(df: pd.DataFrame):
     df_qualified = df[df['meets_requirements'] == True]
     
     if df_qualified.empty:
-        logger.warning("⚠️  Ningún modelo cumple los requisitos mínimos (Acc ≥ 85%, Recall ≥ 0.80)")
+        logger.warning("  Ningún modelo cumple los requisitos mínimos (Acc ≥ 85%, Recall ≥ 0.80)")
         logger.info("")
         logger.info("Mejores resultados sin filtro:")
         df_qualified = df
     
     # Mejor precisión
     best_accuracy = df_qualified.nlargest(1, 'test_accuracy').iloc[0]
-    logger.info(f"🎯 Mejor Precisión: {best_accuracy['model_name']}")
+    logger.info(f" Mejor Precisión: {best_accuracy['model_name']}")
     logger.info(f"   Accuracy: {best_accuracy['test_accuracy']:.2%}")
     logger.info(f"   Tamaño: {best_accuracy['backbone_size_mb']:.1f} MB")
     logger.info("")
     
     # Modelo más liviano
     lightest = df_qualified.nsmallest(1, 'backbone_size_mb').iloc[0]
-    logger.info(f"⚡ Más Liviano: {lightest['model_name']}")
+    logger.info(f" Más Liviano: {lightest['model_name']}")
     logger.info(f"   Tamaño: {lightest['backbone_size_mb']:.1f} MB")
     logger.info(f"   Accuracy: {lightest['test_accuracy']:.2%}")
     logger.info("")
@@ -148,7 +148,7 @@ def print_best_models(df: pd.DataFrame):
     )
     best_balance = df_qualified_copy.nlargest(1, 'efficiency_score').iloc[0]
     
-    logger.info(f"⚖️  Mejor Balance (Precisión/Tamaño): {best_balance['model_name']}")
+    logger.info(f"  Mejor Balance (Precisión/Tamaño): {best_balance['model_name']}")
     logger.info(f"   Accuracy: {best_balance['test_accuracy']:.2%}")
     logger.info(f"   Tamaño: {best_balance['backbone_size_mb']:.1f} MB")
     logger.info(f"   Score eficiencia: {best_balance['efficiency_score']:.4f}")
@@ -164,7 +164,7 @@ def print_recommendations(df: pd.DataFrame):
     df_qualified = df[df['meets_requirements'] == True]
     
     if df_qualified.empty:
-        logger.warning("⚠️  Ningún modelo cumple los requisitos mínimos.")
+        logger.warning("  Ningún modelo cumple los requisitos mínimos.")
         logger.info("")
         logger.info("Recomendaciones:")
         logger.info("  1. Aumentar épocas de entrenamiento")
@@ -182,13 +182,13 @@ def print_recommendations(df: pd.DataFrame):
     
     best_model = df_qualified_copy.nlargest(1, 'efficiency_score').iloc[0]
     
-    logger.info("🏆 MODELO RECOMENDADO PARA EDGE COMPUTING:")
+    logger.info(" MODELO RECOMENDADO PARA EDGE COMPUTING:")
     logger.info("")
     logger.info(f"   Modelo: {best_model['model_name']}")
-    logger.info(f"   ✅ Accuracy: {best_model['test_accuracy']:.2%}")
-    logger.info(f"   ✅ Recall mínimo: {best_model['min_recall']:.2%}")
-    logger.info(f"   ✅ Tamaño: {best_model['backbone_size_mb']:.1f} MB")
-    logger.info(f"   ✅ Parámetros: {best_model['backbone_params']:,}")
+    logger.info(f"    Accuracy: {best_model['test_accuracy']:.2%}")
+    logger.info(f"    Recall mínimo: {best_model['min_recall']:.2%}")
+    logger.info(f"    Tamaño: {best_model['backbone_size_mb']:.1f} MB")
+    logger.info(f"    Parámetros: {best_model['backbone_params']:,}")
     logger.info("")
     logger.info("Razones:")
     logger.info(f"  • Cumple requisitos mínimos (Acc ≥ 85%, Recall ≥ 0.80)")
