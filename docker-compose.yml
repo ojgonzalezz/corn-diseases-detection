@@ -1,0 +1,223 @@
+# ================================================================================
+# Docker Compose - Detección de Enfermedades del Maíz
+# ================================================================================
+# Orchestración de servicios para entrenamiento, evaluación e inferencia.
+#
+# Uso:
+#   docker-compose up                    # Iniciar todos los servicios
+#   docker-compose up training           # Solo entrenamiento
+#   docker-compose up mlflow             # Solo MLflow UI
+#   docker-compose run --rm inference    # Ejecutar inferencia
+#
+# Profiles disponibles:
+#   - training: Para entrenar modelos
+#   - inference: Para inferencia
+#   - mlflow: Para visualizar experimentos
+# ================================================================================
+
+version: '3.8'
+
+services:
+  # ================================================================================
+  # Servicio Base - Configuración compartida
+  # ================================================================================
+  base: &base-service
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        - PYTHON_VERSION=3.10
+    image: corn-diseases-detection:latest
+    volumes:
+      # Datos (persistentes)
+      - ./data:/app/data:rw
+      # Modelos (persistentes)
+      - ./models:/app/models:rw
+      # Código fuente (para desarrollo)
+      - ./src:/app/src:ro
+      # Configuración
+      - ./src/core/.env:/app/src/core/.env:ro
+    environment:
+      # TensorFlow optimizations
+      - TF_CPP_MIN_LOG_LEVEL=2
+      - TF_FORCE_GPU_ALLOW_GROWTH=true
+      # Python
+      - PYTHONUNBUFFERED=1
+    networks:
+      - corn-diseases-net
+    restart: unless-stopped
+
+  # ================================================================================
+  # Servicio de Entrenamiento
+  # ================================================================================
+  training:
+    <<: *base-service
+    container_name: corn-diseases-training
+    command: src.pipelines.train
+    profiles:
+      - training
+    deploy:
+      resources:
+        limits:
+          cpus: '4.0'
+          memory: 8G
+        reservations:
+          memory: 4G
+    # GPU support (descomentar si tienes GPU NVIDIA)
+    # deploy:
+    #   resources:
+    #     reservations:
+    #       devices:
+    #         - driver: nvidia
+    #           count: 1
+    #           capabilities: [gpu]
+
+  # ================================================================================
+  # Servicio de Preprocesamiento
+  # ================================================================================
+  preprocessing:
+    <<: *base-service
+    container_name: corn-diseases-preprocessing
+    command: src.pipelines.preprocess
+    profiles:
+      - preprocessing
+    deploy:
+      resources:
+        limits:
+          cpus: '2.0'
+          memory: 4G
+
+  # ================================================================================
+  # Servicio de Evaluación
+  # ================================================================================
+  evaluation:
+    <<: *base-service
+    container_name: corn-diseases-evaluation
+    command: src.pipelines.evaluate_finetuned
+    profiles:
+      - evaluation
+    deploy:
+      resources:
+        limits:
+          cpus: '2.0'
+          memory: 4G
+
+  # ================================================================================
+  # Servicio de Inferencia (API)
+  # ================================================================================
+  inference:
+    <<: *base-service
+    container_name: corn-diseases-inference
+    command: uvicorn src.api.main:app --host 0.0.0.0 --port 8000
+    profiles:
+      - inference
+      - api
+    ports:
+      - "8000:8000"
+    deploy:
+      resources:
+        limits:
+          cpus: '2.0'
+          memory: 4G
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # ================================================================================
+  # MLflow Tracking Server
+  # ================================================================================
+  mlflow:
+    <<: *base-service
+    container_name: corn-diseases-mlflow
+    command: mlflow ui --host 0.0.0.0 --port 5000 --backend-store-uri file:///app/models/mlruns
+    profiles:
+      - mlflow
+      - monitoring
+    ports:
+      - "5000:5000"
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 2G
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5000/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # ================================================================================
+  # Jupyter Notebook (para experimentación)
+  # ================================================================================
+  notebook:
+    <<: *base-service
+    container_name: corn-diseases-notebook
+    command: jupyter lab --ip=0.0.0.0 --port=8888 --no-browser --allow-root --NotebookApp.token=''
+    profiles:
+      - development
+      - notebook
+    ports:
+      - "8888:8888"
+    volumes:
+      # Notebooks persistentes
+      - ./experimentation/notebooks:/app/experimentation/notebooks:rw
+      # Código en modo lectura-escritura para desarrollo
+      - ./src:/app/src:rw
+    deploy:
+      resources:
+        limits:
+          cpus: '2.0'
+          memory: 4G
+
+# ================================================================================
+# Volúmenes Persistentes
+# ================================================================================
+volumes:
+  data:
+    driver: local
+  models:
+    driver: local
+
+# ================================================================================
+# Red para comunicación entre servicios
+# ================================================================================
+networks:
+  corn-diseases-net:
+    driver: bridge
+    name: corn-diseases-network
+
+# ================================================================================
+# COMANDOS ÚTILES
+# ================================================================================
+#
+# Entrenamiento:
+#   docker-compose --profile training up
+#
+# Preprocesamiento:
+#   docker-compose --profile preprocessing up
+#
+# MLflow UI:
+#   docker-compose --profile mlflow up -d
+#   Acceso: http://localhost:5000
+#
+# Jupyter Notebook:
+#   docker-compose --profile notebook up -d
+#   Acceso: http://localhost:8888
+#
+# API de Inferencia:
+#   docker-compose --profile api up -d
+#   Acceso: http://localhost:8000/docs
+#
+# Ver logs:
+#   docker-compose logs -f training
+#
+# Ejecutar comando único:
+#   docker-compose run --rm training python -m src.pipelines.train
+#
+# Limpiar todo:
+#   docker-compose down -v
+#
+# ================================================================================

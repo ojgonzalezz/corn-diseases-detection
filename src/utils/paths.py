@@ -77,6 +77,21 @@ class ProjectPaths:
         return self.data / 'processed'
 
     @property
+    def data_train(self) -> Path:
+        """Directorio de datos de entrenamiento."""
+        return self.data / 'train'
+
+    @property
+    def data_val(self) -> Path:
+        """Directorio de datos de validación."""
+        return self.data / 'val'
+
+    @property
+    def data_test(self) -> Path:
+        """Directorio de datos de prueba."""
+        return self.data / 'test'
+
+    @property
     def models(self) -> Path:
         """Directorio principal de modelos."""
         return self._root / 'models'

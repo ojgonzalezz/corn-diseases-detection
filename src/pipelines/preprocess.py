@@ -18,12 +18,13 @@ from collections import defaultdict
 from typing import Dict, List, Tuple, Any
 import numpy as np
 from PIL import Image
-from src.adapters.data_loader import load_raw_data
+from src.adapters.data_loader import load_raw_data, load_split_data
 from src.utils.image_modifier import ImageAugmentor
 from src.utils.data_augmentator import DataAugmenter
 from src.core.load_env import EnvLoader
 from src.utils.aug_detectors import *
 from src.utils.utils import stratified_split_dataset
+from src.utils.paths import paths
 
 
 ##################################
@@ -64,18 +65,25 @@ def data_split(datasets: Dict[str, Any], environment_variables: Dict[str, Any]) 
         
     # 1c. Carga de umbral de similaridad (threshold)
     try:
-        sim_treshold = float(ast.literal_eval(env_varss.get("IM_SIM_TRESHOLD", "0.95")))
+        # Intentar primero con el nombre correcto, luego con typo legacy
+        sim_threshold = env_varss.get("IM_SIM_THRESHOLD")
+        if sim_threshold is None:
+            # Fallback a typo legacy (deprecado)
+            sim_threshold = env_varss.get("IM_SIM_TRESHOLD", "0.95")
+            if env_varss.get("IM_SIM_TRESHOLD"):
+                print("[ADVERTENCIA] IM_SIM_TRESHOLD está deprecado. Usa IM_SIM_THRESHOLD en su lugar.")
+        sim_threshold = float(ast.literal_eval(sim_threshold))
     except (ValueError, SyntaxError, TypeError) as e:
-        sim_treshold = 0.95
-        print(f"[ADVERTENCIA] Umbral de similaridad: Error al cargar ({e}). Usando el valor por defecto: {sim_treshold}")
+        sim_threshold = 0.95
+        print(f"[ADVERTENCIA] Umbral de similaridad: Error al cargar ({e}). Usando el valor por defecto: {sim_threshold}")
 
 
-    print(f"[EVAL] Configuración de Split: Ratios={split_ratios}, Umbral de Filtrado={sim_treshold}")
+    print(f"[EVAL] Configuración de Split: Ratios={split_ratios}, Umbral de Filtrado={sim_threshold}")
     raw_keys_to_iterate = [key for key in datasets.keys() if key.startswith("data_")]
 
     # 2. De-aumentar (filtrar) imágenes duplicadas
     print("\n[BUSQUEDA] Fase 1: Filtrando imágenes similares (De-augmentación)...")
-    datasets_aug_filtered = filter_similar_images(datasets, sim_treshold) # Asume que filter_similar_images acepta el threshold
+    datasets_aug_filtered = filter_similar_images(datasets, sim_threshold) # Asume que filter_similar_images acepta el threshold
 
     # 3. Inicialización y Unificación del Dataset
     print("[PROCESO] Fase 2: Unificando datasets por categoría...")
@@ -471,7 +479,7 @@ def oversample_dataset(split_datasets: Dict[str, Dict[str, List[Any]]], environm
 # ---- Split and balance dataset Function ----
 ##############################################
 
-def split_and_balance_dataset(balanced: str = "downsample", split_ratios: tuple = None) -> Dict[str, Any]:
+def split_and_balance_dataset(balanced: str = "downsample", split_ratios: tuple = None, use_existing_split: bool = True) -> Dict[str, Any]:
     """
     Realiza una división estratificada del dataset, aplica la estrategia de balanceo
     (downsample, oversample, o ninguno) solo al conjunto de entrenamiento, y genera un resumen.
@@ -481,6 +489,8 @@ def split_and_balance_dataset(balanced: str = "downsample", split_ratios: tuple 
                         cadena para 'desbalanceado').
         split_ratios (tuple, optional): Ratios de división para train, val, test.
                                         Si None, usa valores del .env. Debe sumar 1.0.
+        use_existing_split (bool): Si True, carga datos ya divididos de data/train, data/val, data/test.
+                                   Si False, busca datos raw en data/raw/data_1, data/raw/data_2.
 
     Returns:
         dict: Un diccionario con los conjuntos de datos divididos ('train', 'val', 'test'),
@@ -488,21 +498,49 @@ def split_and_balance_dataset(balanced: str = "downsample", split_ratios: tuple 
     """
 
     print("\n[CARGA] Llamando a la función de carga de datos...")
-    # Asumo que load_raw_data() devuelve la estructura {data_1: {...}, data_2: {...}}
-    datasets = load_raw_data()
     env_vars = EnvLoader().get_all()
-    print("[OK] Carga de datos completada.")
 
-    if not datasets:
-        raise ValueError("No se cargó ninguna imagen. Verifica las rutas y los tipos de archivo.")
+    # Verificar qué datos están disponibles
+    data_train_exists = paths.data_train.exists()
+    data_raw_exists = paths.data_raw.exists()
 
-    # Override split_ratios in env_vars if provided as parameter
-    if split_ratios is not None:
-        env_vars['SPLIT_RATIOS'] = str(split_ratios)
+    if use_existing_split and data_train_exists:
+        # Usar datos ya divididos (caso común)
+        print("[INFO] Usando datos ya divididos (data/train, data/val, data/test)...")
+        split_datasets = load_split_data()
 
-    # 1. Split y Filtrado de duplicados (De-augmentación)
-    # Asumo que data_split maneja la unión, filtrado y split estratificado.
-    split_datasets = data_split(datasets, env_vars)
+        if not split_datasets or all(len(split) == 0 for split in split_datasets.values()):
+            raise ValueError("No se cargaron imágenes de los datos divididos. Verifica data/train, data/val, data/test.")
+
+        print("[OK] Carga de datos divididos completada.")
+
+    elif data_raw_exists:
+        # Usar datos raw y hacer el split (caso legacy)
+        print("[INFO] Usando datos raw (data/raw/data_1, data/raw/data_2) y realizando split...")
+        datasets = load_raw_data()
+
+        if not datasets:
+            raise ValueError("No se cargó ninguna imagen de data/raw. Verifica las rutas y los tipos de archivo.")
+
+        print("[OK] Carga de datos raw completada.")
+
+        # Override split_ratios in env_vars if provided as parameter
+        if split_ratios is not None:
+            env_vars['SPLIT_RATIOS'] = str(split_ratios)
+
+        # Realizar split y filtrado de duplicados (De-augmentación)
+        split_datasets = data_split(datasets, env_vars)
+
+    else:
+        # No hay datos disponibles
+        raise FileNotFoundError(
+            f"No se encontraron datos. Verifica que exista:\n"
+            f"  - data/train, data/val, data/test (datos divididos), o\n"
+            f"  - data/raw/data_1, data/raw/data_2 (datos raw)\n"
+            f"Rutas verificadas:\n"
+            f"  - {paths.data_train} (existe: {data_train_exists})\n"
+            f"  - {paths.data_raw} (existe: {data_raw_exists})"
+        )
 
     # 2. Balanceo de datos
     if balanced == "downsample":
@@ -572,37 +610,44 @@ def split_and_balance_dataset(balanced: str = "downsample", split_ratios: tuple 
 # ---- Save Splitted-augmented dataset ----
 ###########################################
 
-def project_dataset(data_aug_split: dict):
+def project_dataset(data_aug_split: Dict[str, Dict[str, List[Any]]]) -> None:
     """
     Exporta el dataset dividido y balanceado a carpetas por tipo de set y por clase.
+
+    Args:
+        data_aug_split: Diccionario con estructura {'train': {...}, 'val': {...}, 'test': {...}},
+                       donde cada subset contiene {'categoria': [lista_imagenes]}.
+
+    Returns:
+        None
+
+    Example:
+        >>> split_data = {'train': {'Blight': [img1, img2]}, 'val': {...}, 'test': {...}}
+        >>> project_dataset(split_data)
     """
-    try:
-        # Se asume que el script se ejecuta desde la raíz del proyecto o una ruta conocida
-        PROJECT_ROOT = pathlib.Path(__file__).resolve().parent.parent.parent 
-    except NameError:
-        PROJECT_ROOT = pathlib.Path(os.getcwd())
-        
-    SPLIT_DIR = PROJECT_ROOT / "data" / "processed" / "split"
-    
+    # Usar sistema centralizado de rutas
+    SPLIT_DIR = paths.data_processed / "split"
+    paths.ensure_dir(SPLIT_DIR)
+
     total_images_saved = 0
 
     # Bucle 1: Iterar sobre el tipo de conjunto (train, val, test)
     for set_type, categories_dict in data_aug_split.items():
         if set_type not in ['train', 'val', 'test']:
             continue
-            
+
         set_images_count = 0
-        
+
         # Bucle 2: Iterar sobre las categorías (clases de la enfermedad)
         for category, img_list in categories_dict.items():
-            dataset_type_dir = SPLIT_DIR / set_type / category # Ruta completa: .../split/train/Blight
+            dataset_type_dir = SPLIT_DIR / set_type / category  # Ruta completa: .../split/train/Blight
             dataset_type_dir.mkdir(parents=True, exist_ok=True)
 
-            print(f"  Guardando {len(img_list)} imágenes en: {dataset_type_dir.relative_to(PROJECT_ROOT)}")
+            print(f"  Guardando {len(img_list)} imágenes en: {paths.relative_to_root(dataset_type_dir)}")
 
             # Bucle 3: Guardar cada imagen individualmente
             for i, img in enumerate(img_list):
-                file_name = f"{category}_{i:04d}.png" 
+                file_name = f"{category}_{i:04d}.png"
                 file_path = dataset_type_dir / file_name
                 try:
                     # Guardar la imagen (asumimos que es un objeto PIL.Image)
@@ -614,4 +659,4 @@ def project_dataset(data_aug_split: dict):
         total_images_saved += set_images_count
         print(f"  [INFO] Total imágenes exportadas en '{set_type}': {set_images_count}")
 
-    print(f"\n[OK] Exportación a '{SPLIT_DIR.relative_to(PROJECT_ROOT)}' completada. Total guardado: {total_images_saved} imágenes.")
+    print(f"\n[OK] Exportación a '{paths.relative_to_root(SPLIT_DIR)}' completada. Total guardado: {total_images_saved} imágenes.")

@@ -51,15 +51,68 @@ class DataConfig(BaseSettings):
 
     im_sim_threshold: float = Field(
         default=0.95,
-        alias='im_sim_treshold',  # Tolerar typo en .env
+        validation_alias='IM_SIM_THRESHOLD',  # Nombre correcto
         ge=0.0,
         le=1.0,
         description="Umbral de similitud para detección de imágenes duplicadas"
     )
 
+    # Compatibilidad con typo legacy (deprecado)
+    im_sim_treshold: float = Field(
+        default=None,
+        validation_alias='IM_SIM_TRESHOLD',  # Typo legacy
+        ge=0.0,
+        le=1.0,
+        description="[DEPRECADO] Usar IM_SIM_THRESHOLD en su lugar"
+    )
+
+    @property
+    def similarity_threshold(self) -> float:
+        """
+        Retorna el umbral de similitud, priorizando el nombre correcto.
+        Mantiene compatibilidad con el typo legacy.
+        """
+        # Si se usó el typo, retornarlo (pero debería migrar)
+        if self.im_sim_treshold is not None:
+            import warnings
+            warnings.warn(
+                "IM_SIM_TRESHOLD está deprecado. Usa IM_SIM_THRESHOLD en su lugar.",
+                DeprecationWarning,
+                stacklevel=2
+            )
+            return self.im_sim_treshold
+        return self.im_sim_threshold
+
     datasets_consideration: List[str] = Field(
         default=["no-augmentation", "augmented"],
         description="Tipos de datasets a considerar"
+    )
+
+    # Parámetros de rutas de datos
+    data_raw_subdirs: List[str] = Field(
+        default=["data", "raw"],
+        description="Subdirectorios para datos raw (ej: ['data', 'raw'])"
+    )
+
+    # Parámetros del modelo de embedding para de-augmentación
+    embedding_model: Literal["ResNet50", "VGG16", "MobileNetV2"] = Field(
+        default="ResNet50",
+        description="Modelo preentrenado para generar embeddings en de-augmentación"
+    )
+
+    embedding_weights: Literal["imagenet", None] = Field(
+        default="imagenet",
+        description="Pesos preentrenados para el modelo de embedding"
+    )
+
+    embedding_include_top: bool = Field(
+        default=False,
+        description="Incluir capa de clasificación en modelo de embedding"
+    )
+
+    embedding_pooling: Literal["avg", "max", None] = Field(
+        default="avg",
+        description="Tipo de pooling para modelo de embedding"
     )
 
     @field_validator('class_names')

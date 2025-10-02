@@ -159,16 +159,57 @@ corn-diseases-detection/
 
 ## Inicio Rápido
 
-### Instalación
+### Opción 1: Usando Docker (Recomendado) 🐳
+
+La forma más rápida y reproducible de ejecutar el proyecto:
 
 ```bash
+# Clonar el repositorio
+git clone https://github.com/ojgonzalezz/corn-diseases-detection.git
+cd corn-diseases-detection
+
+# Configurar variables de entorno
+cp src/core/.env.example src/core/.env
+
+# Construir imagen Docker
+docker-compose build
+
+# Entrenar modelo
+docker-compose --profile training up
+
+# Ver experimentos en MLflow
+docker-compose --profile mlflow up -d
+# Acceder a http://localhost:5000
+```
+
+**✨ Ventajas:**
+- No necesitas instalar dependencias manualmente
+- Entorno 100% reproducible
+- Aislamiento completo del sistema host
+- Funciona igual en cualquier sistema operativo
+
+Ver la [sección de Docker](#docker-y-contenedores) para más detalles.
+
+### Opción 2: Instalación Local
+
+```bash
+# Clonar el repositorio
+git clone https://github.com/ojgonzalezz/corn-diseases-detection.git
+cd corn-diseases-detection
+
 # Crear entorno virtual
 python -m venv venv
 source venv/bin/activate  # En Windows: venv\Scripts\activate
 
 # Instalar dependencias
 pip install -r requirements.txt
+
+# Configurar variables de entorno
+cp src/core/.env.example src/core/.env
+# Editar src/core/.env según tus necesidades (opcional)
 ```
+
+**⚠️ IMPORTANTE:** El archivo `.env` es necesario para ejecutar el proyecto. Se ha creado automáticamente con valores por defecto, pero puedes personalizarlo.
 
 ### Entrenamiento
 
@@ -197,11 +238,63 @@ print(f"Confianza: {result['confidence']:.2%}")
 
 ### Configuración
 
-Editar `src/core/.env` para personalizar:
-- `IMAGE_SIZE`: Dimensiones de la imagen de entrada
-- `NUM_CLASSES`: Número de clases de enfermedades
-- `BATCH_SIZE`: Tamaño del lote de entrenamiento
-- `MAX_TRIALS`: Iteraciones de búsqueda de Keras Tuner
+El proyecto utiliza un archivo `.env` para toda la configuración. Para personalizar:
+
+```bash
+# Editar el archivo de configuración
+nano src/core/.env  # o usar tu editor preferido
+```
+
+**Variables de Configuración Principales:**
+
+| Variable | Descripción | Valor por Defecto |
+|----------|-------------|-------------------|
+| `IMAGE_SIZE` | Dimensiones de entrada (ancho, alto) | `(224, 224)` |
+| `NUM_CLASSES` | Número de clases a clasificar | `4` |
+| `CLASS_NAMES` | Nombres de las clases | `['Blight', 'Common_Rust', 'Gray_Leaf_Spot', 'Healthy']` |
+| `BATCH_SIZE` | Tamaño del batch de entrenamiento | `32` |
+| `MAX_EPOCHS` | Épocas máximas de entrenamiento | `20` |
+| `MAX_TRIALS` | Trials de búsqueda de hiperparámetros | `10` |
+| `BACKBONE` | Arquitectura base del modelo | `VGG16` |
+| `BALANCE_STRATEGY` | Estrategia de balanceo de clases | `oversample` |
+| `SPLIT_RATIOS` | Ratios de división (train/val/test) | `(0.7, 0.15, 0.15)` |
+| `IM_SIM_THRESHOLD` | Umbral de similitud para de-augmentación | `0.95` |
+
+**Consulta el archivo `src/core/.env.example` para ver todas las opciones disponibles con documentación completa.**
+
+---
+
+## CI/CD y Automatización
+
+### GitHub Actions
+
+El proyecto incluye workflows automáticos para:
+
+1. **Tests Automáticos** (`.github/workflows/tests.yml`)
+   - Ejecuta en Python 3.9, 3.10, 3.11
+   - Tests con pytest
+   - Cobertura de código con Codecov
+   - Se ejecuta en push y pull requests
+
+2. **Linting y Formato** (`.github/workflows/linting.yml`)
+   - Verifica formato con Black
+   - Verifica imports con isort
+   - Linting con Flake8
+   - Type checking con mypy
+
+3. **Revisión de Dependencias** (`.github/workflows/dependency-review.yml`)
+   - Detecta vulnerabilidades en dependencias
+   - Solo en pull requests a main
+
+### Badges de Estado
+
+Añade estos badges a tu README:
+
+```markdown
+[![Tests](https://github.com/ojgonzalezz/corn-diseases-detection/workflows/Tests/badge.svg)](https://github.com/ojgonzalezz/corn-diseases-detection/actions)
+[![Linting](https://github.com/ojgonzalezz/corn-diseases-detection/workflows/Linting%20y%20Formato/badge.svg)](https://github.com/ojgonzalezz/corn-diseases-detection/actions)
+[![codecov](https://codecov.io/gh/ojgonzalezz/corn-diseases-detection/branch/main/graph/badge.svg)](https://codecov.io/gh/ojgonzalezz/corn-diseases-detection)
+```
 
 ---
 
@@ -381,13 +474,19 @@ print(f"Guardando en: {paths.relative_to_root(model_path)}")
 git clone https://github.com/ojgonzalezz/corn-diseases-detection.git
 cd corn-diseases-detection
 
-# Crear entorno virtual
+# Opción 1: Usando pip (recomendado - más rápido)
 python -m venv venv
 source venv/bin/activate  # En Windows: venv\Scripts\activate
+pip install -r requirements.txt
 
-# Instalar dependencias
-pip install -e .
+# Opción 2: Usando conda (si prefieres anaconda)
+conda env create -f environment.yml
+conda activate dl-gpu
 ```
+
+**📝 Nota sobre Gestión de Dependencias:**
+
+Este proyecto usa **`requirements.txt` como fuente principal** de dependencias. El archivo `environment.yml` está simplificado y referencia automáticamente a `requirements.txt`, evitando duplicación y divergencia entre archivos.
 
 ### Instalación para Desarrollo
 
@@ -399,11 +498,352 @@ pip install -e ".[dev]"
 pip install -e ".[all]"
 ```
 
-### Configuración de pre-commit (opcional)
+### Configuración de Pre-commit Hooks
+
+Pre-commit ejecuta automáticamente validaciones antes de cada commit:
 
 ```bash
-pip install pre-commit
+# Instalar herramientas de desarrollo
+pip install -e ".[dev]"
+
+# Configurar pre-commit
 pre-commit install
+
+# (Opcional) Ejecutar en todos los archivos
+pre-commit run --all-files
+```
+
+**Hooks configurados:**
+- ✅ Formateo automático (Black)
+- ✅ Ordenamiento de imports (isort)
+- ✅ Linting (Flake8)
+- ✅ Detección de secretos
+- ✅ Limpieza de notebooks Jupyter
+- ✅ Validación YAML/JSON
+
+### Usando Makefile (Recomendado)
+
+El proyecto incluye un Makefile para facilitar tareas comunes:
+
+```bash
+# Ver todos los comandos disponibles
+make help
+
+# Setup completo del proyecto
+make setup
+
+# Ejecutar tests
+make test
+
+# Ejecutar tests con cobertura
+make test-cov
+
+# Formatear código
+make format
+
+# Verificar calidad de código
+make lint
+
+# Ejecutar todas las validaciones de CI
+make ci
+
+# Entrenar modelo
+make train
+
+# Limpiar archivos temporales
+make clean
+```
+
+---
+
+## Resolución de Problemas
+
+### Error: "No se encontró el archivo .env"
+
+```bash
+# Copiar el archivo de ejemplo
+cp src/core/.env.example src/core/.env
+```
+
+### Error: "ModuleNotFoundError: No module named 'pydantic_settings'"
+
+```bash
+# Opción 1: pip (recomendado - más rápido)
+pip install -r requirements.txt
+
+# Opción 2: conda (actualiza el entorno existente)
+conda env update -f environment.yml --prune
+```
+
+**💡 Tip:** El archivo `environment.yml` ahora usa `requirements.txt` como fuente principal, por lo que ambos métodos instalarán las mismas dependencias. Recomendamos usar pip directamente para mayor rapidez.
+
+### Error: "No se encontró el dataset"
+
+El proyecto soporta dos estructuras de datos:
+
+**Opción 1: Datos ya divididos (recomendado)**
+```
+data/
+├── train/
+│   ├── Blight/
+│   ├── Common_Rust/
+│   ├── Gray_Leaf_Spot/
+│   └── Healthy/
+├── val/
+│   └── ...
+└── test/
+    └── ...
+```
+
+**Opción 2: Datos raw para preprocesar**
+```
+data/
+└── raw/
+    ├── data_1/
+    │   ├── Blight/
+    │   └── ...
+    └── data_2/
+        ├── Blight/
+        └── ...
+```
+
+Si tienes datos en `data/raw/`, ejecuta el pipeline de preprocesamiento:
+```bash
+python -m src.pipelines.preprocess
+```
+
+Si tus datos ya están divididos en `data/train/val/test/`, el proyecto los usará automáticamente.
+
+### Error: "GPU no disponible"
+
+El proyecto funciona tanto en CPU como GPU. Para verificar disponibilidad de GPU:
+```python
+from src.utils.utils import check_cuda_availability
+
+# Verificar solo TensorFlow (recomendado)
+check_cuda_availability()
+
+# Verificar también PyTorch (requiere instalación manual)
+check_cuda_availability(check_pytorch=True)
+```
+
+Para forzar el uso de CPU:
+```python
+import os
+os.environ['CUDA_VISIBLE_DEVICES'] = '-1'
+```
+
+**Nota:** Este proyecto usa **solo TensorFlow**. PyTorch no está incluido en las dependencias para reducir el tamaño de instalación (~2GB). Si necesitas PyTorch para experimentación, instálalo manualmente:
+```bash
+pip install torch torchvision torchaudio
+```
+
+### Verificar que la Configuración es Correcta
+
+```python
+from src.core.config import config
+
+# Mostrar configuración actual
+print(config.to_dict())
+```
+
+---
+
+## Docker y Contenedores
+
+El proyecto incluye soporte completo para Docker, proporcionando un entorno reproducible y aislado para entrenamiento, evaluación e inferencia.
+
+### Arquitectura Docker
+
+El proyecto utiliza:
+- **Dockerfile multi-stage**: Optimiza tamaño de imagen (builder + runtime)
+- **Docker Compose**: Orquesta múltiples servicios con perfiles
+- **Volúmenes persistentes**: Datos y modelos no se pierden al reiniciar contenedores
+- **Usuario no-root**: Mejora seguridad del contenedor
+
+### Servicios Disponibles
+
+| Servicio | Profile | Puerto | Descripción |
+|----------|---------|--------|-------------|
+| `training` | `training` | - | Entrenamiento de modelos con Keras Tuner |
+| `preprocessing` | `preprocessing` | - | Preprocesamiento y división de datos |
+| `evaluation` | `evaluation` | - | Evaluación de modelos entrenados |
+| `inference` | `inference`, `api` | 8000 | API de inferencia (FastAPI) |
+| `mlflow` | `mlflow`, `monitoring` | 5000 | MLflow UI para seguimiento de experimentos |
+| `notebook` | `development`, `notebook` | 8888 | Jupyter Lab para experimentación |
+
+### Comandos Comunes
+
+**Construir imagen:**
+```bash
+docker-compose build
+```
+
+**Entrenamiento:**
+```bash
+# Entrenar modelo (foreground)
+docker-compose --profile training up
+
+# Entrenar modelo (background)
+docker-compose --profile training up -d
+
+# Ver logs en tiempo real
+docker-compose logs -f training
+```
+
+**MLflow UI:**
+```bash
+# Iniciar servidor MLflow
+docker-compose --profile mlflow up -d
+
+# Acceder a http://localhost:5000
+# Ver experimentos, métricas, y artefactos
+```
+
+**Jupyter Notebook:**
+```bash
+# Iniciar Jupyter Lab
+docker-compose --profile notebook up -d
+
+# Acceder a http://localhost:8888
+# Notebooks en experimentation/notebooks/
+```
+
+**Preprocesamiento:**
+```bash
+docker-compose --profile preprocessing up
+```
+
+**API de Inferencia:**
+```bash
+# Iniciar API
+docker-compose --profile api up -d
+
+# Acceder a documentación: http://localhost:8000/docs
+# Realizar predicciones: POST http://localhost:8000/predict
+```
+
+**Ejecutar comando único:**
+```bash
+# Ejecutar cualquier comando en el contenedor
+docker-compose run --rm training python -m src.pipelines.train
+
+# Ver ayuda de un script
+docker-compose run --rm training python -m src.pipelines.train --help
+
+# Ejecutar tests
+docker-compose run --rm training pytest tests/
+```
+
+**Limpiar:**
+```bash
+# Detener todos los contenedores
+docker-compose down
+
+# Detener y eliminar volúmenes (⚠️ elimina datos y modelos)
+docker-compose down -v
+
+# Eliminar imagen
+docker-compose down --rmi all
+```
+
+### Configuración Avanzada
+
+**Soporte GPU (NVIDIA):**
+
+1. Instalar [NVIDIA Container Toolkit](https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/install-guide.html)
+
+2. Descomentar en `docker-compose.yml`:
+```yaml
+training:
+  deploy:
+    resources:
+      reservations:
+        devices:
+          - driver: nvidia
+            count: 1
+            capabilities: [gpu]
+```
+
+3. Ejecutar:
+```bash
+docker-compose --profile training up
+```
+
+**Limitar recursos:**
+
+Editar `docker-compose.yml`:
+```yaml
+training:
+  deploy:
+    resources:
+      limits:
+        cpus: '4.0'      # 4 CPUs
+        memory: 8G       # 8GB RAM
+      reservations:
+        memory: 4G       # Reservar mínimo 4GB
+```
+
+**Volúmenes personalizados:**
+
+```bash
+# Usar datos de una ubicación diferente
+docker-compose run --rm \
+  -v /ruta/a/mis/datos:/app/data:ro \
+  training
+```
+
+### Mejores Prácticas
+
+1. **Desarrollo local + Docker para producción**:
+   - Desarrolla código localmente con tu IDE favorito
+   - Usa Docker para entrenar y desplegar
+   - Los volúmenes sincronizan automáticamente cambios
+
+2. **Gestión de datos**:
+   - Monta `./data` como volumen (no se copia a imagen)
+   - Modelos se guardan en `./models` (persistente)
+   - Usa `.dockerignore` para excluir archivos grandes
+
+3. **CI/CD**:
+   - GitHub Actions puede construir y publicar imágenes
+   - Usa multi-stage build para reducir tamaño
+   - Cachea layers para builds más rápidos
+
+4. **Seguridad**:
+   - Contenedores corren con usuario no-root
+   - Nunca incluyas `.env` en la imagen
+   - Usa secrets para credenciales sensibles
+
+### Troubleshooting Docker
+
+**Error: "Cannot connect to Docker daemon"**
+```bash
+# Iniciar Docker Desktop (macOS/Windows)
+# O iniciar servicio (Linux)
+sudo systemctl start docker
+```
+
+**Build muy lento:**
+```bash
+# Usar BuildKit para builds más rápidos
+DOCKER_BUILDKIT=1 docker-compose build
+```
+
+**Puerto en uso:**
+```bash
+# Cambiar puerto en docker-compose.yml
+ports:
+  - "5001:5000"  # MLflow en puerto 5001
+```
+
+**Espacio en disco:**
+```bash
+# Limpiar imágenes no utilizadas
+docker system prune -a
+
+# Ver uso de espacio
+docker system df
 ```
 
 ---

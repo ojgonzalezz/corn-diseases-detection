@@ -1,0 +1,106 @@
+# Pre-commit hooks para validación automática del código
+# Instalación: pip install pre-commit && pre-commit install
+# Ejecutar manualmente: pre-commit run --all-files
+
+repos:
+  # Hooks generales de calidad de código
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.5.0
+    hooks:
+      - id: trailing-whitespace
+        name: Eliminar espacios en blanco al final
+      - id: end-of-file-fixer
+        name: Asegurar nueva línea al final de archivos
+      - id: check-yaml
+        name: Validar sintaxis YAML
+      - id: check-json
+        name: Validar sintaxis JSON
+      - id: check-toml
+        name: Validar sintaxis TOML
+      - id: check-added-large-files
+        name: Prevenir archivos grandes (>500KB)
+        args: ['--maxkb=500']
+      - id: check-merge-conflict
+        name: Detectar marcadores de merge conflict
+      - id: debug-statements
+        name: Detectar statements de debug (pdb, ipdb)
+      - id: mixed-line-ending
+        name: Normalizar finales de línea
+        args: ['--fix=lf']
+
+  # Black - Formateo de código Python
+  - repo: https://github.com/psf/black
+    rev: 24.1.1
+    hooks:
+      - id: black
+        name: Formatear código con Black
+        language_version: python3.10
+        args: ['--line-length=120']
+
+  # isort - Ordenar imports
+  - repo: https://github.com/PyCQA/isort
+    rev: 5.13.2
+    hooks:
+      - id: isort
+        name: Ordenar imports con isort
+        args: ['--profile', 'black', '--line-length', '120']
+
+  # Flake8 - Linting de código
+  - repo: https://github.com/PyCQA/flake8
+    rev: 7.0.0
+    hooks:
+      - id: flake8
+        name: Validar estilo con Flake8
+        args: [
+          '--max-line-length=120',
+          '--extend-ignore=E203,W503,E501',
+          '--exclude=.git,__pycache__,build,dist,.venv,venv'
+        ]
+
+  # mypy - Type checking (opcional, puede ser lento)
+  - repo: https://github.com/pre-commit/mirrors-mypy
+    rev: v1.8.0
+    hooks:
+      - id: mypy
+        name: Type checking con mypy
+        additional_dependencies: [types-all]
+        args: ['--ignore-missing-imports', '--no-strict-optional']
+        exclude: '^(tests/|experimentation/)'
+        # Comentar la siguiente línea para habilitar mypy
+        stages: [manual]
+
+  # Seguridad - Detectar secretos y credenciales
+  - repo: https://github.com/Yelp/detect-secrets
+    rev: v1.4.0
+    hooks:
+      - id: detect-secrets
+        name: Detectar secretos en código
+        args: ['--baseline', '.secrets.baseline']
+        exclude: 'package-lock.json|poetry.lock|\.env\.example'
+
+  # Docstrings - Validar documentación
+  - repo: https://github.com/PyCQA/pydocstyle
+    rev: 6.3.0
+    hooks:
+      - id: pydocstyle
+        name: Validar docstrings
+        args: ['--convention=google', '--add-ignore=D100,D104']
+        exclude: '^(tests/|experimentation/)'
+        # Comentar la siguiente línea para habilitar pydocstyle
+        stages: [manual]
+
+  # Jupyter notebooks - Limpiar outputs
+  - repo: https://github.com/kynan/nbstripout
+    rev: 0.7.1
+    hooks:
+      - id: nbstripout
+        name: Limpiar outputs de notebooks
+        files: \.ipynb$
+
+# Configuración de pre-commit
+default_language_version:
+  python: python3.10
+
+# Ejecutar en parallel para mayor velocidad
+default_stages: [commit]
+fail_fast: false

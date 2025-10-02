@@ -153,6 +153,75 @@ def get_logger(name: str, log_to_file: bool = False) -> logging.Logger:
 project_logger = get_logger('corn_diseases_detection')
 
 
+def log_print(message: str, level: str = "INFO", logger: Optional[logging.Logger] = None):
+    """
+    Función de compatibilidad que reemplaza print() con logging estructurado.
+
+    Detecta automáticamente el nivel basado en prefijos en el mensaje como:
+    [INFO], [ERROR], [ADVERTENCIA], [OK], etc.
+
+    Args:
+        message: Mensaje a registrar.
+        level: Nivel por defecto si no se detecta en el mensaje.
+        logger: Logger opcional. Si no se proporciona, usa el logger global.
+
+    Example:
+        >>> log_print("[INFO] Procesando datos...")
+        >>> log_print("[ERROR] Fallo al cargar modelo")
+        >>> log_print("[OK] Completado exitosamente")
+    """
+    if logger is None:
+        logger = project_logger
+
+    # Detectar nivel del mensaje basado en prefijos comunes
+    message_upper = message.upper()
+
+    # Mapeo de prefijos a niveles
+    level_mapping = {
+        '[ERROR]': 'ERROR',
+        '[ADVERTENCIA]': 'WARNING',
+        '[WARNING]': 'WARNING',
+        '[INFO]': 'INFO',
+        '[OK]': 'INFO',
+        '[SUCCESS]': 'INFO',
+        '[DEBUG]': 'DEBUG',
+        '[CRITICAL]': 'CRITICAL',
+        '[GPU]': 'INFO',
+        '[CARGA]': 'INFO',
+        '[BUSQUEDA]': 'INFO',
+        '[PROCESO]': 'INFO',
+        '[CONFIG]': 'INFO',
+        '[EVAL]': 'INFO',
+        '[BALANCE]': 'INFO',
+        '[GRAFICO]': 'INFO',
+        '[GUARDADO]': 'INFO',
+        '[ARCHIVO]': 'INFO',
+        '[INICIO]': 'INFO',
+        '[CALCULO]': 'INFO',
+        '[ELIMINAR]': 'WARNING',
+        '[OBJETIVO]': 'INFO',
+        '[RESULTADO]': 'INFO',
+        '[NOTA]': 'INFO',
+    }
+
+    detected_level = level
+    for prefix, lv in level_mapping.items():
+        if message_upper.startswith(prefix):
+            detected_level = lv
+            break
+
+    # Limpiar prefijos redundantes para evitar duplicación
+    clean_message = message
+    for prefix in level_mapping.keys():
+        if message.startswith(prefix):
+            clean_message = message[len(prefix):].strip()
+            break
+
+    # Registrar según el nivel detectado
+    log_method = getattr(logger, detected_level.lower(), logger.info)
+    log_method(clean_message)
+
+
 def log_section(logger: logging.Logger, title: str, char: str = '=', width: int = 70):
     """
     Imprime una sección visual en los logs.

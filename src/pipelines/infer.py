@@ -6,7 +6,7 @@
 # ---- Depedendencies ----
 ##########################
 
-import io 
+import io
 import ast
 import pathlib
 import numpy as np
@@ -17,6 +17,7 @@ import os
 os.environ['CUDA_VISIBLE_DEVICES'] = '-1'
 
 from src.core.load_env import EnvLoader
+from src.utils.paths import paths
 
 # Custom Exceptions for Inference Pipeline
 class NoModelToLoadError(Exception):
@@ -33,7 +34,6 @@ class NoLabelsError(Exception):
 
 # ---- Config ----
 env_vars = EnvLoader().get_all()
-PROJECT_ROOT = pathlib.Path(__file__).resolve().parent.parent.parent
 
 try:
     IMG_SIZE = ast.literal_eval(env_vars.get("IMAGE_SIZE", None))
@@ -43,7 +43,8 @@ except (ValueError, SyntaxError) as e:
     IMG_SIZE = (224, 224)
 
 try:
-    MODEL_PATH = PROJECT_ROOT / "models" / "exported" / "best_VGG16.keras"
+    # Usar sistema centralizado de rutas
+    MODEL_PATH = paths.get_model_path("best_VGG16.keras")
     if not MODEL_PATH.exists():
         raise NoModelToLoadError(f"Model file not found at {MODEL_PATH}")
 except NoModelToLoadError as e:

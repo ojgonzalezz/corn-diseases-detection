@@ -10,6 +10,8 @@ import os
 import pathlib
 import ast
 from src.core.load_env import EnvLoader
+from src.utils.paths import paths
+from src.utils.logger import get_logger, log_section, log_dict
 import numpy as np
 import mlflow
 import mlflow.keras as mlflow_keras
@@ -20,6 +22,9 @@ from tensorflow.keras.callbacks import ModelCheckpoint, EarlyStopping
 from src.pipelines.preprocess import split_and_balance_dataset
 from src.builders.builders import ModelBuilder
 from src.utils.utils import flatten_data
+
+# Configurar logger para este módulo
+logger = get_logger(__name__)
 
 
 #######################
@@ -61,22 +66,21 @@ def train(backbone_name: str = 'VGG16', split_ratios: tuple = (0.7, 0.15, 0.15),
     env_vars = EnvLoader().get_all()
 
     # --- 2. CONFIGURACIÓN DE RUTAS Y PARÁMETROS ---
-    MLRUNS_PATH = os.path.join(os.path.dirname(os.getcwd()), 'models', 'mlruns')
-    print('mlruns directory =', MLRUNS_PATH)
-    os.makedirs(MLRUNS_PATH, exist_ok=True)
+    # Usar sistema centralizado de rutas
+    mlruns_path = paths.mlruns
+    paths.ensure_dir(mlruns_path)
+    logger.info(f"MLruns directory: {mlruns_path}")
 
     # Tracking URI (usar formato file:/// con / en lugar de \)
-    mlruns_uri = f"file:///{os.path.abspath(MLRUNS_PATH).replace(os.sep, '/')}"
+    mlruns_uri = f"file:///{mlruns_path.resolve().as_posix()}"
     mlflow.set_tracking_uri(mlruns_uri)
 
-    print("[INFO] Tracking URI actual:", mlflow.get_tracking_uri())
+    logger.info(f"Tracking URI: {mlflow.get_tracking_uri()}")
 
     # Asegurar que el experimento existe
     experiment_name = "image_classification_experiment"
     mlflow.set_experiment(experiment_name)
-
-    PROJECT_ROOT = pathlib.Path(__file__).resolve().parent.parent.parent
-    DATA_DIR = PROJECT_ROOT / 'data' / 'raw'
+    logger.info(f"Experimento MLflow: {experiment_name}")
     
     try:
         image_size_str = env_vars.get("IMAGE_SIZE", "(224, 224)")
@@ -86,13 +90,13 @@ def train(backbone_name: str = 'VGG16', split_ratios: tuple = (0.7, 0.15, 0.15),
 
         # ast.literal_eval evalúa la cadena de forma segura
         IMAGE_SIZE = ast.literal_eval(image_size_str)
-        
+
         # Añadir una verificación de seguridad para asegurar que la tupla tiene 2 elementos
         if not isinstance(IMAGE_SIZE, (tuple, list)) or len(IMAGE_SIZE) != 2:
             raise TypeError("IMAGE_SIZE must be a sequence of length 2.")
 
     except (ValueError, SyntaxError, TypeError) as e:
-        print(f"[ERROR] Error: La variable de entorno IMAGE_SIZE no es válida. Usando valor por defecto. Error: {e}")
+        logger.error(f"Variable IMAGE_SIZE no válida. Usando valor por defecto. Error: {e}")
         IMAGE_SIZE = (224, 224)
 
 
@@ -105,12 +109,23 @@ def train(backbone_name: str = 'VGG16', split_ratios: tuple = (0.7, 0.15, 0.15),
     FACTOR = int(env_vars['FACTOR'])  #3     # Factor de reducción para el algoritmo Hyperband.
     MAX_EPOCHS = int(env_vars['MAX_EPOCHS']) #20 # Número máximo de épocas para cualquier modelo.
 
-    print("Iniciando el proceso de entrenamiento y búsqueda de hiperparámetros con Hyperband...")
-    print(f"Dataset de origen: {DATA_DIR.name}")
-    print(f"Número de clases: {NUM_CLASSES}")
+    log_section(logger, "INICIO DE ENTRENAMIENTO")
+
+    # Registrar configuración principal
+    config = {
+        'Backbone': backbone_name,
+        'Batch Size': BATCH_SIZE,
+        'Num Classes': NUM_CLASSES,
+        'Image Size': IMAGE_SIZE,
+        'Max Epochs': MAX_EPOCHS,
+        'Max Trials': MAX_TRIALS,
+        'Balance Strategy': balanced,
+        'Split Ratios': split_ratios
+    }
+    log_dict(logger, config, "Configuración de Entrenamiento")
 
     # --- 3. CARGAR Y PREPARAR LOS DATOS ---
-    print("\n[CARGA] Cargando y preparando los datos en memoria...")
+    logger.info("Cargando y preparando los datos en memoria...")
     
     raw_dataset = split_and_balance_dataset(
         balanced=balanced,
@@ -124,14 +139,14 @@ def train(backbone_name: str = 'VGG16', split_ratios: tuple = (0.7, 0.15, 0.15),
 
     # Después de la función flatten_data()
     if np.isnan(X_train).any() or np.isinf(X_train).any():
-        print("Error: Los datos de entrenamiento contienen valores no válidos.")
-        exit()
+        logger.critical("Los datos de entrenamiento contienen valores no válidos (NaN/Inf)")
+        exit(1)
     if np.isnan(X_val).any() or np.isinf(X_val).any():
-        print("Error: Los datos de entrenamiento contienen valores no válidos.")
-        exit()
+        logger.critical("Los datos de validación contienen valores no válidos (NaN/Inf)")
+        exit(1)
     if np.isnan(X_test).any() or np.isinf(X_test).any():
-        print("Error: Los datos de entrenamiento contienen valores no válidos.")
-        exit()
+        logger.critical("Los datos de prueba contienen valores no válidos (NaN/Inf)")
+        exit(1)
 
     label_to_int = {label: i for i, label in enumerate(np.unique(y_train))}
     y_train = np.array([label_to_int[l] for l in y_train])
@@ -153,8 +168,9 @@ def train(backbone_name: str = 'VGG16', split_ratios: tuple = (0.7, 0.15, 0.15),
         num_classes=NUM_CLASSES
     )
 
-    tuner_dir = PROJECT_ROOT / 'models' / 'tuner_checkpoints'
-    tuner_dir.mkdir(parents=True, exist_ok=True)
+    # Usar sistema centralizado de rutas
+    tuner_dir = paths.models_tuner
+    paths.ensure_dir(tuner_dir)
 
     print('KERAS TUNER DIR =', tuner_dir)
     tuner = kt.Hyperband(
@@ -265,8 +281,9 @@ def train(backbone_name: str = 'VGG16', split_ratios: tuple = (0.7, 0.15, 0.15),
     print("[OK] ¡Búsqueda de hiperparámetros completada exitosamente!")
     print("="*70)
 
-    exported_model_dir = PROJECT_ROOT / 'models' / 'exported'
-    exported_model_dir.mkdir(parents=True, exist_ok=True)
+    # Usar sistema centralizado de rutas
+    exported_model_dir = paths.models_exported
+    paths.ensure_dir(exported_model_dir)
 
     # Save with timestamp for versioning
     from datetime import datetime
@@ -275,12 +292,12 @@ def train(backbone_name: str = 'VGG16', split_ratios: tuple = (0.7, 0.15, 0.15),
     # Save versioned model
     versioned_model_path = exported_model_dir / f'{backbone_name}_{timestamp}_acc{test_acc:.4f}.keras'
     best_model.save(versioned_model_path)
-    print(f"\n[GUARDADO] Modelo versionado guardado en: {versioned_model_path}")
+    print(f"\n[GUARDADO] Modelo versionado guardado en: {paths.relative_to_root(versioned_model_path)}")
 
     # Also save as "best" for easy loading
     best_model_path = exported_model_dir / f'best_{backbone_name}.keras'
     best_model.save(best_model_path)
-    print(f"[GUARDADO] Modelo 'best' actualizado en: {best_model_path}")
+    print(f"[GUARDADO] Modelo 'best' actualizado en: {paths.relative_to_root(best_model_path)}")
 
     # Save hyperparameters as JSON
     import json
@@ -298,7 +315,7 @@ def train(backbone_name: str = 'VGG16', split_ratios: tuple = (0.7, 0.15, 0.15),
     metadata_path = exported_model_dir / f'{backbone_name}_{timestamp}_metadata.json'
     with open(metadata_path, 'w') as f:
         json.dump(metadata, f, indent=2)
-    print(f"[ARCHIVO] Metadatos guardados en: {metadata_path}")
+    print(f"[ARCHIVO] Metadatos guardados en: {paths.relative_to_root(metadata_path)}")
 
     # --- 8. EVALUAR EL MEJOR MODELO EN EL CONJUNTO DE PRUEBA ---
     print("\n" + "="*70)

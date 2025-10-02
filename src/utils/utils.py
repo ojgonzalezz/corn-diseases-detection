@@ -15,10 +15,9 @@ import numpy as np
 import matplotlib.pyplot as plt
 from dotenv import load_dotenv
 from PIL import Image
-import torch
 import tensorflow as tf
 import random
-from typing import Dict, List, Tuple, Any
+from typing import Dict, List, Tuple, Any, Optional
 from collections import defaultdict
 import math
 
@@ -26,28 +25,65 @@ import math
 # ---- System-related utilities ----
 ####################################
 
-def check_cuda_availability():
+def check_cuda_availability(check_pytorch: bool = False):
     """
-    Verifica si PyTorch y TensorFlow pueden usar una GPU con soporte CUDA.
-    """
-    print("[GPU][GPU] Verificando si la GPU está disponible... [GPU][GPU]\n")
+    Verifica si TensorFlow (y opcionalmente PyTorch) pueden usar una GPU con soporte CUDA.
 
-    print("[INFO] Verificando GPU en PyTorch [INFO]")
-    
-    is_available = torch.cuda.is_available()
-    
-    if is_available:
-        print("[OK] ¡La GPU está disponible! PyTorch puede usar CUDA [SUCCESS][INICIO]")
-        # Opcional: muestra el nombre de la GPU que se está utilizando
-        print(f"   [SISTEMA] Nombre de la GPU: {torch.cuda.get_device_name(0)}\n")
+    Args:
+        check_pytorch (bool): Si True, también verifica PyTorch (requiere instalación).
+                             Por defecto False ya que PyTorch no es una dependencia del proyecto.
+
+    Note:
+        Este proyecto usa principalmente TensorFlow. PyTorch es opcional y no está
+        incluido en requirements.txt para reducir el tamaño de instalación (~2GB).
+    """
+    print("[GPU] Verificando disponibilidad de GPU...\n")
+
+    # Verificar TensorFlow (siempre)
+    print("[INFO] Verificando GPU en TensorFlow")
+    print(f"  TensorFlow version: {tf.__version__}")
+    print(f"  Built with CUDA: {tf.test.is_built_with_cuda()}")
+
+    # Obtener lista de GPUs físicas
+    gpus = tf.config.list_physical_devices('GPU')
+
+    if gpus:
+        print(f"[OK] ✓ GPU disponible para TensorFlow")
+        for i, gpu in enumerate(gpus):
+            print(f"  GPU {i}: {gpu.name}")
+            # Mostrar detalles de memoria si está disponible
+            try:
+                gpu_details = tf.config.experimental.get_memory_info(gpu.name)
+                current_mb = gpu_details['current'] / (1024**2)
+                peak_mb = gpu_details['peak'] / (1024**2)
+                print(f"    Memoria actual: {current_mb:.2f} MB")
+                print(f"    Memoria pico: {peak_mb:.2f} MB")
+            except:
+                pass
     else:
-        print("[ERROR] La GPU no está disponible [ERROR]. PyTorch se ejecutará en CPU [CPU]")
-        print("   [ADVERTENCIA] Asegúrate de haber instalado la versión correcta de PyTorch con soporte CUDA.\n")
+        print("[ADVERTENCIA] ✗ GPU no disponible. TensorFlow se ejecutará en CPU")
+        print("  Para usar GPU, asegúrate de tener:")
+        print("  1. CUDA Toolkit instalado")
+        print("  2. TensorFlow-GPU instalado (pip install tensorflow[and-cuda])")
 
-    print("[INFO] Verificando GPU en TensorFlow [INFO]")
-     
-    print(f"[NOTA] TensorFlow version: {tf.__version__}")
-    print(f"[CONFIG] Built with CUDA: {tf.test.is_built_with_cuda()} [INFO]")
+    # Verificar PyTorch (opcional)
+    if check_pytorch:
+        print("\n[INFO] Verificando GPU en PyTorch")
+        try:
+            import torch
+            is_available = torch.cuda.is_available()
+
+            if is_available:
+                print(f"[OK] ✓ GPU disponible para PyTorch")
+                print(f"  GPU: {torch.cuda.get_device_name(0)}")
+                print(f"  CUDA version: {torch.version.cuda}")
+            else:
+                print("[ADVERTENCIA] ✗ GPU no disponible para PyTorch")
+        except ImportError:
+            print("[INFO] PyTorch no instalado (opcional)")
+            print("  Para instalarlo: pip install torch")
+
+    print("\n" + "="*60)
     print(f"[CONFIG] Built with cuDNN: {tf.test.is_built_with_gpu_support()} [INFO]\n")
 
     if tf.test.is_built_with_cuda() and tf.test.is_built_with_gpu_support():

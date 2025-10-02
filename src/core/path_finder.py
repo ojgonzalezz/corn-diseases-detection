@@ -1,12 +1,26 @@
 #####################################################################################
 # --------------------------- Project Data Paths Adapter ----------------------------
 #####################################################################################
+# ⚠️ DEPRECADO: Este módulo está deprecado y será eliminado en versiones futuras.
+# Por favor, usa src.utils.paths en su lugar:
+#
+#   from src.utils.paths import paths
+#
+#   # En lugar de:
+#   pp = ProjectPaths(data_subpath=("data", "raw"))
+#   data_paths = pp.get_structure()
+#
+#   # Usa:
+#   data_raw_path = paths.data_raw
+#
+#####################################################################################
 
 #########################
 # ---- Depdendencies ----
 #########################
 
 import os
+import warnings
 from pathlib import Path
 from typing import Dict, Union
 
@@ -21,7 +35,14 @@ class ProjectPaths:
         Args:
             data_subpath (tuple): Ruta relativa desde la raíz del proyecto
                                   hacia la carpeta de datos.
+
+        ⚠️ DEPRECADO: Usa src.utils.paths.paths en su lugar.
         """
+        warnings.warn(
+            "ProjectPaths está deprecado. Usa 'from src.utils.paths import paths' en su lugar.",
+            DeprecationWarning,
+            stacklevel=2
+        )
         self.project_root = self._find_project_root()
         self.data_path = self.project_root.joinpath(*data_subpath)
 

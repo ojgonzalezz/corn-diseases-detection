@@ -9,6 +9,7 @@ mlflow==3.3.2
 # Computer Vision
 opencv-python==4.12.0.88
 pillow==11.0.0
+ultralytics>=8.0.0  # YOLO v8+ (opcional, solo si se usa backbone YOLO)
 
 # Data Science
 numpy==1.23.5
