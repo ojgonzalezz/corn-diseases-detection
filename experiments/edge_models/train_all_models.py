@@ -22,16 +22,16 @@ from src.utils.logger import get_logger, log_section
 logger = get_logger(__name__)
 
 
-# Configuración de experimentos (4 arquitecturas seleccionadas)
+# Configuración de experimentos (4 arquitecturas seleccionadas, sin fine-tuning)
 EXPERIMENTS = [
     # MobileNetV3Large - Balance tamaño/precisión
     {
         'name': 'MobileNetV3Large',
         'lr': 0.001,
         'dropout': 0.3,
-        'epochs': 30,
-        'batch_size': 16,
-        'fine_tune': False,
+        'epochs': 20,  # Reducido para evitar problemas de memoria
+        'batch_size': 8,
+        'fine_tune': False,  # Sin fine-tuning
     },
     
     # EfficientNet-Lite B2 - Máxima eficiencia
@@ -39,9 +39,9 @@ EXPERIMENTS = [
         'name': 'EfficientNetLiteB2',
         'lr': 0.0008,
         'dropout': 0.25,
-        'epochs': 30,
-        'batch_size': 16,
-        'fine_tune': False,
+        'epochs': 20,  # Reducido para evitar problemas de memoria
+        'batch_size': 8,
+        'fine_tune': False,  # Sin fine-tuning
     },
     
     # MobileViT - Vision Transformer móvil
@@ -49,10 +49,9 @@ EXPERIMENTS = [
         'name': 'MobileViT',
         'lr': 0.001,
         'dropout': 0.3,
-        'epochs': 35,
-        'batch_size': 16,
-        'fine_tune': True,
-        'fine_tune_epochs': 10,
+        'epochs': 20,  # Reducido para evitar problemas de memoria
+        'batch_size': 8,
+        'fine_tune': False,  # Sin fine-tuning
     },
     
     # PMVT - Optimizado para plantas
@@ -60,10 +59,9 @@ EXPERIMENTS = [
         'name': 'PMVT',
         'lr': 0.001,
         'dropout': 0.3,
-        'epochs': 35,
-        'batch_size': 16,
-        'fine_tune': True,
-        'fine_tune_epochs': 10,
+        'epochs': 20,  # Reducido para evitar problemas de memoria
+        'batch_size': 8,
+        'fine_tune': False,  # Sin fine-tuning
     },
 ]
 

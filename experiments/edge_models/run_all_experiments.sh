@@ -1,15 +1,15 @@
 #!/bin/bash
 #
-# Script para ejecutar todos los experimentos edge automáticamente
+# Script para ejecutar experimentos edge con modelos ligeros
 #
 
 set -e  # Exit on error
 
 echo "=================================================================="
-echo "INICIANDO EXPERIMENTOS EDGE COMPUTING"
+echo "INICIANDO EXPERIMENTOS EDGE COMPUTING (MODELOS LIGEROS)"
 echo "=================================================================="
 echo ""
-echo "Paso 1/3: Entrenando los 4 modelos edge..."
+echo "Paso 1/3: Entrenando los 4 modelos edge (sin fine-tuning)..."
 python experiments/edge_models/train_all_models.py
 
 echo ""
