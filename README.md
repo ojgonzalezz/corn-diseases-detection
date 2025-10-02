@@ -133,7 +133,7 @@ mi_proyecto_maiz_dl/
 └── .gitignore
 ```
 
-### Descripción Profesional de Módulos y Scripts
+### Descripción de Módulos y Scripts
 
 | Carpeta/Script | Descripción |
 | :--- | :--- |
