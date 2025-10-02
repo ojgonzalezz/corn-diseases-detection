@@ -1,6 +1,6 @@
 # Core Deep Learning & ML
-tensorflow==2.10.0
-keras==2.10.0
+tensorflow>=2.10.0,<3.0.0
+keras>=2.10.0
 keras-tuner==1.4.7
 
 # Experiment Tracking
@@ -12,7 +12,7 @@ pillow==11.0.0
 ultralytics>=8.0.0  # YOLO v8+ (opcional, solo si se usa backbone YOLO)
 
 # Data Science
-numpy==1.23.5
+numpy>=1.23.5,<2.0.0
 pandas==2.3.2
 scikit-learn==1.7.1
 scipy==1.15.3
