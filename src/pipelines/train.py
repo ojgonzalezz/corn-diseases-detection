@@ -19,30 +19,48 @@ from tensorflow.keras.callbacks import Callback
 from tensorflow.keras.callbacks import ModelCheckpoint, EarlyStopping
 from src.pipelines.preprocess import split_and_balance_dataset
 from src.builders.builders import ModelBuilder
+from src.utils.utils import flatten_data
 
 
 #######################
 # ---- Fine Tunner ----
 #######################
 
-def train(backbone_name='VGG16', split_ratios=(0.7, 0.15, 0.15), balanced="oversample"):
+def train(backbone_name: str = 'VGG16', split_ratios: tuple = (0.7, 0.15, 0.15), balanced: str = "oversample"):
     """
     Función principal para orquestar el proceso de entrenamiento y la búsqueda
     de hiperparámetros con Keras Tuner, rastreando los experimentos con MLflow.
-    
+
     Args:
-        backbone_name (str): Nombre del modelo base a usar (ej. 'VGG16', 'ResNet50').
-        split_ratios (tuple): Ratios de división para train, val y test.
-        balanced (bool): Si es True, balancea el dataset. Si es False, usa el dataset original.
-    
+        backbone_name (str): Nombre del modelo base a usar. Options: 'VGG16', 'ResNet50', 'YOLO'.
+        split_ratios (tuple): Ratios de división para train, val y test. Must sum to 1.0.
+        balanced (str): Estrategia de balanceo. Options: "oversample", "downsample", or "none".
+
     Returns:
-        kt.Tuner: El objeto tuner con los resultados de la búsqueda.
-        tuple: Una tupla con los datos de prueba (X_test, y_test).
+        tuple: (kt.Tuner object with search results, (X_test, y_test) test data)
+
+    Raises:
+        ValueError: If split_ratios don't sum to 1.0 or if invalid backbone_name provided.
     """
-    # --- 0. INICIALIZACION DE VARIABLES ---
+    # --- 0. VALIDACIÓN DE PARÁMETROS ---
+    if not isinstance(split_ratios, tuple) or len(split_ratios) != 3:
+        raise ValueError(f"split_ratios must be a tuple of 3 floats, got: {split_ratios}")
+
+    if not abs(sum(split_ratios) - 1.0) < 0.001:
+        raise ValueError(f"split_ratios must sum to 1.0, got sum: {sum(split_ratios)}")
+
+    valid_backbones = ['VGG16', 'ResNet50', 'YOLO']
+    if backbone_name not in valid_backbones:
+        raise ValueError(f"backbone_name must be one of {valid_backbones}, got: {backbone_name}")
+
+    valid_balance_modes = ['oversample', 'downsample', 'none']
+    if balanced not in valid_balance_modes:
+        raise ValueError(f"balanced must be one of {valid_balance_modes}, got: {balanced}")
+
+    # --- 1. INICIALIZACION DE VARIABLES ---
     env_vars = EnvLoader().get_all()
 
-    # --- 1. CONFIGURACIÓN DE RUTAS Y PARÁMETROS ---
+    # --- 2. CONFIGURACIÓN DE RUTAS Y PARÁMETROS ---
     MLRUNS_PATH = os.path.join(os.path.dirname(os.getcwd()), 'models', 'mlruns')
     print('mlruns directory =', MLRUNS_PATH)
     os.makedirs(MLRUNS_PATH, exist_ok=True)
@@ -91,25 +109,15 @@ def train(backbone_name='VGG16', split_ratios=(0.7, 0.15, 0.15), balanced="overs
     print(f"Dataset de origen: {DATA_DIR.name}")
     print(f"Número de clases: {NUM_CLASSES}")
 
-    # --- 2. CARGAR Y PREPARAR LOS DATOS ---
+    # --- 3. CARGAR Y PREPARAR LOS DATOS ---
     print("\n📦 Cargando y preparando los datos en memoria...")
     
     raw_dataset = split_and_balance_dataset(
-        split_ratios=split_ratios,
-        balanced=balanced
+        balanced=balanced,
+        split_ratios=split_ratios
     )
 
-    def flatten_data(data_dict, image_size=(224, 224)):
-        images = []
-        labels = []
-        for class_name, image_list in data_dict.items():
-            for img in image_list:
-                resized_img = img.resize(image_size)
-                images.append(np.array(resized_img))
-                labels.append(class_name)
-        
-        return np.array(images), np.array(labels)
-
+    # Use shared flatten_data function from utils
     X_train, y_train = flatten_data(raw_dataset['train'], image_size=IMAGE_SIZE)
     X_val, y_val = flatten_data(raw_dataset['val'], image_size=IMAGE_SIZE)
     X_test, y_test = flatten_data(raw_dataset['test'], image_size=IMAGE_SIZE)
@@ -136,7 +144,7 @@ def train(backbone_name='VGG16', split_ratios=(0.7, 0.15, 0.15), balanced="overs
     
     print("✅ Datos convertidos a tensores de NumPy.")
     
-    # --- 3. INICIALIZAR EL MODEL BUILDER E INSTANCIAR EL TUNER ---
+    # --- 4. INICIALIZAR EL MODEL BUILDER E INSTANCIAR EL TUNER ---
     print("\n🛠️  Inicializando el constructor de modelos para el Tuner...")
     
     hypermodel = ModelBuilder(
@@ -160,7 +168,7 @@ def train(backbone_name='VGG16', split_ratios=(0.7, 0.15, 0.15), balanced="overs
     
     tuner.search_space_summary()
     
-    # --- 4. CONFIGURAR CALLBACKS ---
+    # --- 5. CONFIGURAR CALLBACKS ---
     print("\n⚙️  Configurando Callbacks para la búsqueda...")
     
     checkpoint_cb = ModelCheckpoint(
@@ -182,7 +190,7 @@ def train(backbone_name='VGG16', split_ratios=(0.7, 0.15, 0.15), balanced="overs
         early_stopping_cb
     ]
 
-    # --- 5. EJECUTAR LA BÚSQUEDA DE HIPERPARÁMETROS CON MLflow ---
+    # --- 6. EJECUTAR LA BÚSQUEDA DE HIPERPARÁMETROS CON MLflow ---
     print("\n" + "="*70)
     print("🚀 ¡Comenzando la búsqueda de hiperparámetros con MLflow!")
     print("="*70)
@@ -231,7 +239,7 @@ def train(backbone_name='VGG16', split_ratios=(0.7, 0.15, 0.15), balanced="overs
                                     # obs es ya un float o int
                                     mlflow.log_metric(metric_name, float(obs), step=history.index(obs))
         print("="*70)
-    # --- 6. OBTENER Y GUARDAR EL MEJOR MODELO ---
+    # --- 7. OBTENER Y GUARDAR EL MEJOR MODELO ---
     best_hps = tuner.get_best_hyperparameters(num_trials=1)[0]
     best_model = tuner.get_best_models(num_models=1)[0]
 
@@ -259,12 +267,40 @@ def train(backbone_name='VGG16', split_ratios=(0.7, 0.15, 0.15), balanced="overs
 
     exported_model_dir = PROJECT_ROOT / 'models' / 'exported'
     exported_model_dir.mkdir(parents=True, exist_ok=True)
-    
+
+    # Save with timestamp for versioning
+    from datetime import datetime
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+
+    # Save versioned model
+    versioned_model_path = exported_model_dir / f'{backbone_name}_{timestamp}_acc{test_acc:.4f}.keras'
+    best_model.save(versioned_model_path)
+    print(f"\n💾 Modelo versionado guardado en: {versioned_model_path}")
+
+    # Also save as "best" for easy loading
     best_model_path = exported_model_dir / f'best_{backbone_name}.keras'
     best_model.save(best_model_path)
-    print(f"\n💾 El mejor modelo final se ha guardado en: {best_model_path}")
+    print(f"💾 Modelo 'best' actualizado en: {best_model_path}")
 
-    # --- 7. EVALUAR EL MEJOR MODELO EN EL CONJUNTO DE PRUEBA ---
+    # Save hyperparameters as JSON
+    import json
+    metadata = {
+        'backbone': backbone_name,
+        'timestamp': timestamp,
+        'test_accuracy': float(test_acc),
+        'test_loss': float(test_loss),
+        'hyperparameters': best_hps.values,
+        'split_ratios': split_ratios,
+        'balanced': balanced,
+        'image_size': IMAGE_SIZE,
+        'num_classes': NUM_CLASSES
+    }
+    metadata_path = exported_model_dir / f'{backbone_name}_{timestamp}_metadata.json'
+    with open(metadata_path, 'w') as f:
+        json.dump(metadata, f, indent=2)
+    print(f"📄 Metadatos guardados en: {metadata_path}")
+
+    # --- 8. EVALUAR EL MEJOR MODELO EN EL CONJUNTO DE PRUEBA ---
     print("\n" + "="*70)
     print("📊 Evaluando el mejor modelo en el conjunto de prueba...")
     print("="*70)

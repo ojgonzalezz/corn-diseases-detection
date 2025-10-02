@@ -45,8 +45,9 @@ def data_split(datasets: Dict[str, Any], environment_variables: Dict[str, Any]) 
         categories = set(ast.literal_eval(env_varss.get("CLASS_NAMES", "[]")))
         if not categories:
             raise ValueError("CLASS_NAMES no contiene categorías válidas.")
-    except Exception:
+    except (ValueError, SyntaxError, KeyError) as e:
         # Fallback robusto: Derivar categorías directamente de los datos
+        print(f"⚠️ Warning: Could not parse CLASS_NAMES from env ({e}). Deriving from data...")
         categories = set()
         for dataset_key in datasets.keys():
             categories.update(datasets[dataset_key]["images"].keys())
@@ -57,16 +58,16 @@ def data_split(datasets: Dict[str, Any], environment_variables: Dict[str, Any]) 
         split_ratios = tuple(ast.literal_eval(split_ratios_str))
         if not (isinstance(split_ratios, tuple) and len(split_ratios) == 3 and math.isclose(sum(split_ratios), 1.0)):
             raise ValueError("Los ratios deben ser una tupla de 3 elementos que sumen 1.0.")
-    except Exception as e:
+    except (ValueError, SyntaxError, TypeError) as e:
         split_ratios = (0.7, 0.15, 0.15)
         print(f"⚠️ Split ratios: Error al cargar ({e}). Usando el tuple de emergencia: {split_ratios}")
         
     # 1c. Carga de umbral de similaridad (threshold)
     try:
         sim_treshold = float(ast.literal_eval(env_varss.get("IM_SIM_TRESHOLD", "0.95")))
-    except Exception:
+    except (ValueError, SyntaxError, TypeError) as e:
         sim_treshold = 0.95
-        print(f"⚠️ Umbral de similaridad: Error al cargar. Usando el valor por defecto: {sim_treshold}")
+        print(f"⚠️ Umbral de similaridad: Error al cargar ({e}). Usando el valor por defecto: {sim_treshold}")
 
 
     print(f"📊 Configuración de Split: Ratios={split_ratios}, Umbral de Filtrado={sim_treshold}")
@@ -209,8 +210,9 @@ def downsample_dataset_importancia(datasets: Dict[str, Any], environment_variabl
     # Usar ast.literal_eval para obtener la lista de clases de forma segura
     try:
         categories = set(ast.literal_eval(env_varss.get("CLASS_NAMES", "[]")))
-    except Exception:
+    except (ValueError, SyntaxError, KeyError) as e:
         # Si falla la carga, derivar categorías de los datos
+        print(f"⚠️ Warning: Could not parse CLASS_NAMES ({e}). Deriving from data...")
         categories = set()
         for dataset_key in datasets.keys():
             categories.update(datasets[dataset_key]["images"].keys())
@@ -334,10 +336,11 @@ def oversample_dataset(split_datasets: Dict[str, Dict[str, List[Any]]], environm
         raise ValueError("El diccionario de entrada debe contener la clave 'train'.")
 
     env_vars = environment_variables
-    
+
     try:
         categories = list(ast.literal_eval(env_vars.get("CLASS_NAMES", "[]")))
-    except Exception:
+    except (ValueError, SyntaxError, KeyError) as e:
+        print(f"⚠️ Warning: Could not parse CLASS_NAMES ({e}). Using keys from train set...")
         categories = list(split_datasets[TRAIN_SET_KEY].keys())
             
     if not categories:
@@ -367,7 +370,8 @@ def oversample_dataset(split_datasets: Dict[str, Dict[str, List[Any]]], environm
     # Obtener el límite de balanceo (MAX_ADDED_BALANCE)
     try:
         MAX_ADDED_BALANCE = int(env_vars.get("MAX_ADDED_BALANCE", 50))
-    except Exception:
+    except (ValueError, TypeError) as e:
+        print(f"⚠️ Warning: Could not parse MAX_ADDED_BALANCE ({e}). Using default: 50")
         MAX_ADDED_BALANCE = 50
         
     # 🎯 Tamaño objetivo: Clase mayoritaria + límite extra
@@ -467,7 +471,7 @@ def oversample_dataset(split_datasets: Dict[str, Dict[str, List[Any]]], environm
 # ---- Split and balance dataset Function ----
 ##############################################
 
-def split_and_balance_dataset(balanced: str = "downsample") -> Dict[str, Any]:
+def split_and_balance_dataset(balanced: str = "downsample", split_ratios: tuple = None) -> Dict[str, Any]:
     """
     Realiza una división estratificada del dataset, aplica la estrategia de balanceo
     (downsample, oversample, o ninguno) solo al conjunto de entrenamiento, y genera un resumen.
@@ -475,21 +479,27 @@ def split_and_balance_dataset(balanced: str = "downsample") -> Dict[str, Any]:
     Args:
         balanced (str): Estrategia de balanceo a aplicar ("downsample", "oversample", o cualquier otra
                         cadena para 'desbalanceado').
+        split_ratios (tuple, optional): Ratios de división para train, val, test.
+                                        Si None, usa valores del .env. Debe sumar 1.0.
 
     Returns:
-        dict: Un diccionario con los conjuntos de datos divididos ('train', 'val', 'test'), 
+        dict: Un diccionario con los conjuntos de datos divididos ('train', 'val', 'test'),
               donde cada conjunto es un diccionario de la forma {'clase': [lista de imágenes]}.
     """
 
     print("\n📦 Llamando a la función de carga de datos...")
     # Asumo que load_raw_data() devuelve la estructura {data_1: {...}, data_2: {...}}
-    datasets = load_raw_data() 
+    datasets = load_raw_data()
     env_vars = EnvLoader().get_all()
     print("✅ Carga de datos completada.")
 
     if not datasets:
         raise ValueError("No se cargó ninguna imagen. Verifica las rutas y los tipos de archivo.")
-    
+
+    # Override split_ratios in env_vars if provided as parameter
+    if split_ratios is not None:
+        env_vars['SPLIT_RATIOS'] = str(split_ratios)
+
     # 1. Split y Filtrado de duplicados (De-augmentación)
     # Asumo que data_split maneja la unión, filtrado y split estratificado.
     split_datasets = data_split(datasets, env_vars)

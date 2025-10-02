@@ -1,13 +1,28 @@
 
 -----
 
+# 🌽 Corn Diseases Detection with Transfer Learning
 # 🌽 Detección de Enfermedades del Maíz con Transfer Learning
 
-## 🌟 Resumen del Proyecto
+> **Note:** This project contains documentation in both English and Spanish to support international collaboration.
+> **Nota:** Este proyecto contiene documentación en inglés y español para apoyar la colaboración internacional.
 
-Este proyecto implementa un *pipeline* de *Deep Learning* robusto para la **clasificación de enfermedades comunes en hojas de maíz**. El objetivo es diagnosticar automáticamente la salud de las plantas utilizando técnicas de *Transfer Learning* basadas en la arquitectura VGG16, optimizando la cabeza de clasificación mediante **Keras Tuner** y rastreando todos los experimentos con **MLflow**.
+---
 
-El proyecto se destaca por su rigurosa estrategia de preprocesamiento, que aborda activamente el **sesgo por duplicación (data leakage)** y el **desbalance de clases** en un *dataset* bimodal compuesto por dos fuentes de datos distintas.
+## 🌟 Project Summary | Resumen del Proyecto
+
+**[EN]** This project implements a robust **Deep Learning pipeline** for classifying common corn leaf diseases. Using **Transfer Learning** with VGG16, **Keras Tuner** for hyperparameter optimization, and **MLflow** for experiment tracking, the system achieves high accuracy in diagnosing plant health. The project emphasizes rigorous preprocessing to address **data leakage** and **class imbalance** in a multi-source dataset.
+
+**Key Features:**
+- 🧠 Transfer Learning with VGG16/ResNet50
+- 🔍 Intelligent de-augmentation using ResNet50 embeddings
+- ⚖️ Advanced class balancing (oversample/downsample)
+- 📊 MLflow experiment tracking
+- 🎯 Keras Tuner hyperparameter optimization
+
+---
+
+**[ES]** Este proyecto implementa un *pipeline* de *Deep Learning* robusto para la **clasificación de enfermedades comunes en hojas de maíz**. El objetivo es diagnosticar automáticamente la salud de las plantas utilizando técnicas de *Transfer Learning* basadas en la arquitectura VGG16, optimizando la cabeza de clasificación mediante **Keras Tuner** y rastreando todos los experimentos con **MLflow**. El proyecto se destaca por su rigurosa estrategia de preprocesamiento, que aborda activamente el **sesgo por duplicación (data leakage)** y el **desbalance de clases** en un *dataset* bimodal compuesto por dos fuentes de datos distintas.
 
 -----
 
@@ -84,27 +99,38 @@ El proyecto sigue una estructura modular y escalable para separar el código de 
 
 ```
 corn-diseases-detection/
-mi_proyecto_maiz_dl/
-├── data/
-│   ├── raw/                  # Datos originales (no modificados)
-│   │   ├── train/            # Dataset de entrenamiento original
-│   │   └── validation/       # Dataset de validación original
-│   └── processed/            # Datos limpios y listos para el ciclo ML
-│       ├── data_1            # Fuente 1 (limpia/no-augmentada)
-│       ├── data_2            # Fuente 2 (des-aumentada/filtrada)
-│       └── split             # Conjuntos finales para el modelo
-│           ├── train/        # Conjunto de Entrenamiento (balanceado)
-│           ├── val/          # Conjunto de Validación (estratificado)
-│           └── test/         # Conjunto de Prueba (estratificado)
+├── data/                     # Dataset directory (gitignored)
+│   ├── train/                # Training set (3,856 images - balanced)
+│   │   ├── Blight/           # 964 images
+│   │   ├── Common_Rust/      # 964 images
+│   │   ├── Gray_Leaf_Spot/   # 964 images
+│   │   └── Healthy/          # 964 images
+│   ├── val/                  # Validation set (716 images - stratified)
+│   │   ├── Blight/           # 171 images
+│   │   ├── Common_Rust/      # 195 images
+│   │   ├── Gray_Leaf_Spot/   # 176 images
+│   │   └── Healthy/          # 174 images
+│   └── test/                 # Test set (722 images - stratified)
+│       ├── Blight/           # 173 images
+│       ├── Common_Rust/      # 197 images
+│       ├── Gray_Leaf_Spot/   # 177 images
+│       └── Healthy/          # 175 images
 │
-├── notebooks/                # Espacio para experimentación y EDA
+├── experimentation/          # EDA and exploration scripts
+│   ├── eda/                  # Data validation and analysis
+│   │   ├── analyze_feature.py
+│   │   ├── explore_distribution.py
+│   │   ├── validate_dataset.py
+│   │   └── view_samples.py
+│   └── notebooks/
 │   ├── 01_eda_exploracion.ipynb 
 │   ├── 02_modelado_basico.ipynb
 │   └── 03_transfer_learning.ipynb
 │
-├── models/                   # Artefactos de modelos
-│   ├── checkpoints/          # Puntos de control intermedios (MLflow)
-│   └── exported/             # Versiones finales para inferencia/producción
+├── models/                   # Model artifacts (gitignored)
+│   ├── mlruns/               # MLflow experiment tracking
+│   ├── tuner_checkpoints/    # Keras Tuner hyperparameter search
+│   └── exported/             # Final trained models (best_VGG16.keras, etc.)
 │
 ├── src/                      # Código fuente de producción
 │   ├── adapters/
@@ -133,14 +159,24 @@ mi_proyecto_maiz_dl/
 └── .gitignore
 ```
 
+### 📊 Data Workflow Note
+
+**Current Structure:** The project uses pre-split data in `data/train/`, `data/val/`, `data/test/` directories. This is the actual working structure.
+
+**Why this structure?** The data has already been preprocessed, balanced, and split using the preprocessing pipeline in `src/pipelines/preprocess.py`. The split is:
+- **Training:** 70% (3,856 images - perfectly balanced across 4 classes)
+- **Validation:** 15% (716 images - stratified)
+- **Testing:** 15% (722 images - stratified)
+
 ### Descripción Profesional de Módulos y Scripts
 
 | Carpeta/Script | Descripción |
 | :--- | :--- |
-| **`data/raw/`** | Contiene los datasets originales. Estos archivos nunca deben ser modificados por el código. |
-| **`data/processed/`** | Almacena los datasets limpios, filtrados y listos para el consumo del modelo. Contiene los subdirectorios `data_1`, `data_2` (filtrados) y `split` (conjuntos finales). |
-| **`notebooks/`** | Entorno para la experimentación, EDA, y prototipado inicial. |
-| **`models/exported/`** | Directorio para la versión final del modelo (ej., `final_model.h5`) que está lista para el despliegue. |
+| **`data/train/`** | Training dataset with balanced classes (964 images per class) |
+| **`data/val/`** | Validation dataset with stratified split for model evaluation |
+| **`data/test/`** | Test dataset for final model assessment |
+| **`experimentation/`** | EDA scripts and Jupyter notebooks for exploration |
+| **`models/exported/`** | Final trained models ready for inference (e.g., `best_VGG16.keras`) |
 | **`src/adapters/data_loader.py`** | Componente de abstracción de datos. Encargado de cargar las imágenes desde el disco a memoria (`PIL.Image`) desde múltiples fuentes (`data_1`, `data_2`). |
 | **`src/builders/builders.py`** | Factoría de modelos. Define la arquitectura de la cabeza de clasificación y ensambla el modelo completo (VGG16 + cabeza), listo para la búsqueda de hiperparámetros con Keras Tuner. |
 | **`src/core/load_env.py`** | Utilidad de configuración. Carga y parsea de forma segura todas las variables de entorno (rutas, ratios, tamaños de imagen) desde el archivo `.env`. |
@@ -150,3 +186,105 @@ mi_proyecto_maiz_dl/
 | **`src/utils/aug_detectors.py`** | Implementa la lógica de **De-Augmentación**; contiene las funciones para la generación de *embeddings* y el cálculo de la similitud del coseno para detectar duplicados. |
 | **`src/utils/data_augmentator.py`** | Define las funciones para las transformaciones espaciales complejas utilizadas durante el *oversampling* controlado. |
 | **`src/utils/image_modifier.py`** | Contiene funciones de bajo nivel para las transformaciones de *calidad* de imagen (ej., ruido, brillo, contraste) utilizadas en el *Data Augmentation*. |
+
+---
+
+## 🚀 Quick Start | Inicio Rápido
+
+### Installation | Instalación
+
+```bash
+# Create virtual environment
+python -m venv venv
+source venv/bin/activate  # On Windows: venv\Scripts\activate
+
+# Install dependencies
+pip install -r requirements.txt
+```
+
+### Training | Entrenamiento
+
+```bash
+# Train model with default settings (VGG16, balanced data)
+python -m src.pipelines.train
+
+# Train with specific backbone
+python -c "from src.pipelines.train import train; train(backbone_name='ResNet50')"
+```
+
+### Inference | Inferencia
+
+```python
+from src.pipelines.infer import predict
+
+# Load image as bytes
+with open('path/to/corn_leaf.jpg', 'rb') as f:
+    image_bytes = f.read()
+
+# Get prediction
+result = predict(image_bytes)
+print(f"Predicted: {result['predicted_label']}")
+print(f"Confidence: {result['confidence']:.2%}")
+```
+
+### Configuration | Configuración
+
+Edit `src/core/.env` to customize:
+- `IMAGE_SIZE`: Input image dimensions
+- `NUM_CLASSES`: Number of disease classes
+- `BATCH_SIZE`: Training batch size
+- `MAX_TRIALS`: Keras Tuner search iterations
+
+---
+
+## 🧪 Testing Strategy | Estrategia de Pruebas
+
+**[EN] Current Status:** The project currently uses EDA scripts in `experimentation/eda/` for data validation:
+- `validate_dataset.py`: Checks image integrity and counts by class
+- `explore_distribution.py`: Analyzes class distributions
+- `view_samples.py`: Visual inspection of samples
+
+**Recommended Testing Approach:**
+```bash
+# Validate dataset integrity
+python experimentation/eda/validate_dataset.py
+
+# Check class distributions
+python experimentation/eda/explore_distribution.py
+```
+
+**Future Improvements:**
+- Add `tests/` directory with pytest
+- Unit tests for preprocessing functions
+- Integration tests for training pipeline
+- Model performance regression tests
+
+**[ES] Estado Actual:** El proyecto utiliza scripts EDA en `experimentation/eda/` para validación de datos. Se recomienda agregar pruebas unitarias con pytest en el futuro.
+
+---
+
+## 📦 Model Versioning | Versionado de Modelos
+
+**[EN] Automated Versioning:** The training pipeline automatically saves models with version information:
+
+**File Naming Convention:**
+```
+models/exported/
+├── VGG16_20250102_143022_acc0.9745.keras    # Timestamped + accuracy
+├── VGG16_20250102_143022_metadata.json      # Training configuration
+└── best_VGG16.keras                         # Latest best model (for inference)
+```
+
+**Metadata Includes:**
+- Timestamp
+- Test accuracy and loss
+- Hyperparameters used
+- Data split ratios
+- Balancing strategy
+- Image size and number of classes
+
+**Model Registry:** All training runs are tracked in MLflow at `models/mlruns/` for experiment comparison.
+
+**[ES] Versionado Automático:** El pipeline guarda modelos con timestamp, precisión y metadatos en JSON. MLflow rastrea todos los experimentos.
+
+---

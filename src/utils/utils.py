@@ -144,6 +144,28 @@ def stratified_split_dataset(
 # ---- Data-related Utilities ----
 ##################################
 
+def flatten_data(data_dict: Dict[str, List[Any]], image_size: Tuple[int, int] = (224, 224)) -> Tuple[np.ndarray, np.ndarray]:
+    """
+    Flatten a dictionary of images by class into numpy arrays.
+
+    Args:
+        data_dict: Dictionary mapping class names to lists of PIL Images
+        image_size: Target size for resizing images (width, height)
+
+    Returns:
+        Tuple of (images array, labels array)
+    """
+    images = []
+    labels = []
+    for class_name, image_list in data_dict.items():
+        for img in image_list:
+            resized_img = img.resize(image_size)
+            images.append(np.array(resized_img))
+            labels.append(class_name)
+
+    return np.array(images), np.array(labels)
+
+
 def load_images_from_folder(folder_path):
     """
     Carga todas las imágenes de una carpeta en una lista.

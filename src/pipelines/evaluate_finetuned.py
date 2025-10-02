@@ -17,6 +17,7 @@ import argparse
 from src.pipelines.preprocess import split_and_balance_dataset
 from src.utils.data_augmentator import DataAugmenter
 from src.utils.image_modifier import ImageAugmentor
+from src.utils.utils import flatten_data
 
 ##########################
 # ---- Evaluate model ----
@@ -45,24 +46,15 @@ def evaluate_model(model_filename: str, split_ratios=(0.7, 0.15, 0.15)):
     # Cargar el dataset usando la función de preprocesamiento
     raw_dataset = split_and_balance_dataset(
         # Usamos 1.0 para el ratio de prueba porque solo necesitamos este set
-        split_ratios=split_ratios,
-        balanced=True
+        balanced="downsample",  # Changed from True to string
+        split_ratios=split_ratios
     )
-    
-    # Aplanar el diccionario de datos a NumPy arrays
-    def flatten_data(data_dict, image_size=(224, 224)):
-        images = []
-        labels = []
-        class_names = []
-        for class_name, image_list in data_dict.items():
-            class_names.append(class_name)
-            for img in image_list:
-                resized_img = img.resize(image_size)
-                images.append(np.array(resized_img))
-                labels.append(class_name)
-        return np.array(images), np.array(labels), class_names
 
-    X_test, y_test_labels, class_names = flatten_data(raw_dataset['test'], image_size=IMAGE_SIZE)
+    # Get class names from the dataset
+    class_names = list(raw_dataset['test'].keys())
+
+    # Use shared flatten_data function from utils
+    X_test, y_test_labels = flatten_data(raw_dataset['test'], image_size=IMAGE_SIZE)
     
     # Codificar etiquetas y asegurar el formato correcto
     label_to_int = {label: i for i, label in enumerate(class_names)}
@@ -142,9 +134,9 @@ def augmented_evaluation(model_filename: str, aug_type="spacial"):
     
     raw_dataset = split_and_balance_dataset(
         # Solo necesitas cargar el set de prueba para la evaluacion
-        base_path=DATA_DIR,
-        split_ratios=(0.7, 0.15, 0.15),
-        balanced=True
+        balanced="downsample",  # Changed from True to string
+        split_ratios=(0.7, 0.15, 0.15)
+        # Note: base_path parameter removed - function doesn't accept it
     )
     
     test_data = raw_dataset['test']
@@ -154,19 +146,11 @@ def augmented_evaluation(model_filename: str, aug_type="spacial"):
         "quality": ImageAugmentor()
     }
 
-    def flatten_data(data_dict, image_size=(224, 224)):
-        images = []
-        labels = []
-        class_names = []
-        for class_name, image_list in data_dict.items():
-            class_names.append(class_name)
-            for img in image_list:
-                resized_img = img.resize(image_size)
-                images.append(np.array(resized_img))
-                labels.append(class_name)
-        return np.array(images), np.array(labels), class_names
+    # Get class names from the dataset
+    class_names = list(raw_dataset['test'].keys())
 
-    X_test_original, y_test_labels, class_names = flatten_data(raw_dataset['test'], image_size=IMAGE_SIZE)
+    # Use shared flatten_data function from utils
+    X_test_original, y_test_labels = flatten_data(raw_dataset['test'], image_size=IMAGE_SIZE)
     
     label_to_int = {label: i for i, label in enumerate(class_names)}
     y_test_original = np.array([label_to_int[l] for l in y_test_labels])
