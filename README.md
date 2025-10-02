@@ -150,37 +150,3 @@ mi_proyecto_maiz_dl/
 | **`src/utils/aug_detectors.py`** | Implementa la lógica de **De-Augmentación**; contiene las funciones para la generación de *embeddings* y el cálculo de la similitud del coseno para detectar duplicados. |
 | **`src/utils/data_augmentator.py`** | Define las funciones para las transformaciones espaciales complejas utilizadas durante el *oversampling* controlado. |
 | **`src/utils/image_modifier.py`** | Contiene funciones de bajo nivel para las transformaciones de *calidad* de imagen (ej., ruido, brillo, contraste) utilizadas en el *Data Augmentation*. |
-
-
-📊 Dataset Inicial
-Para el análisis, se utilizó el dataset público "Corn or Maize Leaf Disease Dataset" de Kaggle, una compilación de imágenes de las fuentes PlantVillage y PlantDoc.
-
-Total de Imágenes: 4,188
-
-Formato: JPEG (.jpg)
-
-Distribución de Clases (Inicial):
-
-Roya Común (Common Rust): 1,306 imágenes (31.2%)
-
-Sana (Healthy): 1,162 imágenes (27.7%)
-
-Tizón (Blight): 1,146 imágenes (27.4%)
-
-Mancha Gris (Gray Leaf Spot): 574 imágenes (13.7%)
-
-Observación Clave: El dataset inicial presenta un notable desbalance, con la clase "Mancha Gris" significativamente subrepresentada. Este hallazgo es fundamental para las siguientes etapas del proyecto.
-
-🔬 Hallazgos del Análisis Exploratorio de Datos (EDA)
-Validación e Integridad de Datos
-Se realizó una validación estructural del dataset para confirmar la cantidad de clases, el número de imágenes y la integridad de los archivos. Se encontró y corrigió una inconsistencia de formato (un archivo .jpeg en lugar de .jpg) en la clase "Blight", asegurando la homogeneidad del conjunto de datos.
-
-Análisis Cualitativo Visual
-La inspección de muestras aleatorias reveló una buena calidad de imagen general (nitidez y enfoque). Se destacó una alta variabilidad en iluminación, escala y ángulos de captura, lo cual es beneficioso para entrenar un modelo más robusto y generalizable.
-
-Desafío Principal Identificado: Se observó una alta similitud morfológica entre las lesiones en etapas avanzadas de "Mancha Gris" y "Tizón", lo que anticipa el principal reto de clasificación para el modelo de IA.
-
-Análisis Cuantitativo de Características Físicas
-Dimensiones: Se confirmó una considerable variabilidad en el tamaño (alto y ancho) de las imágenes, lo que fundamenta la necesidad de un paso de redimensionamiento estándar antes de alimentar el modelo.
-
-Distribución de Color: El análisis de histogramas de color, particularmente en el canal verde, demostró ser un rasgo altamente discriminatorio. Las hojas sanas ("Healthy") mostraron un perfil de color verde único y vibrante, claramente distinto al de las hojas enfermas. Esto valida el potencial del color como una característica potente para la clasificación automática y justifica la necesidad de normalizar los valores de los píxeles.
