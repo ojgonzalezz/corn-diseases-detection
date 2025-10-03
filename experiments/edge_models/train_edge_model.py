@@ -65,15 +65,30 @@ def build_classification_head(backbone: Model, num_classes: int, dropout_rate: f
     # Congelar backbone
     backbone.trainable = False
     
-    # Construir cabeza
-    model = models.Sequential([
-        backbone,
-        layers.GlobalAveragePooling2D() if 'gap' not in backbone.name else layers.Lambda(lambda x: x),
-        layers.Dropout(dropout_rate),
-        layers.Dense(128, activation='relu', kernel_regularizer=tf.keras.regularizers.l2(0.001)),
-        layers.Dropout(dropout_rate / 2),
-        layers.Dense(num_classes, activation='softmax')
-    ], name=f'{backbone.name}_classifier')
+    # Detectar si el backbone ya tiene pooling (output shape 2D)
+    output_shape = backbone.output_shape
+    needs_pooling = len(output_shape) == 4  # (None, H, W, C) necesita pooling
+    
+    # Construir cabeza según la salida del backbone
+    if needs_pooling:
+        # Backbone retorna 4D (None, H, W, C) - necesita GlobalAveragePooling2D
+        model = models.Sequential([
+            backbone,
+            layers.GlobalAveragePooling2D(),
+            layers.Dropout(dropout_rate),
+            layers.Dense(128, activation='relu', kernel_regularizer=tf.keras.regularizers.l2(0.001)),
+            layers.Dropout(dropout_rate / 2),
+            layers.Dense(num_classes, activation='softmax')
+        ], name=f'{backbone.name}_classifier')
+    else:
+        # Backbone ya retorna 2D (None, features) - no necesita pooling
+        model = models.Sequential([
+            backbone,
+            layers.Dropout(dropout_rate),
+            layers.Dense(128, activation='relu', kernel_regularizer=tf.keras.regularizers.l2(0.001)),
+            layers.Dropout(dropout_rate / 2),
+            layers.Dense(num_classes, activation='softmax')
+        ], name=f'{backbone.name}_classifier')
     
     return model
 
