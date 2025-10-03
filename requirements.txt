@@ -28,8 +28,3 @@ pydantic-settings>=2.0.0
 
 # Progress Bars (Colab ya tiene tqdm)
 tqdm>=4.65.0
-
-# API Development (opcional en Colab)
-fastapi
-uvicorn
-python-multipart

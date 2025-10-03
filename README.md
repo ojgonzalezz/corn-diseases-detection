@@ -44,7 +44,7 @@ corn-diseases-detection/
 │   ├── pipelines/                 # Pipelines ML (preprocess, infer)
 │   └── utils/                     # Utilidades
 │
-├── tests/                         # Suite de tests (11 archivos)
+├── tests/                         # Suite de tests (10 archivos)
 │
 ├── experimentation/               # Scripts EDA y notebooks exploratorios
 │
@@ -230,7 +230,7 @@ pytest tests/ -m "not slow" -v
 
 ### **Cobertura de Tests**
 
-El proyecto incluye **11 archivos de tests** con **~90% de cobertura**:
+El proyecto incluye **10 archivos de tests** con **~90% de cobertura**:
 - `test_infer.py` - Pipeline de inferencia
 - `test_preprocess.py` - Preprocesamiento
 - `test_augmentation.py` - Augmentación de datos
