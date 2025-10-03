@@ -23,7 +23,7 @@ logger = get_logger(__name__)
 
 
 # Configuración de experimentos (4 arquitecturas seleccionadas)
-# MobileViT y PMVT usan fine-tuning para mejor rendimiento
+# Optimizado para Google Colab (batch_size reducido para evitar OOM)
 EXPERIMENTS = [
     # MobileNetV3Large - Balance tamaño/precisión
     {
@@ -31,7 +31,7 @@ EXPERIMENTS = [
         'lr': 0.001,
         'dropout': 0.3,
         'epochs': 30,
-        'batch_size': 32,
+        'batch_size': 16,  # Reducido de 32 a 16 para Colab
         'fine_tune': False,
     },
     
@@ -41,7 +41,7 @@ EXPERIMENTS = [
         'lr': 0.0008,
         'dropout': 0.25,
         'epochs': 30,
-        'batch_size': 32,
+        'batch_size': 16,  # Reducido de 32 a 16 para Colab
         'fine_tune': False,
     },
     
@@ -51,7 +51,7 @@ EXPERIMENTS = [
         'lr': 0.001,
         'dropout': 0.3,
         'epochs': 30,
-        'batch_size': 32,
+        'batch_size': 16,  # Reducido de 32 a 16 para Colab
         'fine_tune': True,
         'fine_tune_epochs': 10,
     },
@@ -62,7 +62,7 @@ EXPERIMENTS = [
         'lr': 0.001,
         'dropout': 0.3,
         'epochs': 30,
-        'batch_size': 32,
+        'batch_size': 16,  # Reducido de 32 a 16 para Colab
         'fine_tune': True,
         'fine_tune_epochs': 10,
     },
