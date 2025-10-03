@@ -263,35 +263,52 @@ def train_edge_model(
             logger.info("=" * 70)
             logger.info("FASE 2: Fine-tuning del backbone")
             logger.info("=" * 70)
-            
-            # Descongelar las últimas capas del backbone
-            backbone.trainable = True
-            
-            # Re-compilar con learning rate más bajo
-            model.compile(
-                optimizer=tf.keras.optimizers.Adam(learning_rate=learning_rate / 10),
-                loss='categorical_crossentropy',
-                metrics=['accuracy']
-            )
-            
-            history_ft = model.fit(
-                train_dataset,
-                validation_data=val_dataset,
-                epochs=fine_tune_epochs,
-                steps_per_epoch=train_steps,
-                validation_steps=val_steps,
-                callbacks=callbacks,
-                verbose=1,
-                initial_epoch=len(history.history['loss'])
-            )
-            
-            # Log métricas de fine-tuning
-            for epoch in range(len(history_ft.history['loss'])):
-                step = len(history.history['loss']) + epoch
-                mlflow.log_metric("train_loss", history_ft.history['loss'][epoch], step=step)
-                mlflow.log_metric("train_accuracy", history_ft.history['accuracy'][epoch], step=step)
-                mlflow.log_metric("val_loss", history_ft.history['val_loss'][epoch], step=step)
-                mlflow.log_metric("val_accuracy", history_ft.history['val_accuracy'][epoch], step=step)
+
+            try:
+                # Descongelar las últimas capas del backbone
+                backbone.trainable = True
+
+                # Re-compilar con learning rate más bajo
+                model.compile(
+                    optimizer=tf.keras.optimizers.Adam(learning_rate=learning_rate / 10),
+                    loss='categorical_crossentropy',
+                    metrics=['accuracy']
+                )
+
+                # Calcular initial_epoch de forma segura
+                initial_epoch = len(history.history.get('loss', []))
+                logger.info(f"Iniciando fine-tuning desde epoch {initial_epoch}")
+
+                history_ft = model.fit(
+                    train_dataset,
+                    validation_data=val_dataset,
+                    epochs=fine_tune_epochs + initial_epoch,
+                    steps_per_epoch=train_steps,
+                    validation_steps=val_steps,
+                    callbacks=callbacks,
+                    verbose=1,
+                    initial_epoch=initial_epoch
+                )
+
+                # Log métricas de fine-tuning de forma segura
+                if hasattr(history_ft, 'history') and 'loss' in history_ft.history:
+                    ft_epochs = len(history_ft.history['loss'])
+                    for epoch in range(ft_epochs):
+                        if initial_epoch + epoch < ft_epochs:
+                            step = initial_epoch + epoch
+                            mlflow.log_metric("train_loss", history_ft.history['loss'][epoch], step=step)
+                            mlflow.log_metric("train_accuracy", history_ft.history['accuracy'][epoch], step=step)
+                            mlflow.log_metric("val_loss", history_ft.history['val_loss'][epoch], step=step)
+                            mlflow.log_metric("val_accuracy", history_ft.history['val_accuracy'][epoch], step=step)
+
+                    logger.info(f"Fine-tuning completado exitosamente: {ft_epochs} epochs")
+                else:
+                    logger.warning("No se pudieron loggear métricas de fine-tuning")
+
+            except Exception as e:
+                logger.error(f"Error durante fine-tuning: {e}")
+                logger.warning("Continuando con evaluación sin fine-tuning")
+                # No relanzar la excepción, continuar con evaluación
         
         # Evaluación en test set
         logger.info("=" * 70)
@@ -356,7 +373,12 @@ def train_edge_model(
         
         # Guardar modelo
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-        model_path = paths.models_exported / f"{model_name}_{timestamp}_acc{test_accuracy:.4f}.keras"
+
+        # Crear directorio si no existe
+        export_dir = paths.models_exported
+        export_dir.mkdir(parents=True, exist_ok=True)
+
+        model_path = export_dir / f"{model_name}_{timestamp}_acc{test_accuracy:.4f}.keras"
         model.save(model_path)
         logger.info(f"Modelo guardado en: {model_path}")
         

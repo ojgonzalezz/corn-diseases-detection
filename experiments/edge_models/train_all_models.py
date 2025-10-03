@@ -24,25 +24,25 @@ logger = get_logger(__name__)
 
 # Configuración de experimentos (4 arquitecturas seleccionadas)
 # Optimizado para Google Colab con limitaciones de RAM
-# NOTA: batch_size=8 para evitar OOM con 4056 imágenes en memoria
+# NOTA: batch_size aumentado para mejor estabilidad de entrenamiento
 EXPERIMENTS = [
     # MobileNetV3Large - Balance tamaño/precisión
     {
         'name': 'MobileNetV3Large',
         'lr': 0.001,
         'dropout': 0.3,
-        'epochs': 30,
-        'batch_size': 8,  # Reducido a 8 para evitar OOM en Colab
+        'epochs': 50,  # Más épocas para mejor convergencia
+        'batch_size': 16,  # Aumentado para estabilidad
         'fine_tune': False,
     },
 
-    # EfficientNet-Lite B2 - Máxima eficiencia
+    # EfficientNet-Lite B2 - Máxima eficiencia (learning rate ajustado)
     {
         'name': 'EfficientNetLiteB2',
-        'lr': 0.0008,
+        'lr': 0.002,  # Aumentado significativamente para EfficientNet
         'dropout': 0.25,
-        'epochs': 30,
-        'batch_size': 8,  # Reducido a 8 para evitar OOM en Colab
+        'epochs': 50,  # Más épocas
+        'batch_size': 16,  # Aumentado
         'fine_tune': False,
     },
 
@@ -51,10 +51,10 @@ EXPERIMENTS = [
         'name': 'MobileViT',
         'lr': 0.001,
         'dropout': 0.3,
-        'epochs': 30,
-        'batch_size': 8,  # Reducido a 8 para evitar OOM en Colab
+        'epochs': 40,  # Moderadamente aumentado
+        'batch_size': 16,  # Aumentado
         'fine_tune': True,
-        'fine_tune_epochs': 10,
+        'fine_tune_epochs': 15,  # Más épocas de fine-tuning
     },
 
     # PMVT - Optimizado para plantas
@@ -62,10 +62,10 @@ EXPERIMENTS = [
         'name': 'PMVT',
         'lr': 0.001,
         'dropout': 0.3,
-        'epochs': 30,
-        'batch_size': 8,  # Reducido a 8 para evitar OOM en Colab
+        'epochs': 40,  # Moderadamente aumentado
+        'batch_size': 16,  # Aumentado
         'fine_tune': True,
-        'fine_tune_epochs': 10,
+        'fine_tune_epochs': 15,  # Más épocas de fine-tuning
     },
 ]
 
