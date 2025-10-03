@@ -1,8 +1,8 @@
 """
-Gestión centralizada de configuración usando Pydantic.
+Central configuration management using Pydantic.
 
-Este módulo proporciona validación de tipos y configuración robusta
-para todo el proyecto, reemplazando el manejo manual de variables de entorno.
+This module provides type validation and robust configuration
+for the entire project, replacing manual environment variable handling.
 """
 from typing import List, Tuple, Literal, Optional
 from pathlib import Path
@@ -11,7 +11,7 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class DataConfig(BaseSettings):
-    """Configuración relacionada con datos e imágenes."""
+    """Configuration related to data and images."""
 
     model_config = SettingsConfigDict(
         env_file='src/core/.env',
@@ -19,34 +19,34 @@ class DataConfig(BaseSettings):
         extra='ignore'
     )
 
-    # Parámetros de imagen
+    # Image parameters
     image_size: Tuple[int, int] = Field(
         default=(224, 224),
-        description="Tamaño de las imágenes (ancho, alto)"
+        description="Image size (width, height)"
     )
 
     num_classes: int = Field(
         default=4,
         ge=2,
-        description="Número de clases a clasificar"
+        description="Number of classes to classify"
     )
 
     class_names: List[str] = Field(
         default=['Blight', 'Common_Rust', 'Gray_Leaf_Spot', 'Healthy'],
-        description="Nombres de las clases"
+        description="Class names"
     )
 
-    # Parámetros de división de datos
+    # Data split parameters
     split_ratios: Tuple[float, float, float] = Field(
         default=(0.7, 0.15, 0.15),
-        description="Ratios de división (train, val, test)"
+        description="Split ratios (train, val, test)"
     )
 
-    # Parámetros de augmentación
+    # Augmentation parameters
     max_added_balance: int = Field(
         default=50,
         ge=0,
-        description="Máximo número de imágenes a agregar al balancear"
+        description="Maximum number of images to add when balancing"
     )
 
     im_sim_threshold: float = Field(

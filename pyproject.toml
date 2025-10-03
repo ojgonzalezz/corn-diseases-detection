@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "corn-diseases-detection"
 version = "0.1.0"
-description = "Sistema de Deep Learning para clasificación de enfermedades en hojas de maíz usando Transfer Learning optimizado para Google Colab"
+description = "Deep learning system for corn leaf disease classification using lightweight architectures optimized for edge computing"
 readme = "README.md"
 requires-python = ">=3.10"
 license = {text = "MIT"}

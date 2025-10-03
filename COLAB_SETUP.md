@@ -1,10 +1,10 @@
-# 🏗️ Guía de Configuración de Google Colab
+#  Guía de Configuración de Google Colab
 
 **Configuración paso a paso para ejecutar el proyecto de detección de enfermedades del maíz en Google Colab.**
 
 ---
 
-## 📋 Requisitos Previos
+##  Requisitos Previos
 
 ### **1. Google Drive**
 - Cuenta activa de Google Drive
@@ -25,7 +25,7 @@
 
 ---
 
-## 🚀 Configuración Inicial
+##  Configuración Inicial
 
 ### **Paso 1: Abrir Notebook en Colab**
 
@@ -57,8 +57,8 @@ Ejecuta la primera celda del notebook:
 !nvidia-smi
 
 import tensorflow as tf
-print(f"\n✅ TensorFlow version: {tf.__version__}")
-print(f"✅ GPU disponible: {tf.config.list_physical_devices('GPU')}")
+print(f"\nOK TensorFlow version: {tf.__version__}")
+print(f"OK GPU disponible: {tf.config.list_physical_devices('GPU')}")
 
 # Verificar memoria
 !free -h
@@ -76,8 +76,8 @@ print(f"✅ GPU disponible: {tf.config.list_physical_devices('GPU')}")
 | N/A   44C    P8     9W /  70W |      0MiB / 15360MiB |      0%      Default |
 +-------------------------------+----------------------+----------------------+
 
-✅ TensorFlow version: 2.15.0
-✅ GPU disponible: [PhysicalDevice(name='/physical_device:GPU:0', device_type='GPU')]
+OK TensorFlow version: 2.15.0
+OK GPU disponible: [PhysicalDevice(name='/physical_device:GPU:0', device_type='GPU')]
 
               total        used        free      shared  buff/cache   available
 Mem:           12.7Gi       1.1Gi       9.9Gi       1.2Mi       1.7Gi       11.3Gi
@@ -86,7 +86,7 @@ Swap:             0B          0B          0B
 
 ---
 
-## 📁 Preparación de Datos
+##  Preparación de Datos
 
 ### **Paso 1: Subir Dataset a Google Drive**
 
@@ -132,12 +132,12 @@ for split in ['train', 'val', 'test']:
         for class_name, count in counts.items():
             print(f"  - {class_name}: {count}")
     else:
-        print(f"{split.upper()}: ❌ NO ENCONTRADO")
+        print(f"{split.upper()}: ERROR NO ENCONTRADO")
 ```
 
 ---
 
-## ⚙️ Configuración del Entorno
+##  Configuración del Entorno
 
 ### **Paso 1: Instalar Dependencias**
 
@@ -154,7 +154,7 @@ import mlflow
 import numpy as np
 import pandas as pd
 
-print("✅ Todas las dependencias instaladas")
+print("OK Todas las dependencias instaladas")
 print(f"   TensorFlow: {tf.__version__}")
 print(f"   Keras: {keras.__version__}")
 print(f"   MLflow: {mlflow.__version__}")
@@ -178,14 +178,14 @@ if gpus:
     try:
         for gpu in gpus:
             tf.config.experimental.set_memory_growth(gpu, True)
-        print(f"✅ GPU memory growth habilitado para {len(gpus)} GPU(s)")
+        print(f"OK GPU memory growth habilitado para {len(gpus)} GPU(s)")
     except RuntimeError as e:
         print(e)
 ```
 
 ---
 
-## 🚀 Ejecución del Entrenamiento
+##  Ejecución del Entrenamiento
 
 ### **Ejecución Completa**
 
@@ -216,7 +216,7 @@ Si prefieres ejecutar paso a paso:
 
 ---
 
-## 📊 Resultados y Descarga
+##  Resultados y Descarga
 
 ### **Archivos Generados**
 
@@ -245,7 +245,7 @@ files.download('edge_models_results.zip')
 
 ---
 
-## 🔧 Solución de Problemas
+##  Solución de Problemas
 
 ### **Problema: GPU no disponible**
 ```python
@@ -279,7 +279,7 @@ drive.mount('/content/drive')
 
 ---
 
-## 📞 Recursos Adicionales
+##  Recursos Adicionales
 
 - **Repositorio**: [corn-diseases-detection](https://github.com/ojgonzalezz/corn-diseases-detection)
 - **Issues**: Reportar problemas en GitHub
@@ -287,4 +287,4 @@ drive.mount('/content/drive')
 
 ---
 
-**💡 Tip: Si el entrenamiento se interrumpe, puedes continuar desde donde quedó ejecutando las celdas faltantes.**
+** Tip: Si el entrenamiento se interrumpe, puedes continuar desde donde quedó ejecutando las celdas faltantes.**

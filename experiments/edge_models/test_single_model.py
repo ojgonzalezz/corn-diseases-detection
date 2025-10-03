@@ -39,13 +39,13 @@ def test_single_model():
             fine_tune_epochs=1  # Solo 1 época de fine-tuning
         )
 
-        logger.info("✅ Prueba completada exitosamente!")
+        logger.info("OK Prueba completada exitosamente!")
         logger.info(f"Resultados: {results}")
 
         return True
 
     except Exception as e:
-        logger.error(f"❌ Error en la prueba: {e}")
+        logger.error(f"ERROR Error en la prueba: {e}")
         import traceback
         logger.error(traceback.format_exc())
         return False
