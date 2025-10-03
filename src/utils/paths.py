@@ -92,24 +92,14 @@ class ProjectPaths:
         return self.data / 'test'
 
     @property
-    def models(self) -> Path:
-        """Directorio principal de modelos."""
-        return self._root / 'models'
-
-    @property
     def models_exported(self) -> Path:
-        """Directorio de modelos exportados."""
-        return self.models / 'exported'
-
-    @property
-    def models_tuner(self) -> Path:
-        """Directorio de checkpoints del tuner."""
-        return self.models / 'tuner_checkpoints'
+        """Directorio de modelos exportados (temporal)."""
+        return Path("/tmp/corn_models_exported")
 
     @property
     def mlruns(self) -> Path:
-        """Directorio de experimentos MLflow."""
-        return self.models / 'mlruns'
+        """Directorio de experimentos MLflow (temporal)."""
+        return Path("/tmp/corn_mlruns")
 
     @property
     def tests(self) -> Path:
@@ -139,6 +129,8 @@ class ProjectPaths:
         Returns:
             Path: Ruta completa al modelo.
         """
+        # Asegurar que el directorio existe
+        self.models_exported.mkdir(parents=True, exist_ok=True)
         return self.models_exported / model_name
 
     def relative_to_root(self, path: Path) -> Path:
@@ -169,10 +161,14 @@ def get_data_dir() -> Path:
 
 
 def get_models_dir() -> Path:
-    """Obtiene el directorio de modelos exportados."""
-    return paths.models_exported
+    """Obtiene el directorio de modelos exportados (temporal)."""
+    models_dir = paths.models_exported
+    models_dir.mkdir(parents=True, exist_ok=True)
+    return models_dir
 
 
 def get_mlruns_dir() -> Path:
-    """Obtiene el directorio de MLflow."""
-    return paths.mlruns
+    """Obtiene el directorio de MLflow (temporal)."""
+    mlruns_dir = paths.mlruns
+    mlruns_dir.mkdir(parents=True, exist_ok=True)
+    return mlruns_dir
