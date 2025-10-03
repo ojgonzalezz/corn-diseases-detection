@@ -18,7 +18,7 @@ from collections import defaultdict
 from typing import Dict, List, Tuple, Any
 import numpy as np
 from PIL import Image
-from src.adapters.data_loader import load_raw_data, load_split_data
+from src.adapters.data_loader import load_raw_data, load_split_data, load_split_data_paths
 from src.utils.image_modifier import ImageAugmentor
 from src.utils.data_augmentator import DataAugmenter
 from src.core.config import config
@@ -668,3 +668,167 @@ def project_dataset(data_aug_split: Dict[str, Dict[str, List[Any]]]) -> None:
         print(f"  [INFO] Total imágenes exportadas en '{set_type}': {set_images_count}")
 
     print(f"\n[OK] Exportación a '{paths.relative_to_root(SPLIT_DIR)}' completada. Total guardado: {total_images_saved} imágenes.")
+
+
+def split_and_balance_dataset_efficient(balanced: str = "oversample",
+                                       split_ratios: tuple = None,
+                                       use_existing_split: bool = True) -> Tuple[Dict[str, Any], Dict]:
+    """
+    Realiza una división estratificada del dataset, aplica la estrategia de balanceo
+    (oversample, downsample, o ninguno) solo al conjunto de entrenamiento, y genera un resumen.
+    Versión EFICIENTE que devuelve rutas de archivos en lugar de imágenes en memoria.
+
+    Args:
+        balanced (str): Estrategia de balanceo a aplicar ("downsample", "oversample", o cualquier otra
+                        cadena para 'desbalanceado').
+        split_ratios (tuple, optional): Ratios de división para train, val, test.
+                                        Si None, usa valores del .env. Debe sumar 1.0.
+        use_existing_split (bool): Si True, carga datos ya divididos de data/train, data/val, data/test.
+                                   Si False, busca datos raw en data/raw/data_1, data/raw/data_2.
+
+    Returns:
+        Tuple[Dict, Dict]: (datasets_dict, label_to_int_mapping)
+            - datasets_dict: Diccionario con los conjuntos de datos divididos ('train', 'val', 'test'),
+              donde cada conjunto es un diccionario de la forma {'clase': [lista de rutas de archivos]}.
+            - label_to_int_mapping: Diccionario que mapea nombres de clases a integers.
+    """
+    print("\n[CARGA] Llamando a la función de carga eficiente de rutas de archivos...")
+
+    # Verificar qué datos están disponibles
+    data_train_exists = paths.data_train.exists()
+    data_raw_exists = paths.data_raw.exists()
+
+    if use_existing_split and data_train_exists:
+        # Usar datos ya divididos (caso común)
+        print("[INFO] Usando rutas de archivos ya divididos (data/train, data/val, data/test)...")
+        split_datasets = load_split_data_paths()
+
+        if not split_datasets or all(len(split) == 0 for split in split_datasets.values()):
+            raise ValueError("No se cargaron rutas de archivos de los datos divididos. Verifica data/train, data/val, data/test.")
+
+        print("[OK] Carga de rutas de archivos divididos completada.")
+
+    elif data_raw_exists:
+        # Usar datos raw y hacer el split (caso legacy)
+        print("[INFO] Usando datos raw (data/raw/data_1, data/raw/data_2) y realizando split...")
+        raise NotImplementedError("La versión eficiente aún no soporta datos raw. Usa datos ya divididos.")
+
+    else:
+        raise ValueError("No se encontraron datos ni en data/train ni en data/raw. Verifica las rutas.")
+
+    # Aplicar balanceo SOLO al conjunto de entrenamiento
+    if balanced.lower() == "oversample":
+        print("\n[BALANCE]  Iniciando Oversampling eficiente en el conjunto 'train'.")
+        split_datasets['train'] = apply_oversampling_to_paths(split_datasets['train'])
+        print("[OK] Oversampling eficiente de 'train' completado.")
+
+    elif balanced.lower() == "downsample":
+        print("\n[BALANCE]  Iniciando Downsampling eficiente en el conjunto 'train'.")
+        split_datasets['train'] = apply_downsampling_to_paths(split_datasets['train'])
+        print("[OK] Downsampling eficiente de 'train' completado.")
+
+    else:
+        print(f"\n[BALANCE]  Usando datos desbalanceados para 'train' (balanced='{balanced}').")
+
+    # Crear mapeo de labels a integers
+    all_classes = set()
+    for split_name, split_data in split_datasets.items():
+        all_classes.update(split_data.keys())
+
+    label_to_int = {label: i for i, label in enumerate(sorted(all_classes))}
+
+    # Resumen final
+    print("\n============================================================\n[EVAL] Resumen de la Distribución Final:")
+    print("Clase                |   Train |     Val |    Test |   Total")
+    print("------------------------------------------------------------")
+
+    train_counts = {cls: len(paths) for cls, paths in split_datasets['train'].items()}
+    val_counts = {cls: len(paths) for cls, paths in split_datasets['val'].items()}
+    test_counts = {cls: len(paths) for cls, paths in split_datasets['test'].items()}
+
+    all_classes_sorted = sorted(all_classes)
+    totals = {'train': 0, 'val': 0, 'test': 0, 'total': 0}
+
+    for cls in all_classes_sorted:
+        train_cnt = train_counts.get(cls, 0)
+        val_cnt = val_counts.get(cls, 0)
+        test_cnt = test_counts.get(cls, 0)
+        total_cnt = train_cnt + val_cnt + test_cnt
+
+        print(f"{cls:<20} | {train_cnt:>6} | {val_cnt:>6} | {test_cnt:>6} | {total_cnt:>6}")
+
+        totals['train'] += train_cnt
+        totals['val'] += val_cnt
+        totals['test'] += test_cnt
+        totals['total'] += total_cnt
+
+    print("------------------------------------------------------------")
+    print(f"{'TOTAL':<20} | {totals['train']:>6} | {totals['val']:>6} | {totals['test']:>6} | {totals['total']:>>6}")
+    print("============================================================")
+
+    print("\n[OK] Proceso de división y balanceo eficiente completado exitosamente.")
+
+    return split_datasets, label_to_int
+
+
+def apply_oversampling_to_paths(train_data: Dict[str, List[str]]) -> Dict[str, List[str]]:
+    """
+    Aplica oversampling eficiente duplicando rutas de archivos en lugar de imágenes en memoria.
+
+    Args:
+        train_data: Diccionario clase -> lista de rutas de archivos
+
+    Returns:
+        Diccionario con oversampling aplicado
+    """
+    # Calcular el tamaño objetivo (máximo de todas las clases)
+    max_samples = max(len(paths) for paths in train_data.values())
+    print(f"[CALCULO] Tamaño objetivo por clase: {max_samples} rutas.")
+
+    balanced_data = {}
+
+    for class_name, file_paths in train_data.items():
+        current_count = len(file_paths)
+        balanced_data[class_name] = list(file_paths)  # Copiar rutas originales
+
+        if current_count < max_samples:
+            # Duplicar rutas hasta alcanzar el objetivo
+            while len(balanced_data[class_name]) < max_samples:
+                remaining = max_samples - len(balanced_data[class_name])
+                extend_count = min(remaining, current_count)
+                balanced_data[class_name].extend(file_paths[:extend_count])
+
+            print(f"  [AUMENTO] Categoría '{class_name}' aumentada: {current_count} -> {len(balanced_data[class_name])} rutas.")
+
+    return balanced_data
+
+
+def apply_downsampling_to_paths(train_data: Dict[str, List[str]]) -> Dict[str, List[str]]:
+    """
+    Aplica downsampling eficiente reduciendo rutas de archivos en lugar de imágenes en memoria.
+
+    Args:
+        train_data: Diccionario clase -> lista de rutas de archivos
+
+    Returns:
+        Diccionario con downsampling aplicado
+    """
+    # Calcular el tamaño objetivo (mínimo de todas las clases)
+    min_samples = min(len(paths) for paths in train_data.values())
+    print(f"[CALCULO] Tamaño objetivo por clase: {min_samples} rutas.")
+
+    balanced_data = {}
+
+    for class_name, file_paths in train_data.items():
+        current_count = len(file_paths)
+
+        if current_count > min_samples:
+            # Reducir aleatoriamente a min_samples
+            import random
+            selected_paths = random.sample(file_paths, min_samples)
+            balanced_data[class_name] = selected_paths
+            print(f"  [REDUCCIÓN] Categoría '{class_name}' reducida: {current_count} -> {len(balanced_data[class_name])} rutas.")
+        else:
+            balanced_data[class_name] = list(file_paths)
+
+    return balanced_data

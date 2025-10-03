@@ -36,8 +36,8 @@ sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 from src.core.config import config
 from src.utils.paths import paths
 from src.utils.logger import get_logger, log_section, log_dict
-from src.pipelines.preprocess import split_and_balance_dataset
-from src.utils.utils import flatten_data
+from src.pipelines.preprocess import split_and_balance_dataset_efficient
+from src.utils.utils import flatten_data, create_efficient_dataset_from_dict
 from src.builders.base_models import (
     load_mobilenetv3_large,
     load_efficientnet_lite_b2,
@@ -136,37 +136,49 @@ def train_edge_model(
     if model_name not in model_loaders:
         raise ValueError(f"Modelo '{model_name}' no soportado. Opciones: {list(model_loaders.keys())}")
     
-    # Cargar datos
-    logger.info("Cargando datos...")
-    raw_dataset = split_and_balance_dataset(
+    # Cargar datos de manera eficiente
+    logger.info("Cargando datos eficientemente...")
+    raw_dataset, label_to_int = split_and_balance_dataset_efficient(
         balanced='oversample',
         split_ratios=(0.7, 0.15, 0.15)
     )
-    
+
     IMAGE_SIZE = config.data.image_size
     NUM_CLASSES = config.data.num_classes
-    CLASS_NAMES = config.data.class_names
-    
-    X_train, y_train = flatten_data(raw_dataset['train'], image_size=IMAGE_SIZE)
-    X_val, y_val = flatten_data(raw_dataset['val'], image_size=IMAGE_SIZE)
-    X_test, y_test = flatten_data(raw_dataset['test'], image_size=IMAGE_SIZE)
-    
-    # Normalizar
-    X_train = X_train / 255.0
-    X_val = X_val / 255.0
-    X_test = X_test / 255.0
-    
-    # Encode labels
-    label_to_int = {label: i for i, label in enumerate(np.unique(y_train))}
-    y_train_int = np.array([label_to_int[l] for l in y_train])
-    y_val_int = np.array([label_to_int[l] for l in y_val])
-    y_test_int = np.array([label_to_int[l] for l in y_test])
-    
-    y_train_cat = tf.keras.utils.to_categorical(y_train_int, num_classes=NUM_CLASSES)
-    y_val_cat = tf.keras.utils.to_categorical(y_val_int, num_classes=NUM_CLASSES)
-    y_test_cat = tf.keras.utils.to_categorical(y_test_int, num_classes=NUM_CLASSES)
-    
-    logger.info(f"Datos cargados: Train={len(X_train)}, Val={len(X_val)}, Test={len(X_test)}")
+    CLASS_NAMES = list(label_to_int.keys())
+
+    # Crear datasets eficientes con tf.data
+    train_dataset, _ = create_efficient_dataset_from_dict(
+        raw_dataset['train'],
+        image_size=IMAGE_SIZE,
+        batch_size=batch_size,
+        shuffle=True,
+        augment=True  # Aumentación solo para entrenamiento
+    )
+    val_dataset, _ = create_efficient_dataset_from_dict(
+        raw_dataset['val'],
+        image_size=IMAGE_SIZE,
+        batch_size=batch_size,
+        shuffle=False,
+        augment=False
+    )
+    test_dataset, _ = create_efficient_dataset_from_dict(
+        raw_dataset['test'],
+        image_size=IMAGE_SIZE,
+        batch_size=batch_size,
+        shuffle=False,
+        augment=False
+    )
+
+    # Calcular steps por epoch
+    train_steps = sum(len(paths) for paths in raw_dataset['train'].values()) // batch_size
+    val_steps = sum(len(paths) for paths in raw_dataset['val'].values()) // batch_size
+    test_steps = sum(len(paths) for paths in raw_dataset['test'].values()) // batch_size
+
+    logger.info(f"Datos cargados: Train={sum(len(paths) for paths in raw_dataset['train'].values())}, "
+                f"Val={sum(len(paths) for paths in raw_dataset['val'].values())}, "
+                f"Test={sum(len(paths) for paths in raw_dataset['test'].values())}")
+    logger.info(f"Steps por epoch: Train={train_steps}, Val={val_steps}, Test={test_steps}")
     
     # Iniciar MLflow run
     with mlflow.start_run(run_name=f"{model_name}_{datetime.now().strftime('%Y%m%d_%H%M%S')}"):
@@ -225,12 +237,13 @@ def train_edge_model(
         logger.info("=" * 70)
         logger.info("FASE 1: Entrenamiento de cabeza de clasificación")
         logger.info("=" * 70)
-        
+
         history = model.fit(
-            X_train, y_train_cat,
-            validation_data=(X_val, y_val_cat),
+            train_dataset,
+            validation_data=val_dataset,
             epochs=epochs,
-            batch_size=batch_size,
+            steps_per_epoch=train_steps,
+            validation_steps=val_steps,
             callbacks=callbacks,
             verbose=1
         )
@@ -259,10 +272,11 @@ def train_edge_model(
             )
             
             history_ft = model.fit(
-                X_train, y_train_cat,
-                validation_data=(X_val, y_val_cat),
+                train_dataset,
+                validation_data=val_dataset,
                 epochs=fine_tune_epochs,
-                batch_size=batch_size,
+                steps_per_epoch=train_steps,
+                validation_steps=val_steps,
                 callbacks=callbacks,
                 verbose=1,
                 initial_epoch=len(history.history['loss'])
@@ -280,20 +294,29 @@ def train_edge_model(
         logger.info("=" * 70)
         logger.info("EVALUACIÓN EN TEST SET")
         logger.info("=" * 70)
-        
-        test_loss, test_accuracy = model.evaluate(X_test, y_test_cat, verbose=1)
-        
+
+        test_loss, test_accuracy = model.evaluate(test_dataset, steps=test_steps, verbose=1)
+
         logger.info(f"Test Loss: {test_loss:.4f}")
         logger.info(f"Test Accuracy: {test_accuracy:.4f} ({test_accuracy*100:.2f}%)")
-        
-        # Predicciones
-        y_pred_probs = model.predict(X_test)
-        y_pred = np.argmax(y_pred_probs, axis=1)
+
+        # Predicciones - necesitamos obtener las etiquetas reales y predicciones
+        # Para esto necesitamos un enfoque diferente con tf.data
+        y_true = []
+        y_pred = []
+
+        for images, labels in test_dataset.take(test_steps):
+            batch_pred = model.predict(images, verbose=0)
+            y_pred.extend(np.argmax(batch_pred, axis=1))
+            y_true.extend(np.argmax(labels.numpy(), axis=1))
+
+        y_pred = np.array(y_pred)
+        y_true = np.array(y_true)
         
         # Calcular métricas por clase
         report = classification_report(
-            y_test_int, 
-            y_pred, 
+            y_true,
+            y_pred,
             target_names=CLASS_NAMES,
             output_dict=True
         )

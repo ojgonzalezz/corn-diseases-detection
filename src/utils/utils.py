@@ -312,3 +312,143 @@ def plot_augmented_images(generator):
     plt.suptitle("Visualización del Aumento de Datos en Tiempo Real", fontsize=16)
     plt.tight_layout(rect=[0, 0, 1, 0.96])
     plt.show()
+
+
+def create_efficient_dataset_from_dict(data_dict: Dict[str, List[Any]],
+                                       image_size: Tuple[int, int] = (224, 224),
+                                       batch_size: int = 32,
+                                       shuffle: bool = True,
+                                       augment: bool = False) -> tf.data.Dataset:
+    """
+    Crea un tf.data.Dataset eficiente desde un diccionario de imágenes,
+    evitando cargar todo en memoria RAM.
+
+    Args:
+        data_dict: Diccionario con clase -> lista de rutas de archivos PIL Images
+        image_size: Tamaño objetivo de las imágenes
+        batch_size: Tamaño del batch
+        shuffle: Si True, baraja los datos
+        augment: Si True, aplica aumentación de datos básica
+
+    Returns:
+        tf.data.Dataset listo para entrenamiento
+    """
+    # Extraer rutas de archivos y labels
+    file_paths = []
+    labels = []
+
+    for class_name, image_list in data_dict.items():
+        for img in image_list:
+            # Si es una ruta de archivo (string), usarla directamente
+            if isinstance(img, str):
+                file_paths.append(img)
+                labels.append(class_name)
+            # Si es un objeto PIL Image, necesitamos guardarlo temporalmente o procesarlo
+            else:
+                # Para compatibilidad, procesar PIL Images en memoria pero eficientemente
+                import tempfile
+                import os
+                from PIL import Image
+
+                # Crear archivo temporal
+                with tempfile.NamedTemporaryFile(suffix='.jpg', delete=False) as tmp_file:
+                    img.save(tmp_file.name)
+                    file_paths.append(tmp_file.name)
+                    labels.append(class_name)
+
+    # Crear mapeo de labels a integers
+    unique_labels = sorted(list(set(labels)))
+    label_to_int = {label: i for i, label in enumerate(unique_labels)}
+
+    # Convertir labels a integers
+    labels_int = [label_to_int[label] for label in labels]
+
+    # Crear tf.data.Dataset desde rutas de archivos
+    def load_and_preprocess_image(file_path, label):
+        # Cargar imagen
+        image = tf.io.read_file(file_path)
+        image = tf.image.decode_jpeg(image, channels=3)
+
+        # Redimensionar
+        image = tf.image.resize(image, image_size)
+
+        # Normalizar a [0,1]
+        image = tf.cast(image, tf.float32) / 255.0
+
+        # Aplicar aumentación básica si está habilitada
+        if augment:
+            image = tf.image.random_flip_left_right(image)
+            image = tf.image.random_brightness(image, max_delta=0.1)
+            image = tf.image.random_contrast(image, lower=0.9, upper=1.1)
+
+        return image, label
+
+    # Crear dataset
+    dataset = tf.data.Dataset.from_tensor_slices((file_paths, labels_int))
+
+    if shuffle:
+        dataset = dataset.shuffle(buffer_size=len(file_paths), seed=42)
+
+    # Mapear función de carga
+    dataset = dataset.map(load_and_preprocess_image, num_parallel_calls=tf.data.AUTOTUNE)
+
+    # Batch y prefetch para optimización
+    dataset = dataset.batch(batch_size)
+    dataset = dataset.prefetch(tf.data.AUTOTUNE)
+
+    return dataset, label_to_int
+
+
+def create_efficient_dataset_from_paths(data_dir: str,
+                                       image_size: Tuple[int, int] = (224, 224),
+                                       batch_size: int = 32,
+                                       shuffle: bool = True,
+                                       augment: bool = False,
+                                       validation_split: float = 0.0) -> Tuple[tf.data.Dataset, Dict]:
+    """
+    Crea un tf.data.Dataset eficiente directamente desde un directorio de imágenes.
+
+    Args:
+        data_dir: Directorio raíz con subdirectorios por clase
+        image_size: Tamaño objetivo de las imágenes
+        batch_size: Tamaño del batch
+        shuffle: Si True, baraja los datos
+        augment: Si True, aplica aumentación de datos básica
+        validation_split: Fracción de datos para validación (0.0 para no dividir)
+
+    Returns:
+        Tuple de (dataset, class_names_dict)
+    """
+    dataset = tf.keras.utils.image_dataset_from_directory(
+        data_dir,
+        labels='inferred',
+        label_mode='int',
+        batch_size=batch_size,
+        image_size=image_size,
+        shuffle=shuffle,
+        seed=42,
+        validation_split=validation_split,
+        subset='training' if validation_split > 0 else None,
+    )
+
+    # Normalizar imágenes
+    normalization_layer = tf.keras.layers.Rescaling(1./255)
+    dataset = dataset.map(lambda x, y: (normalization_layer(x), y))
+
+    # Aplicar aumentación si está habilitada
+    if augment:
+        data_augmentation = tf.keras.Sequential([
+            tf.keras.layers.RandomFlip("horizontal"),
+            tf.keras.layers.RandomBrightness(0.1),
+            tf.keras.layers.RandomContrast(0.1),
+        ])
+        dataset = dataset.map(lambda x, y: (data_augmentation(x), y))
+
+    # Prefetch para optimización
+    dataset = dataset.prefetch(tf.data.AUTOTUNE)
+
+    # Obtener nombres de clases
+    class_names = dataset.class_names
+    class_to_int = {name: i for i, name in enumerate(class_names)}
+
+    return dataset, class_to_int

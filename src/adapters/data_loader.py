@@ -26,6 +26,78 @@ from src.utils.paths import paths
 ################################
 
 
+def load_split_data_paths() -> Dict[str, Dict[str, List[str]]]:
+    """
+    Carga RUTAS de imágenes de los directorios 'train', 'val' y 'test' sin cargarlas en memoria.
+
+    Esta función es para cuando los datos ya están divididos y se quiere trabajar eficientemente.
+
+    Returns:
+        Dict[str, Dict[str, List[str]]]: Diccionario con las claves 'train', 'val', 'test',
+            donde cada una contiene un diccionario de {'categoria': [lista_rutas_archivos]}.
+
+    Example:
+        >>> data = load_split_data_paths()
+        >>> print(f"Train images: {len(data['train']['Blight'])}")
+    """
+    print("[BUSQUEDA] Cargando rutas de archivos ya divididos (train/val/test)...")
+
+    # Obtener rutas del sistema centralizado y categorías
+    try:
+        categories = config.data.class_names
+    except (ValueError, SyntaxError, TypeError) as e:
+        print(f"[ADVERTENCIA] No se pudieron parsear CLASS_NAMES: {e}")
+        categories = None
+
+    # Inicializar estructura de datos
+    split_data = {
+        'train': {},
+        'val': {},
+        'test': {}
+    }
+
+    # Cargar cada split
+    for split_name in ['train', 'val', 'test']:
+        split_path = getattr(paths, f'data_{split_name}')
+
+        if not split_path.exists():
+            print(f"[ADVERTENCIA] No se encontró el directorio {split_name} en: {split_path}")
+            continue
+
+        print(f"\n[INFO] Procesando split: {split_name}")
+
+        # Iterar sobre las categorías (directorios dentro de train/val/test)
+        for category_dir in split_path.iterdir():
+            if not category_dir.is_dir():
+                continue
+
+            category = category_dir.name
+
+            # Inicializar lista para esta categoría si no existe
+            if category not in split_data[split_name]:
+                split_data[split_name][category] = []
+
+            # Obtener todas las rutas de archivos de imagen
+            image_extensions = {'.jpg', '.jpeg', '.png', '.bmp', '.tiff', '.tif'}
+            image_paths = []
+
+            for file_path in category_dir.iterdir():
+                if file_path.is_file() and file_path.suffix.lower() in image_extensions:
+                    image_paths.append(str(file_path))
+
+            split_data[split_name][category].extend(image_paths)
+            print(f"  [OK] '{category}' cargadas: {len(image_paths)} rutas")
+
+        # Verificar que se cargaron datos
+        total_images = sum(len(images) for images in split_data[split_name].values())
+        if total_images == 0:
+            print(f"[ADVERTENCIA] No se encontraron imágenes en {split_name}")
+        else:
+            print(f"[OK] Total {split_name}: {total_images} rutas de archivos")
+
+    return split_data
+
+
 def load_split_data() -> Dict[str, Dict[str, List[Image.Image]]]:
     """
     Carga imágenes de los directorios 'train', 'val' y 'test' directamente en memoria.

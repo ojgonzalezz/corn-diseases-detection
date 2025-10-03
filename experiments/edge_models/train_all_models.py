@@ -35,7 +35,7 @@ EXPERIMENTS = [
         'batch_size': 8,  # Reducido a 8 para evitar OOM en Colab
         'fine_tune': False,
     },
-    
+
     # EfficientNet-Lite B2 - Máxima eficiencia
     {
         'name': 'EfficientNetLiteB2',
@@ -45,7 +45,7 @@ EXPERIMENTS = [
         'batch_size': 8,  # Reducido a 8 para evitar OOM en Colab
         'fine_tune': False,
     },
-    
+
     # MobileViT - Vision Transformer móvil
     {
         'name': 'MobileViT',
@@ -56,7 +56,7 @@ EXPERIMENTS = [
         'fine_tune': True,
         'fine_tune_epochs': 10,
     },
-    
+
     # PMVT - Optimizado para plantas
     {
         'name': 'PMVT',
