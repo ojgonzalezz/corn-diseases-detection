@@ -26,7 +26,7 @@ class DataConfig:
         # 🚀 PRIORIDAD CRÍTICA - Data Augmentation Agresiva
         self.augmentation_config: Dict[str, Any] = {
             'random_flip': True,  # horizontal y vertical
-            'random_rotation': 30,  # grados
+            'random_rotation': True,  # rotaciones de 90° (0°, 90°, 180°, 270°)
             'random_zoom': (0.8, 1.2),
             'random_shear': 0.2,
             'color_jitter': {

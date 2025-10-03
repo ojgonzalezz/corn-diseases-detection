@@ -394,11 +394,10 @@ def create_efficient_dataset_from_dict(data_dict: Dict[str, List[Any]],
                     if tf.random.uniform([]) > 0.5:
                         image = tf.image.flip_up_down(image)
 
-                # Random rotation
-                if tf.random.uniform([]) > 0.3:  # 70% chance
-                    max_angle = aug_config.get('random_rotation', 30)
-                    angle_rad = tf.random.uniform([], -max_angle, max_angle) * 3.14159 / 180
-                    image = tf.image.rotate(image, angle_rad, fill_mode='reflect')
+                # Random rotation (90-degree multiples: 0°, 90°, 180°, 270°)
+                if tf.random.uniform([]) > 0.3 and aug_config.get('random_rotation', True):  # 70% chance
+                    k = tf.random.uniform([], 1, 4, dtype=tf.int32)  # 1, 2, or 3 (skip 0 for actual rotation)
+                    image = tf.image.rot90(image, k=k)
 
                 # Random zoom
                 if tf.random.uniform([]) > 0.4:  # 60% chance
@@ -505,10 +504,10 @@ def create_efficient_dataset_from_paths(data_dir: str,
             if aug_config.get('random_flip', True):
                 augmentation_layers.append(tf.keras.layers.RandomFlip("horizontal_and_vertical"))
 
-            # Random rotation
-            if aug_config.get('random_rotation', 30) > 0:
-                max_angle = aug_config.get('random_rotation', 30)
-                augmentation_layers.append(tf.keras.layers.RandomRotation(max_angle/360.0, fill_mode='reflect'))
+            # Random rotation (90-degree multiples)
+            if aug_config.get('random_rotation', True):
+                # Use RandomRotation with small angles for slight rotations, or add custom 90-degree rotations
+                augmentation_layers.append(tf.keras.layers.RandomRotation(0.25, fill_mode='reflect'))  # ±90°
 
             # Random zoom
             zoom_range = aug_config.get('random_zoom', (0.8, 1.2))
