@@ -23,7 +23,8 @@ logger = get_logger(__name__)
 
 
 # Configuración de experimentos (4 arquitecturas seleccionadas)
-# Optimizado para Google Colab (batch_size reducido para evitar OOM)
+# Optimizado para Google Colab con limitaciones de RAM
+# NOTA: batch_size=8 para evitar OOM con 4056 imágenes en memoria
 EXPERIMENTS = [
     # MobileNetV3Large - Balance tamaño/precisión
     {
@@ -31,7 +32,7 @@ EXPERIMENTS = [
         'lr': 0.001,
         'dropout': 0.3,
         'epochs': 30,
-        'batch_size': 16,  # Reducido de 32 a 16 para Colab
+        'batch_size': 8,  # Reducido a 8 para evitar OOM en Colab
         'fine_tune': False,
     },
     
@@ -41,7 +42,7 @@ EXPERIMENTS = [
         'lr': 0.0008,
         'dropout': 0.25,
         'epochs': 30,
-        'batch_size': 16,  # Reducido de 32 a 16 para Colab
+        'batch_size': 8,  # Reducido a 8 para evitar OOM en Colab
         'fine_tune': False,
     },
     
@@ -51,7 +52,7 @@ EXPERIMENTS = [
         'lr': 0.001,
         'dropout': 0.3,
         'epochs': 30,
-        'batch_size': 16,  # Reducido de 32 a 16 para Colab
+        'batch_size': 8,  # Reducido a 8 para evitar OOM en Colab
         'fine_tune': True,
         'fine_tune_epochs': 10,
     },
@@ -62,7 +63,7 @@ EXPERIMENTS = [
         'lr': 0.001,
         'dropout': 0.3,
         'epochs': 30,
-        'batch_size': 16,  # Reducido de 32 a 16 para Colab
+        'batch_size': 8,  # Reducido a 8 para evitar OOM en Colab
         'fine_tune': True,
         'fine_tune_epochs': 10,
     },
