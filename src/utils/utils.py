@@ -317,8 +317,9 @@ def plot_augmented_images(generator):
 def create_efficient_dataset_from_dict(data_dict: Dict[str, List[Any]],
                                        image_size: Tuple[int, int] = (224, 224),
                                        batch_size: int = 32,
+                                       num_classes: int = None,
                                        shuffle: bool = True,
-                                       augment: bool = False) -> tf.data.Dataset:
+                                       augment: bool = False) -> Tuple[tf.data.Dataset, Dict]:
     """
     Crea un tf.data.Dataset eficiente desde un diccionario de imágenes,
     evitando cargar todo en memoria RAM.
@@ -327,11 +328,12 @@ def create_efficient_dataset_from_dict(data_dict: Dict[str, List[Any]],
         data_dict: Diccionario con clase -> lista de rutas de archivos PIL Images
         image_size: Tamaño objetivo de las imágenes
         batch_size: Tamaño del batch
+        num_classes: Número de clases para one-hot encoding. Si None, usa len(unique_labels)
         shuffle: Si True, baraja los datos
         augment: Si True, aplica aumentación de datos básica
 
     Returns:
-        tf.data.Dataset listo para entrenamiento
+        Tuple de (tf.data.Dataset listo para entrenamiento, label_to_int mapping)
     """
     # Extraer rutas de archivos y labels
     file_paths = []
@@ -360,6 +362,10 @@ def create_efficient_dataset_from_dict(data_dict: Dict[str, List[Any]],
     unique_labels = sorted(list(set(labels)))
     label_to_int = {label: i for i, label in enumerate(unique_labels)}
 
+    # Determinar número de clases
+    if num_classes is None:
+        num_classes = len(unique_labels)
+
     # Convertir labels a integers
     labels_int = [label_to_int[label] for label in labels]
 
@@ -381,7 +387,10 @@ def create_efficient_dataset_from_dict(data_dict: Dict[str, List[Any]],
             image = tf.image.random_brightness(image, max_delta=0.1)
             image = tf.image.random_contrast(image, lower=0.9, upper=1.1)
 
-        return image, label
+        # Convertir label a one-hot encoding
+        label_onehot = tf.one_hot(label, depth=num_classes)
+
+        return image, label_onehot
 
     # Crear dataset
     dataset = tf.data.Dataset.from_tensor_slices((file_paths, labels_int))

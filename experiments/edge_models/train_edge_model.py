@@ -152,6 +152,7 @@ def train_edge_model(
         raw_dataset['train'],
         image_size=IMAGE_SIZE,
         batch_size=batch_size,
+        num_classes=NUM_CLASSES,
         shuffle=True,
         augment=True  # Aumentación solo para entrenamiento
     )
@@ -159,6 +160,7 @@ def train_edge_model(
         raw_dataset['val'],
         image_size=IMAGE_SIZE,
         batch_size=batch_size,
+        num_classes=NUM_CLASSES,
         shuffle=False,
         augment=False
     )
@@ -166,6 +168,7 @@ def train_edge_model(
         raw_dataset['test'],
         image_size=IMAGE_SIZE,
         batch_size=batch_size,
+        num_classes=NUM_CLASSES,
         shuffle=False,
         augment=False
     )
@@ -308,6 +311,7 @@ def train_edge_model(
         for images, labels in test_dataset.take(test_steps):
             batch_pred = model.predict(images, verbose=0)
             y_pred.extend(np.argmax(batch_pred, axis=1))
+            # Las etiquetas ya están en one-hot, así que np.argmax funciona
             y_true.extend(np.argmax(labels.numpy(), axis=1))
 
         y_pred = np.array(y_pred)
