@@ -388,6 +388,10 @@ def create_efficient_dataset_from_dict(data_dict: Dict[str, List[Any]],
                 from src.core.config import config
                 aug_config = config.data.augmentation_config
 
+                # Guardar tamaño original para mantener consistencia en el batch
+                original_height = tf.shape(image)[0]
+                original_width = tf.shape(image)[1]
+
                 # Random flip horizontal y vertical (siempre aplicado)
                 if aug_config.get('random_flip', True):
                     image = tf.image.random_flip_left_right(image)
@@ -399,14 +403,18 @@ def create_efficient_dataset_from_dict(data_dict: Dict[str, List[Any]],
                     k = tf.random.uniform([], 1, 4, dtype=tf.int32)  # 1, 2, or 3 (skip 0 for actual rotation)
                     image = tf.image.rot90(image, k=k)
 
-                # Random zoom
+                # Random zoom (manteniendo tamaño original)
                 if tf.random.uniform([]) > 0.4:  # 60% chance
                     zoom_range = aug_config.get('random_zoom', (0.8, 1.2))
                     zoom_factor = tf.random.uniform([], zoom_range[0], zoom_range[1])
-                    new_height = tf.cast(tf.cast(tf.shape(image)[0], tf.float32) * zoom_factor, tf.int32)
-                    new_width = tf.cast(tf.cast(tf.shape(image)[1], tf.float32) * zoom_factor, tf.int32)
+
+                    # Aplicar zoom
+                    new_height = tf.cast(tf.cast(original_height, tf.float32) * zoom_factor, tf.int32)
+                    new_width = tf.cast(tf.cast(original_width, tf.float32) * zoom_factor, tf.int32)
                     image = tf.image.resize(image, [new_height, new_width])
-                    image = tf.image.resize_with_crop_or_pad(image, tf.shape(image)[0], tf.shape(image)[1])
+
+                    # Restaurar tamaño original con crop/pad
+                    image = tf.image.resize_with_crop_or_pad(image, original_height, original_width)
 
                 # Color jitter agresivo
                 if tf.random.uniform([]) > 0.2:  # 80% chance
