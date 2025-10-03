@@ -92,8 +92,8 @@ El proyecto incluye un sistema completo para evaluar **4 arquitecturas** optimiz
 **Arquitecturas evaluadas:**
 - **MobileNetV3Large** - Balance óptimo tamaño/precisión (~5.4M params, ~21MB)
 - **EfficientNet-Lite B2** - Máxima eficiencia (~10.1M params, ~42MB)
-- **MobileViT** - Vision Transformer móvil (~6.4M params, ~25MB)
-- **PMVT** - Específico para plantas (~6M params, ~24MB)
+- **MobileViT** - Vision Transformer móvil (~6.4M params, ~25MB) + fine-tuning
+- **PMVT** - Específico para plantas (~6M params, ~24MB) + fine-tuning
 
 ### Ejecutar Experimentos Completos
 
@@ -194,7 +194,6 @@ open http://localhost:5000
 | **mlflow** | `mlflow` | 5000 | `docker-compose --profile mlflow up -d` | UI experimentos |
 | **notebook** | `notebook` | 8888 | `docker-compose --profile notebook up -d` | Jupyter Lab |
 | **preprocessing** | `preprocessing` | - | `docker-compose --profile preprocessing up` | Preprocesar datos |
-| **evaluation** | `evaluation` | - | `docker-compose --profile evaluation up` | Evaluar modelos |
 
 ---
 

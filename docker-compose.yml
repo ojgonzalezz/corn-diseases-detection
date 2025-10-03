@@ -90,17 +90,8 @@ services:
   # ================================================================================
   # Servicio de Evaluación
   # ================================================================================
-  evaluation:
-    <<: *base-service
-    container_name: corn-diseases-evaluation
-    command: src.pipelines.evaluate_finetuned
-    profiles:
-      - evaluation
-    deploy:
-      resources:
-        limits:
-          cpus: '2.0'
-          memory: 4G
+  # NOTA: La evaluación está integrada en train_edge_model.py
+  # Para evaluar modelos edge, usar: docker-compose --profile edge-experiments up
 
   # ================================================================================
   # Servicio de Inferencia (API)
