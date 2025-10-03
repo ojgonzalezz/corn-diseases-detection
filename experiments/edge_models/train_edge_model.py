@@ -173,10 +173,15 @@ def train_edge_model(
         augment=False
     )
 
-    # Calcular steps por epoch
-    train_steps = sum(len(paths) for paths in raw_dataset['train'].values()) // batch_size
-    val_steps = sum(len(paths) for paths in raw_dataset['val'].values()) // batch_size
-    test_steps = sum(len(paths) for paths in raw_dataset['test'].values()) // batch_size
+    # Calcular steps por epoch (usando ceil para procesar TODOS los datos)
+    import math
+    total_train_samples = sum(len(paths) for paths in raw_dataset['train'].values())
+    total_val_samples = sum(len(paths) for paths in raw_dataset['val'].values())
+    total_test_samples = sum(len(paths) for paths in raw_dataset['test'].values())
+
+    train_steps = math.ceil(total_train_samples / batch_size)
+    val_steps = math.ceil(total_val_samples / batch_size)
+    test_steps = math.ceil(total_test_samples / batch_size)
 
     logger.info(f"Datos cargados: Train={sum(len(paths) for paths in raw_dataset['train'].values())}, "
                 f"Val={sum(len(paths) for paths in raw_dataset['val'].values())}, "
