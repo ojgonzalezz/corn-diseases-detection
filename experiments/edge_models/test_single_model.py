@@ -34,7 +34,7 @@ def test_single_model():
             learning_rate=0.001,
             dropout_rate=0.3,
             epochs=2,  # Solo 2 épocas para prueba
-            batch_size=16,  # Ajustado a 16 para mejor estabilidad
+            batch_size=32,  # Aumentado a 32 para mejor estabilidad
             fine_tune=True,
             fine_tune_epochs=1  # Solo 1 época de fine-tuning
         )
