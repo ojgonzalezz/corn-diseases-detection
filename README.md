@@ -75,11 +75,29 @@ corn-diseases-detection/
 
 ##  Inicio Rápido
 
-### Requisitos
+### Opción 1: Google Colab (Recomendado - GPU Gratis) 🚀
+
+**Ideal si tienes problemas de memoria en Docker o no tienes GPU local**
+
+1. Sube tus datos a Google Drive en: `MyDrive/corn-diseases-data/`
+2. Abre el notebook: `colab_edge_models_training.ipynb` en [Google Colab](https://colab.research.google.com)
+3. Runtime > Change runtime type > GPU (T4)
+4. Ejecuta todas las celdas
+
+📖 **Guía completa:** Ver `COLAB_SETUP.md`
+
+⏱️ **Tiempo:** 2-3 horas con GPU T4 (vs 20-30 horas en CPU)
+
+---
+
+### Opción 2: Docker Local
+
+#### Requisitos
 
 - **Docker Desktop** instalado ([Descargar](https://www.docker.com/products/docker-desktop))
 - **Git** para clonar el repositorio
 - **Datos** en `data/train`, `data/val`, `data/test`
+- **Memoria:** Mínimo 8GB RAM disponible para Docker
 
 ---
 
