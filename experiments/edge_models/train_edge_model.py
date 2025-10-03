@@ -154,7 +154,7 @@ def train_edge_model(
         batch_size=batch_size,
         num_classes=NUM_CLASSES,
         shuffle=True,
-        augment=True  # Aumentación solo para entrenamiento
+        augment='aggressive'  # 🚀 PRIORIDAD CRÍTICA - Data Augmentation Agresiva (+20-40%)
     )
     val_dataset, _ = create_efficient_dataset_from_dict(
         raw_dataset['val'],

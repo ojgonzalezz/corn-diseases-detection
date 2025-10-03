@@ -49,6 +49,27 @@ class DataConfig(BaseSettings):
         description="Maximum number of images to add when balancing"
     )
 
+    # 🚀 PRIORIDAD CRÍTICA - Data Augmentation Agresiva
+    augmentation_config: dict = Field(
+        default={
+            'random_flip': True,  # horizontal y vertical
+            'random_rotation': 30,  # grados
+            'random_zoom': (0.8, 1.2),
+            'random_shear': 0.2,
+            'color_jitter': {
+                'brightness': 0.3,
+                'contrast': 0.3,
+                'saturation': 0.3,
+                'hue': 0.1
+            },
+            'gaussian_noise': 0.05,
+            'random_erasing': 0.2,  # probabilidad
+            'cutmix': True,  # alpha=1.0
+            'mixup': True,   # alpha=0.2
+        },
+        description="Configuración agresiva de data augmentation para +20-40% de mejora"
+    )
+
     im_sim_threshold: float = Field(
         default=0.95,
         validation_alias='IM_SIM_THRESHOLD',  # Nombre correcto

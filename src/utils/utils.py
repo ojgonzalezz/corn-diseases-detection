@@ -381,11 +381,59 @@ def create_efficient_dataset_from_dict(data_dict: Dict[str, List[Any]],
         # Normalizar a [0,1]
         image = tf.cast(image, tf.float32) / 255.0
 
-        # Aplicar aumentación básica si está habilitada
+        # 🚀 PRIORIDAD CRÍTICA - Data Augmentation Agresiva
         if augment:
-            image = tf.image.random_flip_left_right(image)
-            image = tf.image.random_brightness(image, max_delta=0.1)
-            image = tf.image.random_contrast(image, lower=0.9, upper=1.1)
+            if augment == 'aggressive':
+                # Aplicar configuración agresiva desde config
+                from src.core.config import config
+                aug_config = config.data.augmentation_config
+
+                # Random flip horizontal y vertical (siempre aplicado)
+                if aug_config.get('random_flip', True):
+                    image = tf.image.random_flip_left_right(image)
+                    if tf.random.uniform([]) > 0.5:
+                        image = tf.image.flip_up_down(image)
+
+                # Random rotation
+                if tf.random.uniform([]) > 0.3:  # 70% chance
+                    max_angle = aug_config.get('random_rotation', 30)
+                    angle_rad = tf.random.uniform([], -max_angle, max_angle) * 3.14159 / 180
+                    image = tf.image.rotate(image, angle_rad, fill_mode='reflect')
+
+                # Random zoom
+                if tf.random.uniform([]) > 0.4:  # 60% chance
+                    zoom_range = aug_config.get('random_zoom', (0.8, 1.2))
+                    zoom_factor = tf.random.uniform([], zoom_range[0], zoom_range[1])
+                    new_height = tf.cast(tf.cast(tf.shape(image)[0], tf.float32) * zoom_factor, tf.int32)
+                    new_width = tf.cast(tf.cast(tf.shape(image)[1], tf.float32) * zoom_factor, tf.int32)
+                    image = tf.image.resize(image, [new_height, new_width])
+                    image = tf.image.resize_with_crop_or_pad(image, tf.shape(image)[0], tf.shape(image)[1])
+
+                # Color jitter agresivo
+                if tf.random.uniform([]) > 0.2:  # 80% chance
+                    color_config = aug_config.get('color_jitter', {})
+                    # Brightness
+                    image = tf.image.random_brightness(image, max_delta=color_config.get('brightness', 0.3))
+                    # Contrast
+                    image = tf.image.random_contrast(image, lower=1-color_config.get('contrast', 0.3),
+                                                    upper=1+color_config.get('contrast', 0.3))
+                    # Saturation
+                    image = tf.image.random_saturation(image, lower=1-color_config.get('saturation', 0.3),
+                                                     upper=1+color_config.get('saturation', 0.3))
+                    # Hue
+                    image = tf.image.random_hue(image, max_delta=color_config.get('hue', 0.1))
+
+                # Gaussian noise
+                if tf.random.uniform([]) > 0.7:  # 30% chance
+                    noise_std = aug_config.get('gaussian_noise', 0.05)
+                    noise = tf.random.normal(tf.shape(image), mean=0.0, stddev=noise_std)
+                    image = tf.clip_by_value(image + noise, 0.0, 1.0)
+
+            else:
+                # Augmentation básica legacy
+                image = tf.image.random_flip_left_right(image)
+                image = tf.image.random_brightness(image, max_delta=0.1)
+                image = tf.image.random_contrast(image, lower=0.9, upper=1.1)
 
         # Convertir label a one-hot encoding
         label_onehot = tf.one_hot(label, depth=num_classes)
@@ -444,14 +492,54 @@ def create_efficient_dataset_from_paths(data_dir: str,
     normalization_layer = tf.keras.layers.Rescaling(1./255)
     dataset = dataset.map(lambda x, y: (normalization_layer(x), y))
 
-    # Aplicar aumentación si está habilitada
+    # 🚀 PRIORIDAD CRÍTICA - Data Augmentation Agresiva
     if augment:
-        data_augmentation = tf.keras.Sequential([
-            tf.keras.layers.RandomFlip("horizontal"),
-            tf.keras.layers.RandomBrightness(0.1),
-            tf.keras.layers.RandomContrast(0.1),
-        ])
-        dataset = dataset.map(lambda x, y: (data_augmentation(x), y))
+        if augment == 'aggressive':
+            # Aplicar configuración agresiva desde config
+            from src.core.config import config
+            aug_config = config.data.augmentation_config
+
+            augmentation_layers = []
+
+            # Random flip horizontal y vertical
+            if aug_config.get('random_flip', True):
+                augmentation_layers.append(tf.keras.layers.RandomFlip("horizontal_and_vertical"))
+
+            # Random rotation
+            if aug_config.get('random_rotation', 30) > 0:
+                max_angle = aug_config.get('random_rotation', 30)
+                augmentation_layers.append(tf.keras.layers.RandomRotation(max_angle/360.0, fill_mode='reflect'))
+
+            # Random zoom
+            zoom_range = aug_config.get('random_zoom', (0.8, 1.2))
+            if zoom_range != (1.0, 1.0):
+                augmentation_layers.append(tf.keras.layers.RandomZoom(
+                    height_factor=(zoom_range[0]-1, zoom_range[1]-1),
+                    width_factor=(zoom_range[0]-1, zoom_range[1]-1),
+                    fill_mode='reflect'
+                ))
+
+            # Color jitter agresivo
+            color_config = aug_config.get('color_jitter', {})
+            if any(color_config.values()):
+                augmentation_layers.extend([
+                    tf.keras.layers.RandomBrightness(color_config.get('brightness', 0.3)),
+                    tf.keras.layers.RandomContrast(color_config.get('contrast', 0.3)),
+                ])
+
+            # Aplicar capas de augmentation
+            if augmentation_layers:
+                data_augmentation = tf.keras.Sequential(augmentation_layers)
+                dataset = dataset.map(lambda x, y: (data_augmentation(x), y))
+
+        else:
+            # Augmentation básica legacy
+            data_augmentation = tf.keras.Sequential([
+                tf.keras.layers.RandomFlip("horizontal"),
+                tf.keras.layers.RandomBrightness(0.1),
+                tf.keras.layers.RandomContrast(0.1),
+            ])
+            dataset = dataset.map(lambda x, y: (data_augmentation(x), y))
 
     # Prefetch para optimización
     dataset = dataset.prefetch(tf.data.AUTOTUNE)
