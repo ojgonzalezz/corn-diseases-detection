@@ -98,8 +98,8 @@ class ProjectPaths:
 
     @property
     def mlruns(self) -> Path:
-        """Directorio de experimentos MLflow (temporal)."""
-        return Path("/tmp/corn_mlruns")
+        """Directorio de experimentos MLflow (local en proyecto)."""
+        return self._root / 'models' / 'mlruns'
 
     @property
     def tests(self) -> Path:

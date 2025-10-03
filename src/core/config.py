@@ -60,7 +60,7 @@ class TrainingConfig:
 
     def __init__(self):
         # Hiperparámetros de entrenamiento
-        self.batch_size: int = int(os.getenv('BATCH_SIZE', '16'))
+        self.batch_size: int = int(os.getenv('BATCH_SIZE', '32'))
         self.max_epochs: int = int(os.getenv('MAX_EPOCHS', '30'))
 
         # Parámetros de Keras Tuner
