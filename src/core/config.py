@@ -77,6 +77,17 @@ data = DataConfig()
 training = TrainingConfig()
 
 
+class Config:
+    """Clase config compatible con el código existente."""
+    def __init__(self):
+        self.data = data
+        self.training = training
+
+
+# Instancia global config para compatibilidad
+config = Config()
+
+
 # Funciones de conveniencia para retrocompatibilidad
 def get_image_size() -> Tuple[int, int]:
     """Obtiene el tamaño de imagen configurado."""
