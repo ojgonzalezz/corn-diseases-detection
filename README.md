@@ -1,45 +1,29 @@
-# Corn Diseases Detection - Edge Models
+# Corn Diseases Detection
 
 Deep learning system for corn leaf disease classification using lightweight architectures optimized for edge computing.
 
-## Overview
+📖 **Complete documentation**: [docs/README.md](docs/README.md)  
+🚀 **Main notebook**: [notebooks/colab_edge_models_training.ipynb](notebooks/colab_edge_models_training.ipynb)
 
-This project implements a complete pipeline for automatic diagnosis of common corn leaf diseases using 4 edge-optimized architectures trained in Google Colab with free GPU access.
+## Quick Start
 
-## Disease Classes
-
-The model classifies 4 categories:
-- Blight (Corn Borer)
-- Common_Rust (Common Rust)
-- Gray_Leaf_Spot (Gray Leaf Spot)
-- Healthy (Healthy leaves)
+1. See [docs/README.md](docs/README.md) for complete setup instructions
+2. Run [notebooks/colab_edge_models_training.ipynb](notebooks/colab_edge_models_training.ipynb) on Google Colab with GPU
 
 ## Project Structure
 
 ```
 corn-diseases-detection/
-├── data/                    # Dataset (ignored by git)
-├── src/                     # Source code
-│   ├── adapters/           # Data loaders
-│   ├── builders/           # Edge model builders
-│   ├── core/               # Central configuration
-│   ├── pipelines/          # ML pipelines
-│   └── utils/              # Utilities
-├── tests/                  # Test suite (10 files)
-├── experimentation/        # EDA scripts and notebooks
-├── experiments/            # Edge computing experiments
-│   └── edge_models/        # Lightweight architecture training
-├── colab_edge_models_training.ipynb  # Main Colab notebook
-├── COLAB_SETUP.md          # Colab setup guide
-└── README.md
+├── data/                     # Dataset (train/val/test splits)
+├── src/                      # Source code
+├── tests/                    # Test suite
+├── experiments/              # Edge computing experiments
+├── docs/                     # Documentation
+│   ├── README.md            # Complete documentation
+│   └── LICENSE              # License information
+├── notebooks/               # Jupyter notebooks
+│   └── colab_edge_models_training.ipynb  # Main training notebook
+├── requirements.txt          # Python dependencies
+├── .gitignore               # Git ignore rules
+└── README.md                # This file
 ```
-
-## Quick Start
-
-1. Upload `data/` folder to Google Drive under `MyDrive/corn-diseases-data/`
-2. Open `colab_edge_models_training.ipynb` in Google Colab
-3. Set runtime to GPU (T4)
-4. Run all cells
-5. Wait 2-3 hours for training completion
-
-See `COLAB_SETUP.md` for detailed instructions.
