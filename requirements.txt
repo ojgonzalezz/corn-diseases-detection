@@ -1,6 +1,7 @@
-# Core Deep Learning & ML
-tensorflow>=2.10.0,<3.0.0
-keras>=2.10.0
+# Requirements optimizados para Google Colab
+# Usa este archivo en lugar de requirements.txt en Colab
+
+# Core Deep Learning & ML (Colab ya tiene TensorFlow y Keras)
 keras-tuner==1.4.7
 
 # Experiment Tracking
@@ -9,16 +10,15 @@ mlflow==3.3.2
 # Computer Vision
 opencv-python>=4.8.0
 pillow>=10.0.0
-ultralytics>=8.0.0  # YOLO v8+ (opcional, solo si se usa backbone YOLO)
 
-# Data Science
+# Data Science (versiones compatibles con Colab)
 numpy>=1.23.5
-pandas==2.3.2
+pandas==2.2.2  # Compatible con google-colab 1.0.0
 scikit-learn==1.7.1
 scipy==1.15.3
 
 # Visualization
-matplotlib==3.10.6
+matplotlib>=3.7.0  # Colab ya tiene matplotlib
 seaborn==0.13.2
 
 # Configuration & Environment
@@ -26,19 +26,10 @@ python-dotenv==1.1.1
 pydantic>=2.0.0
 pydantic-settings>=2.0.0
 
-# Progress Bars
-tqdm==4.67.1
+# Progress Bars (Colab ya tiene tqdm)
+tqdm>=4.65.0
 
-# Jupyter (for experimentation)
-jupyter==1.1.1
-jupyterlab==4.4.7
-ipykernel
-
-# Testing
-pytest>=8.3.0
-pytest-cov>=6.0.0
-
-# API Development (if needed)
+# API Development (opcional en Colab)
 fastapi
 uvicorn
-python-multipart  # Required for file uploads in FastAPI
+python-multipart
