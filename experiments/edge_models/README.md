@@ -26,13 +26,21 @@ Determinar cuál arquitectura es la **mejor** para deployment en dispositivos ed
 
 ---
 
-##  Uso Rápido (Docker)
+##  Uso Rápido (Google Colab)
 
 ### 1. Entrenar Todas las Arquitecturas
 
+**Opción A: Notebook Completo (Recomendado)**
+1. Abrir `colab_edge_models_training.ipynb` en Google Colab
+2. Runtime > Run all
+3. Autorizar Google Drive cuando se solicite
+
+**Opción B: Scripts Directos**
 ```bash
-# Desde el root del proyecto
-docker-compose --profile edge-experiments up
+# Desde el root del proyecto (requiere GPU local)
+python experiments/edge_models/train_all_models.py
+python experiments/edge_models/compare_models.py
+python experiments/edge_models/select_best_model.py
 ```
 
 Esto ejecutará automáticamente:
@@ -41,16 +49,41 @@ Esto ejecutará automáticamente:
 3. Selección del mejor modelo
 4. Generación de `best_edge_model.json`
 
-**Tiempo estimado:** 2-3 horas (dependiendo de tu hardware)
+**Tiempo estimado:** 2-3 horas (GPU T4 gratuita en Colab)
 
 ### 2. Ver Resultados en MLflow
 
-```bash
-# Iniciar MLflow UI
-docker-compose --profile mlflow up -d
+**En Google Colab:**
+```python
+# Iniciar MLflow UI en Colab
+import subprocess
+import time
 
-# Acceder a:
-open http://localhost:5000
+# Iniciar MLflow en background
+mlflow_process = subprocess.Popen(
+    ['mlflow', 'ui', '--host', '0.0.0.0', '--port', '5000',
+     '--backend-store-uri', 'file:///content/corn-diseases-detection/models/mlruns'],
+    stdout=subprocess.PIPE,
+    stderr=subprocess.PIPE
+)
+
+time.sleep(5)
+
+# Crear túnel público con ngrok (opcional)
+print("Para ver MLflow UI:")
+print("  1. Instala ngrok: !pip install pyngrok")
+print("  2. Ejecuta: from pyngrok import ngrok; ngrok.connect(5000)")
+```
+
+**En entorno local:**
+```bash
+# Instalar MLflow
+pip install mlflow
+
+# Iniciar MLflow UI
+mlflow ui --backend-store-uri file://./models/mlruns
+
+# Abrir en navegador: http://localhost:5000
 ```
 
 Filtra por experimento: **edge_models_comparison**
@@ -65,21 +98,21 @@ Entrena un modelo específico.
 
 ```bash
 # Ejemplo: Entrenar MobileNetV3Large
-docker-compose run --rm training python experiments/edge_models/train_edge_model.py \
+python experiments/edge_models/train_edge_model.py \
   --model MobileNetV3Large \
   --epochs 30 \
   --lr 0.001 \
   --dropout 0.3
 
 # Ejemplo: Entrenar EfficientNetLiteB2
-docker-compose run --rm training python experiments/edge_models/train_edge_model.py \
+python experiments/edge_models/train_edge_model.py \
   --model EfficientNetLiteB2 \
   --epochs 30 \
   --lr 0.0008 \
   --dropout 0.25
 
 # Con fine-tuning (recomendado para MobileViT y PMVT)
-docker-compose run --rm training python experiments/edge_models/train_edge_model.py \
+python experiments/edge_models/train_edge_model.py \
   --model PMVT \
   --epochs 30 \
   --fine-tune \
@@ -100,7 +133,7 @@ docker-compose run --rm training python experiments/edge_models/train_edge_model
 Entrena todas las arquitecturas secuencialmente.
 
 ```bash
-docker-compose run --rm training python experiments/edge_models/train_all_models.py
+python experiments/edge_models/train_all_models.py
 ```
 
 Cada modelo se entrena con hiperparámetros optimizados predefinidos.
@@ -110,7 +143,7 @@ Cada modelo se entrena con hiperparámetros optimizados predefinidos.
 Compara todos los modelos entrenados.
 
 ```bash
-docker-compose run --rm training python experiments/edge_models/compare_models.py
+python experiments/edge_models/compare_models.py
 ```
 
 Genera:
@@ -123,7 +156,7 @@ Genera:
 Selecciona el mejor modelo y genera archivo de salida.
 
 ```bash
-docker-compose run --rm training python experiments/edge_models/select_best_model.py
+python experiments/edge_models/select_best_model.py
 ```
 
 Genera: **`best_edge_model.json`** con toda la información para la siguiente fase.
@@ -217,18 +250,22 @@ efficiency_score = (accuracy × min_recall) / log(size_mb + 1)
 ##  Workflow Completo
 
 ```bash
+# Opción A: Usar el notebook de Colab (recomendado)
+# Abrir colab_edge_models_training.ipynb y ejecutar todas las celdas
+
+# Opción B: Scripts directos (requiere GPU local)
 # 1. Entrenar todos los modelos
-docker-compose --profile edge-experiments up
+python experiments/edge_models/train_all_models.py
 
 # 2. Comparar resultados
-docker-compose run --rm training python experiments/edge_models/compare_models.py
+python experiments/edge_models/compare_models.py
 
 # 3. Seleccionar mejor modelo
-docker-compose run --rm training python experiments/edge_models/select_best_model.py
+python experiments/edge_models/select_best_model.py
 
-# 4. Ver en MLflow
-docker-compose --profile mlflow up -d
-open http://localhost:5000
+# 4. Ver en MLflow (local)
+mlflow ui --backend-store-uri file://./models/mlruns
+# Abrir: http://localhost:5000
 ```
 
 ---

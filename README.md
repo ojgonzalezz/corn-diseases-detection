@@ -39,13 +39,12 @@ corn-diseases-detection/
 │
 ├── src/                           # Código fuente
 │   ├── adapters/                  # Cargadores de datos
-│   ├── api/                       # API REST (FastAPI)
 │   ├── builders/                  # Constructores de modelos edge
 │   ├── core/                      # Configuración central
 │   ├── pipelines/                 # Pipelines ML (preprocess, infer)
 │   └── utils/                     # Utilidades
 │
-├── tests/                         # Suite de tests (12 archivos)
+├── tests/                         # Suite de tests (11 archivos)
 │
 ├── experimentation/               # Scripts EDA y notebooks exploratorios
 │
@@ -231,7 +230,7 @@ pytest tests/ -m "not slow" -v
 
 ### **Cobertura de Tests**
 
-El proyecto incluye **12 archivos de tests** con **~90% de cobertura**:
+El proyecto incluye **11 archivos de tests** con **~90% de cobertura**:
 - `test_infer.py` - Pipeline de inferencia
 - `test_preprocess.py` - Preprocesamiento
 - `test_augmentation.py` - Augmentación de datos
@@ -240,7 +239,6 @@ El proyecto incluye **12 archivos de tests** con **~90% de cobertura**:
 - `test_data_loader.py` - Carga de datos
 - `test_logger.py` - Sistema de logging
 - `test_paths.py` - Gestión de rutas
-- `test_api.py` - Endpoints de API
 - Y más...
 
 ---
@@ -300,35 +298,6 @@ Una vez seleccionado el mejor modelo:
 
 ---
 
-## 📊 API de Inferencia (Opcional)
-
-El proyecto incluye una API REST con FastAPI para inferencia:
-
-```python
-# Iniciar API localmente
-uvicorn src.api.main:app --reload
-
-# Hacer predicción
-import requests
-
-with open('hoja_maiz.jpg', 'rb') as f:
-    response = requests.post(
-        'http://localhost:8000/predict',
-        files={'file': f}
-    )
-
-result = response.json()
-print(f"Predicción: {result['prediction']['predicted_label']}")
-print(f"Confianza: {result['prediction']['confidence']:.2%}")
-```
-
-**Endpoints disponibles:**
-- `GET /health` - Health check
-- `GET /info` - Información del modelo
-- `POST /predict` - Predicción individual
-- `POST /batch-predict` - Predicción por lotes
-
----
 
 ## 🛠️ Desarrollo Local
 
