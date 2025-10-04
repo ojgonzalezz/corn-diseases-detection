@@ -541,8 +541,9 @@ def create_efficient_dataset_from_dict(data_dict: Dict[str, List[Any]],
                 idx1 = indices[0]
                 idx2 = indices[1] if batch_size > 1 else indices[0]
 
-                # Aplicar CutMix o MixUp
-                should_apply_cutmix = aug_config.get('cutmix', True) and aug_config.get('mixup', True)
+                # Aplicar CutMix o MixUp de forma más simple
+                # Elegir aleatoriamente entre CutMix, MixUp o nada
+                choice = tf.random.uniform([], 0, 3, dtype=tf.int32)
 
                 def apply_cutmix():
                     lam = tf.random.uniform([], 0.3, 0.7)
@@ -563,16 +564,11 @@ def create_efficient_dataset_from_dict(data_dict: Dict[str, List[Any]],
                 def no_augmentation():
                     return images, labels
 
-                # Elegir qué aplicar
-                return tf.cond(
-                    should_apply_cutmix,
-                    apply_cutmix,
-                    lambda: tf.cond(
-                        aug_config.get('mixup', True),
-                        apply_mixup,
-                        no_augmentation
-                    )
-                )
+                # Usar tf.case para evitar problemas con booleanos Python
+                return tf.case([
+                    (tf.equal(choice, 0), apply_cutmix),
+                    (tf.equal(choice, 1), apply_mixup)
+                ], default=no_augmentation)
 
             # Aplicar al 20% de los batches
             return tf.cond(
