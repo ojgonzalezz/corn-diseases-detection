@@ -541,33 +541,38 @@ def create_efficient_dataset_from_dict(data_dict: Dict[str, List[Any]],
                 idx1 = indices[0]
                 idx2 = indices[1] if batch_size > 1 else indices[0]
 
-                # Elegir entre CutMix o MixUp
-                use_cutmix = aug_config.get('cutmix', True) and tf.random.uniform([]) > 0.5
+                # Aplicar CutMix o MixUp
+                should_apply_cutmix = aug_config.get('cutmix', True) and aug_config.get('mixup', True)
 
-                if use_cutmix and aug_config.get('cutmix', True):
-                    # CutMix simplificado - mezcla completa con factor lambda
-                    # Usar distribución uniforme en lugar de beta (no disponible en TF 2.x)
-                    lam = tf.random.uniform([], 0.3, 0.7)  # Valores entre 0.3 y 0.7
-
+                def apply_cutmix():
+                    lam = tf.random.uniform([], 0.3, 0.7)
                     mixed_images = images[idx1] * lam + images[idx2] * (1 - lam)
                     mixed_labels = labels[idx1] * lam + labels[idx2] * (1 - lam)
+                    new_images = tf.tensor_scatter_nd_update(images, [[idx1]], [mixed_images])
+                    new_labels = tf.tensor_scatter_nd_update(labels, [[idx1]], [mixed_labels])
+                    return new_images, new_labels
 
-                elif aug_config.get('mixup', True):
-                    # MixUp - mezcla simple de píxeles
-                    # Usar distribución uniforme en lugar de beta
-                    lam = tf.random.uniform([], 0.3, 0.7)  # Valores entre 0.3 y 0.7
-
+                def apply_mixup():
+                    lam = tf.random.uniform([], 0.3, 0.7)
                     mixed_images = images[idx1] * lam + images[idx2] * (1 - lam)
                     mixed_labels = labels[idx1] * lam + labels[idx2] * (1 - lam)
-                else:
-                    # No aplicar augmentation avanzada
+                    new_images = tf.tensor_scatter_nd_update(images, [[idx1]], [mixed_images])
+                    new_labels = tf.tensor_scatter_nd_update(labels, [[idx1]], [mixed_labels])
+                    return new_images, new_labels
+
+                def no_augmentation():
                     return images, labels
 
-                # Reemplazar primera imagen del batch
-                new_images = tf.tensor_scatter_nd_update(images, [[idx1]], [mixed_images])
-                new_labels = tf.tensor_scatter_nd_update(labels, [[idx1]], [mixed_labels])
-
-                return new_images, new_labels
+                # Elegir qué aplicar
+                return tf.cond(
+                    should_apply_cutmix,
+                    apply_cutmix,
+                    lambda: tf.cond(
+                        aug_config.get('mixup', True),
+                        apply_mixup,
+                        no_augmentation
+                    )
+                )
 
             # Aplicar al 20% de los batches
             return tf.cond(
