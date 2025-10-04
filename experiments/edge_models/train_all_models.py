@@ -24,7 +24,7 @@ logger = get_logger(__name__)
 
 # Configuración de experimentos (4 arquitecturas seleccionadas)
 # Optimizado para Google Colab con limitaciones de RAM
-# NOTA: batch_size optimizado a 16 para mejor diversidad de datos
+# NOTA: batch_size optimizado a 32 para mejores resultados de entrenamiento
 EXPERIMENTS = [
     # MobileNetV3Large - Balance tamaño/precisión
     {
@@ -32,7 +32,7 @@ EXPERIMENTS = [
         'lr': 0.001,
         'dropout': 0.3,
         'epochs': 50,  # Más épocas para mejor convergencia
-        'batch_size': 16,  # Optimizado para diversidad de datos
+        'batch_size': 32,  # Optimizado para mejores resultados
         'fine_tune': False,
     },
 
@@ -42,7 +42,7 @@ EXPERIMENTS = [
         'lr': 0.002,  # Aumentado significativamente para EfficientNet
         'dropout': 0.25,
         'epochs': 50,  # Más épocas
-        'batch_size': 16,  # Optimizado para diversidad de datos
+        'batch_size': 32,  # Optimizado para mejores resultados
         'fine_tune': False,
     },
 
@@ -52,7 +52,7 @@ EXPERIMENTS = [
         'lr': 0.001,
         'dropout': 0.3,
         'epochs': 40,  # Moderadamente aumentado
-        'batch_size': 16,  # Optimizado para diversidad de datos
+        'batch_size': 32,  # Optimizado para mejores resultados
         'fine_tune': True,
         'fine_tune_epochs': 15,  # Más épocas de fine-tuning
     },
@@ -63,7 +63,7 @@ EXPERIMENTS = [
         'lr': 0.001,
         'dropout': 0.3,
         'epochs': 40,  # Moderadamente aumentado
-        'batch_size': 16,  # Optimizado para diversidad de datos
+        'batch_size': 32,  # Optimizado para mejores resultados
         'fine_tune': True,
         'fine_tune_epochs': 15,  # Más épocas de fine-tuning
     },

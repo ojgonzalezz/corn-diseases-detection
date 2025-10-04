@@ -93,8 +93,8 @@ class ProjectPaths:
 
     @property
     def models_exported(self) -> Path:
-        """Directorio de modelos exportados (temporal)."""
-        return Path("/tmp/corn_models_exported")
+        """Directorio de modelos exportados (local en proyecto)."""
+        return self._root / 'models' / 'exported'
 
     @property
     def mlruns(self) -> Path:
