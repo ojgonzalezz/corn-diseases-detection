@@ -430,25 +430,26 @@ def create_efficient_dataset_from_dict(data_dict: Dict[str, List[Any]],
                     # Hue
                     image = tf.image.random_hue(image, max_delta=color_config.get('hue', 0.1))
 
-                # Random shear (implementado en TensorFlow)
+                # Random shear (implementado de forma simplificada)
                 if tf.random.uniform([]) > 0.4 and aug_config.get('random_shear', 0.2) > 0:  # 60% chance
                     shear_factor = aug_config.get('random_shear', 0.2)
-                    # Aplicar shear usando transformaciones afines
-                    shear_angle = tf.random.uniform([], -shear_factor, shear_factor)
-                    # Crear matriz de transformación afín para shear
-                    shear_matrix = tf.convert_to_tensor([
-                        [1.0, shear_angle, 0.0],
-                        [0.0, 1.0, 0.0],
-                        [0.0, 0.0, 1.0]
-                    ], dtype=tf.float32)
-                    # Aplicar transformación
-                    image = tf.raw_ops.ImageProjectiveTransformV3(
-                        images=tf.expand_dims(image, 0),
-                        transforms=tf.expand_dims(shear_matrix, 0),
-                        output_shape=tf.shape(image)[:2],
-                        interpolation='BILINEAR',
-                        fill_mode='REFLECT'
-                    )[0]
+                    # Shear horizontal simple usando slicing y padding
+                    shear_pixels = tf.cast(tf.cast(tf.shape(image)[1], tf.float32) * shear_factor, tf.int32)
+                    shear_pixels = tf.random.uniform([], -shear_pixels, shear_pixels, dtype=tf.int32)
+
+                    if shear_pixels > 0:
+                        # Shear hacia la derecha
+                        left_pad = shear_pixels
+                        right_pad = 0
+                    else:
+                        # Shear hacia la izquierda
+                        left_pad = 0
+                        right_pad = -shear_pixels
+
+                    # Aplicar padding y cropping para simular shear
+                    padded = tf.pad(image, [[0, 0], [left_pad, right_pad], [0, 0]], mode='REFLECT')
+                    # Crop de vuelta al tamaño original
+                    image = tf.image.resize_with_crop_or_pad(padded, tf.shape(image)[0], tf.shape(image)[1])
 
                 # Gaussian noise
                 if tf.random.uniform([]) > 0.3:  # 70% chance
