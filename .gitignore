@@ -183,3 +183,7 @@ logs/
 
 # MLflow artifacts
 mlruns/
+
+# EDA and Tests folders
+experimentation/eda/
+tests/
