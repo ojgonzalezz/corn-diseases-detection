@@ -546,17 +546,16 @@ def create_efficient_dataset_from_dict(data_dict: Dict[str, List[Any]],
 
                 if use_cutmix and aug_config.get('cutmix', True):
                     # CutMix simplificado - mezcla completa con factor lambda
-                    lam = tf.random.beta([1], 1.0, 1.0)[0]  # Alpha=1.0 para CutMix
-                    lam = tf.maximum(lam, 1 - lam)  # Asegurar lam >= 0.5
+                    # Usar distribución uniforme en lugar de beta (no disponible en TF 2.x)
+                    lam = tf.random.uniform([], 0.3, 0.7)  # Valores entre 0.3 y 0.7
 
                     mixed_images = images[idx1] * lam + images[idx2] * (1 - lam)
                     mixed_labels = labels[idx1] * lam + labels[idx2] * (1 - lam)
 
                 elif aug_config.get('mixup', True):
                     # MixUp - mezcla simple de píxeles
-                    alpha = aug_config.get('mixup_alpha', 0.2)
-                    lam = tf.random.beta([1], alpha, alpha)[0]
-                    lam = tf.maximum(lam, 1 - lam)  # Asegurar lam >= 0.5
+                    # Usar distribución uniforme en lugar de beta
+                    lam = tf.random.uniform([], 0.3, 0.7)  # Valores entre 0.3 y 0.7
 
                     mixed_images = images[idx1] * lam + images[idx2] * (1 - lam)
                     mixed_labels = labels[idx1] * lam + labels[idx2] * (1 - lam)
