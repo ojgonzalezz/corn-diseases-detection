@@ -581,7 +581,7 @@ def create_efficient_dataset_from_dict(data_dict: Dict[str, List[Any]],
 
     dataset = dataset.prefetch(tf.data.AUTOTUNE)
 
-    return dataset
+    return dataset, label_to_int
 
 
 def create_efficient_dataset_from_paths(data_dir: str,
