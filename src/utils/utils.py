@@ -430,11 +430,75 @@ def create_efficient_dataset_from_dict(data_dict: Dict[str, List[Any]],
                     # Hue
                     image = tf.image.random_hue(image, max_delta=color_config.get('hue', 0.1))
 
+                # Random shear (implementado en TensorFlow)
+                if tf.random.uniform([]) > 0.4 and aug_config.get('random_shear', 0.2) > 0:  # 60% chance
+                    shear_factor = aug_config.get('random_shear', 0.2)
+                    # Aplicar shear usando transformaciones afines
+                    shear_angle = tf.random.uniform([], -shear_factor, shear_factor)
+                    # Crear matriz de transformación afín para shear
+                    shear_matrix = tf.convert_to_tensor([
+                        [1.0, shear_angle, 0.0],
+                        [0.0, 1.0, 0.0],
+                        [0.0, 0.0, 1.0]
+                    ], dtype=tf.float32)
+                    # Aplicar transformación
+                    image = tf.raw_ops.ImageProjectiveTransformV3(
+                        images=tf.expand_dims(image, 0),
+                        transforms=tf.expand_dims(shear_matrix, 0),
+                        output_shape=tf.shape(image)[:2],
+                        interpolation='BILINEAR',
+                        fill_mode='REFLECT'
+                    )[0]
+
                 # Gaussian noise
-                if tf.random.uniform([]) > 0.7:  # 30% chance
+                if tf.random.uniform([]) > 0.3:  # 70% chance
                     noise_std = aug_config.get('gaussian_noise', 0.05)
                     noise = tf.random.normal(tf.shape(image), mean=0.0, stddev=noise_std)
                     image = tf.clip_by_value(image + noise, 0.0, 1.0)
+
+                # Random erasing (implementado en TensorFlow)
+                if tf.random.uniform([]) > 0.3 and aug_config.get('random_erasing', 0.2) > 0:  # 70% chance
+                    erasing_prob = aug_config.get('random_erasing', 0.2)
+                    if tf.random.uniform([]) < erasing_prob:
+                        # Crear máscara de erasing rectangular
+                        img_height, img_width = tf.shape(image)[0], tf.shape(image)[1]
+                        # Área del erasing (10-30% de la imagen)
+                        erasing_area = tf.random.uniform([], 0.1, 0.3)
+                        erasing_size = tf.sqrt(erasing_area)
+                        # Dimensiones del rectángulo
+                        h_erase = tf.cast(tf.cast(img_height, tf.float32) * erasing_size, tf.int32)
+                        w_erase = tf.cast(tf.cast(img_width, tf.float32) * erasing_size, tf.int32)
+                        # Posición aleatoria (asegurarse de que no exceda límites)
+                        y1 = tf.random.uniform([], 0, tf.maximum(1, img_height - h_erase), dtype=tf.int32)
+                        x1 = tf.random.uniform([], 0, tf.maximum(1, img_width - w_erase), dtype=tf.int32)
+                        y2 = tf.minimum(y1 + h_erase, img_height)
+                        x2 = tf.minimum(x1 + w_erase, img_width)
+
+                        # Crear índices para el erasing
+                        y_coords, x_coords = tf.meshgrid(
+                            tf.range(y1, y2), tf.range(x1, x2), indexing='ij'
+                        )
+                        indices = tf.stack([y_coords, x_coords], axis=-1)
+                        indices = tf.reshape(indices, [-1, 2])
+
+                        # Crear máscara de erasing (valores aleatorios o ceros)
+                        erasing_values = tf.zeros([tf.shape(indices)[0], 3], dtype=tf.float32)
+                        # Opcional: valores aleatorios en lugar de negro puro
+                        # erasing_values = tf.random.uniform([tf.shape(indices)[0], 3], 0.0, 1.0)
+
+                        # Aplicar erasing usando scatter_nd
+                        erasing_mask = tf.scatter_nd(
+                            indices,
+                            erasing_values,
+                            shape=[img_height, img_width, 3]
+                        )
+
+                        # Aplicar la máscara
+                        image = tf.where(
+                            tf.reduce_any(tf.not_equal(erasing_mask, 0), axis=-1, keepdims=True),
+                            erasing_mask,
+                            image
+                        )
 
             else:
                 # Augmentation básica legacy
@@ -458,9 +522,65 @@ def create_efficient_dataset_from_dict(data_dict: Dict[str, List[Any]],
 
     # Batch y prefetch para optimización
     dataset = dataset.batch(batch_size)
+
+    # Aplicar CutMix y MixUp si está activado el augmentation agresiva
+    if augment == 'aggressive':
+        from src.core.config import config
+        aug_config = config.data.augmentation_config
+
+        # Función simplificada para CutMix/MixUp
+        def apply_advanced_augmentation(images, labels):
+            """Aplicar CutMix y MixUp de forma simplificada."""
+            batch_size = tf.shape(images)[0]
+
+            # Solo aplicar si batch_size >= 2
+            def do_augmentation():
+                # Seleccionar índices aleatorios
+                indices = tf.random.shuffle(tf.range(batch_size))
+                idx1 = indices[0]
+                idx2 = indices[1] if batch_size > 1 else indices[0]
+
+                # Elegir entre CutMix o MixUp
+                use_cutmix = aug_config.get('cutmix', True) and tf.random.uniform([]) > 0.5
+
+                if use_cutmix and aug_config.get('cutmix', True):
+                    # CutMix simplificado - mezcla completa con factor lambda
+                    lam = tf.random.beta([1], 1.0, 1.0)[0]  # Alpha=1.0 para CutMix
+                    lam = tf.maximum(lam, 1 - lam)  # Asegurar lam >= 0.5
+
+                    mixed_images = images[idx1] * lam + images[idx2] * (1 - lam)
+                    mixed_labels = labels[idx1] * lam + labels[idx2] * (1 - lam)
+
+                elif aug_config.get('mixup', True):
+                    # MixUp - mezcla simple de píxeles
+                    alpha = aug_config.get('mixup_alpha', 0.2)
+                    lam = tf.random.beta([1], alpha, alpha)[0]
+                    lam = tf.maximum(lam, 1 - lam)  # Asegurar lam >= 0.5
+
+                    mixed_images = images[idx1] * lam + images[idx2] * (1 - lam)
+                    mixed_labels = labels[idx1] * lam + labels[idx2] * (1 - lam)
+                else:
+                    # No aplicar augmentation avanzada
+                    return images, labels
+
+                # Reemplazar primera imagen del batch
+                new_images = tf.tensor_scatter_nd_update(images, [[idx1]], [mixed_images])
+                new_labels = tf.tensor_scatter_nd_update(labels, [[idx1]], [mixed_labels])
+
+                return new_images, new_labels
+
+            # Aplicar al 20% de los batches
+            return tf.cond(
+                tf.random.uniform([]) > 0.8,  # 20% chance
+                do_augmentation,
+                lambda: (images, labels)
+            )
+
+        dataset = dataset.map(apply_advanced_augmentation, num_parallel_calls=tf.data.AUTOTUNE)
+
     dataset = dataset.prefetch(tf.data.AUTOTUNE)
 
-    return dataset, label_to_int
+    return dataset
 
 
 def create_efficient_dataset_from_paths(data_dir: str,
