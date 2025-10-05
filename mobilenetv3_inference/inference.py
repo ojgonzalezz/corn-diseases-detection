@@ -1,4 +1,26 @@
 #!/usr/bin/env python3
+"""
+Sistema de inferencia para modelo MobileNetV3Large optimizado para enfermedades del maíz.
+
+Este script proporciona funcionalidades para ejecutar inferencia con modelos TensorFlow Lite:
+- Predicción en imágenes individuales
+- Predicción en lote de imágenes
+- Carga automática de muestras de prueba
+- Optimizaciones de rendimiento para dispositivos edge
+
+Características principales:
+- Soporte para modelos TFLite cuantizados (INT8)
+- Preprocesamiento automático de imágenes
+- Medición de tiempo de inferencia
+- Delegados XNNPACK para aceleración en CPU
+- Manejo robusto de errores
+
+Uso:
+    python inference.py --model model.tflite --image path/to/image.jpg
+    python inference.py --model model.tflite --batch --num-samples 20
+
+Autor: Sistema de Detección de Enfermedades del Maíz
+"""
 
 import os
 import sys
@@ -12,23 +34,46 @@ import tensorflow as tf
 from tensorflow.keras.preprocessing import image
 from tensorflow.keras.applications.mobilenet_v3 import preprocess_input as mobilenet_v3_preprocess
 
+# Configuración del sistema de logging
 logging.basicConfig(level=logging.INFO, format='%(levelname)s: %(message)s')
 logger = logging.getLogger(__name__)
 
 class MobileNetV3Inference:
+    """
+    Clase para ejecutar inferencia con modelos MobileNetV3Large en TensorFlow Lite.
+
+    Proporciona una interfaz de alto nivel para cargar modelos TFLite y realizar
+    predicciones en imágenes de enfermedades del maíz.
+    """
+
     def __init__(self, config_path: str = "config.yaml"):
+        """
+        Inicializa el sistema de inferencia.
+
+        Args:
+            config_path: Ruta al archivo de configuración YAML
+        """
         self.config = self._load_config(config_path)
         self.interpreter = None
         self.input_details = None
         self.output_details = None
-        self.class_names = self.config['data']['classes']
+        self.class_names = self.config['data']['classes']  # Nombres de las 4 clases de enfermedades
 
     def _load_config(self, config_path: str) -> dict:
         with open(config_path, 'r') as f:
             return yaml.safe_load(f)
 
     def load_model(self, model_path: str):
-        self.interpreter = tf.lite.Interpreter(model_path=model_path, num_threads=self.config['inference']['num_threads'])
+        """
+        Carga un modelo TensorFlow Lite para inferencia.
+
+        Args:
+            model_path: Ruta al archivo del modelo TFLite (.tflite)
+        """
+        self.interpreter = tf.lite.Interpreter(
+            model_path=model_path,
+            num_threads=self.config['inference']['num_threads']
+        )
         self.interpreter.allocate_tensors()
         self.input_details = self.interpreter.get_input_details()
         self.output_details = self.interpreter.get_output_details()

@@ -9,11 +9,20 @@ Sistema de inferencia optimizado para detección de enfermedades del maíz usand
 - `convert_to_tflite.py`: Construcción, entrenamiento y conversión a TensorFlow Lite (auto-detecta estructura de datos)
 - `validate_model.py`: Validación y métricas
 - `inference.py`: Pipeline de inferencia
+- `requirements.txt`: Archivo centralizado de dependencias
+
+## Instalación de Dependencias
+
+```bash
+# Instalar todas las dependencias requeridas
+pip install -r requirements.txt
+```
 
 ## Ejecución en Google Colab
 
 ```python
-!pip install tensorflow tensorflow-model-optimization pyyaml scikit-learn pillow matplotlib seaborn
+# Instalar dependencias desde el archivo centralizado
+!pip install -r requirements.txt
 
 !rm -rf corn-diseases-detection
 !git clone https://github.com/ojgonzalezz/corn-diseases-detection.git

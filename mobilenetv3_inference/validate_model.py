@@ -1,4 +1,27 @@
 #!/usr/bin/env python3
+"""
+Sistema de validación y evaluación para modelos MobileNetV3Large de enfermedades del maíz.
+
+Este script proporciona herramientas completas para evaluar el rendimiento de modelos
+TensorFlow Lite optimizados:
+
+- Cálculo de métricas de clasificación (accuracy, precision, recall, F1-score)
+- Generación de matrices de confusión con visualización
+- Validación de requisitos de rendimiento (tamaño, accuracy)
+- Análisis comparativo de rendimiento vs tamaño del modelo
+
+Características principales:
+- Evaluación completa en conjunto de test
+- Visualización de matrices de confusión
+- Reportes detallados de clasificación por clase
+- Validación de objetivos de optimización
+- Guardado automático de resultados
+
+Uso:
+    python validate_model.py --model model.tflite --test-data /path/to/test --output results.json
+
+Autor: Sistema de Detección de Enfermedades del Maíz
+"""
 
 import os
 import sys
@@ -13,16 +36,30 @@ from sklearn.metrics import classification_report, accuracy_score, confusion_mat
 import seaborn as sns
 import matplotlib.pyplot as plt
 
+# Configuración del sistema de logging
 logging.basicConfig(level=logging.INFO, format='%(levelname)s: %(message)s')
 logger = logging.getLogger(__name__)
 
 class ModelValidator:
+    """
+    Clase para validar y evaluar modelos MobileNetV3Large en TensorFlow Lite.
+
+    Proporciona métricas completas de evaluación, validación de requisitos
+    y generación de reportes para modelos optimizados.
+    """
+
     def __init__(self, config_path: str = "config.yaml"):
+        """
+        Inicializa el validador de modelos.
+
+        Args:
+            config_path: Ruta al archivo de configuración YAML
+        """
         self.config = self._load_config(config_path)
         self.interpreter = None
-        self.class_names = self.config['data']['classes']
-        self.target_accuracy = self.config['validation']['target_accuracy']
-        self.target_size_reduction = self.config['validation']['target_size_reduction']
+        self.class_names = self.config['data']['classes']  # Nombres de las 4 clases de enfermedades
+        self.target_accuracy = self.config['validation']['target_accuracy']  # Accuracy objetivo (85%)
+        self.target_size_reduction = self.config['validation']['target_size_reduction']  # Reducción de tamaño objetivo
 
     def _load_config(self, config_path: str) -> dict:
         with open(config_path, 'r') as f:
