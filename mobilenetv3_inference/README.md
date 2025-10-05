@@ -36,7 +36,7 @@ drive.mount('/content/drive')
 ```python
 # Si ya tienes el repositorio clonado, solo actualiza los archivos:
 !cd corn-diseases-detection && git fetch origin && git reset --hard origin/main
-!cd corn-diseases-detection && git log --oneline -1  # Debería mostrar: f967aeb
+!cd corn-diseases-detection && git log --oneline -1  # Debería mostrar: 1751008
 
 # Si es necesario, reinstalar dependencias (solo si hay errores)
 # !pip install tensorflow tensorflow-model-optimization pyyaml scikit-learn pillow matplotlib seaborn
