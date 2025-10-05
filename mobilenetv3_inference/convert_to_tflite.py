@@ -94,7 +94,7 @@ class MobileNetV3TFLiteConverter:
             image_paths = image_paths[:num_samples]
 
             for img_path in image_paths:
-                img = image.load_img(str(img_path), target_size=tuple(self.config['model']['input_shape'][:2]), interpolation=self.config['preprocessing']['interpolation'])
+                img = image.load_img(str(img_path), target_size=self.config['model']['input_shape'][:2], interpolation=self.config['preprocessing']['interpolation'])
                 img_array = image.img_to_array(img)
 
                 if self.config['preprocessing']['mode'] == 'tf':

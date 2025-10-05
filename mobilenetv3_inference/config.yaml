@@ -20,6 +20,9 @@ pruning:
   end_step: 100
   frequency: 10
 
+training:
+  optimizer: "adam"
+
 quantization:
   enabled: true
   optimization: ["DEFAULT"]
