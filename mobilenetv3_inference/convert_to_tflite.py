@@ -44,7 +44,11 @@ class MobileNetV3TFLiteConverter:
 
         # Add custom classification head for corn diseases
         x = base_model.output
-        x = layers.GlobalAveragePooling2D()(x)
+
+        # Only add GlobalAveragePooling2D if pooling is not already applied
+        if self.config['model']['pooling'] != 'avg':
+            x = layers.GlobalAveragePooling2D()(x)
+
         x = layers.Dense(1024, activation='relu')(x)
         x = layers.Dropout(0.5)(x)
         predictions = layers.Dense(len(self.config['data']['classes']), activation='softmax')(x)
