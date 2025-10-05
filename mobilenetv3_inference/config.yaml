@@ -1,0 +1,61 @@
+# Configuración para implementación de MobileNetV3Large en Edge Computing
+# Optimizado para baja latencia, bajo consumo energético y hardware edge
+
+model:
+  name: "MobileNetV3Large"
+  input_shape: [224, 224, 3]
+  alpha: 1.0  # Factor de multiplicación de ancho de canales
+  minimalistic: false
+  include_top: true  # Para clasificación completa
+  pooling: "avg"  # Solo aplicable si include_top=false
+  weights: "imagenet"  # Usar pesos preentrenados
+
+preprocessing:
+  mode: "tf"  # Modo de preprocesamiento específico de MobileNetV3 (escala [-1, 1])
+  interpolation: "bilinear"
+
+training:
+  batch_size: 16
+  epochs: 3  # Entrenamiento rápido para demo
+  learning_rate: 0.001
+  optimizer: "adam"
+
+pruning:
+  enabled: false  # Deshabilitado temporalmente por dependencias faltantes
+  schedule_type: "PolynomialDecay"
+  initial_sparsity: 0.0
+  final_sparsity: 0.5  # 50% de poda para demo rápido
+  begin_step: 0
+  end_step: 100  # Menos pasos para demo
+  frequency: 10
+
+quantization:
+  enabled: true
+  optimization: ["DEFAULT"]
+  representative_dataset_samples: 100  # Número de muestras para calibración
+  inference_input_type: "tf.uint8"
+  inference_output_type: "tf.uint8"
+  supported_ops: ["TFLITE_BUILTINS_INT8"]
+
+architecture:
+  activation: "hard_swish"  # h-swish específico de MobileNetV3
+  use_se_blocks: true
+  se_ratio: 0.25
+  batch_normalization_momentum: 0.99
+  batch_normalization_epsilon: 0.001
+
+inference:
+  batch_size: 1
+  num_threads: 1  # Reducido para evitar problemas de threading
+  use_xnnpack_delegate: false  # Deshabilitado para compatibilidad
+  enable_experimental_mlir: true
+
+data:
+  train_path: "data/train"
+  val_path: "data/val"
+  test_path: "data/test"
+  classes: ["Blight", "Common_Rust", "Gray_Leaf_Spot", "Healthy"]
+
+validation:
+  target_accuracy: 0.85  # Precisión mínima después de optimizaciones
+  target_size_reduction: 5  # Reducción mínima de tamaño (5x)
