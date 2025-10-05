@@ -31,18 +31,15 @@ from google.colab import drive
 drive.mount('/content/drive')
 ```
 
-### Opción Alternativa (si quieres preservar archivos locales):
+### Opción Alternativa (si ya clonaste y quieres actualizar):
 
 ```python
-# Si tienes archivos locales que quieres preservar, usa esta opción:
-!pip install tensorflow tensorflow-model-optimization pyyaml scikit-learn pillow matplotlib seaborn
-
-# 🔄 REINICIAR RUNTIME AQUÍ (Runtime → Restart runtime)
-# Necesario por conflictos de numpy
-
-# Forzar actualización completa del repositorio
+# Si ya tienes el repositorio clonado, solo actualiza los archivos:
 !cd corn-diseases-detection && git fetch origin && git reset --hard origin/main
-!cd corn-diseases-detection && git log --oneline -1  # Verificar versión actualizada
+!cd corn-diseases-detection && git log --oneline -1  # Debería mostrar: f967aeb
+
+# Si es necesario, reinstalar dependencias (solo si hay errores)
+# !pip install tensorflow tensorflow-model-optimization pyyaml scikit-learn pillow matplotlib seaborn
 
 from google.colab import drive
 drive.mount('/content/drive')
