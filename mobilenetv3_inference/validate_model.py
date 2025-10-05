@@ -403,8 +403,11 @@ def main():
         print("\n=== RESULTADOS DE VALIDACIÓN ===")
         print(f"Modelo: {results['model_path']}")
         print(f"Muestras de test: {results['test_samples']}")
-        print(".1f"        print(".2f"        print(".1f"        print(f"Tamaño del modelo: {results['size_info']['tflite_size_mb']:.2f} MB")
-        print(".1f"        print(f"Precisión objetivo cumplida: {results['validation']['accuracy_requirement_met']}")
+        print(f"Precisión: {results['evaluation']['accuracy']:.3f}")
+        print(f"Precisión por clase: {results['evaluation']['precision_per_class']}")
+        print(f"Recall por clase: {results['evaluation']['recall_per_class']}")
+        print(f"Tamaño del modelo: {results['size_info']['tflite_size_mb']:.2f} MB")
+        print(f"Precisión objetivo cumplida: {results['validation']['accuracy_requirement_met']}")
         print(f"Reducción de tamaño cumplida: {results['validation']['size_reduction_requirement_met']}")
         print(f"VALIDACIÓN GENERAL: {'PASADA' if results['validation']['overall_pass'] else 'FALLIDA'}")
 

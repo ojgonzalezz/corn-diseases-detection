@@ -97,8 +97,12 @@ class MobileNetV3TFLiteConverter:
                 project_root = Path(__file__).parent.parent
                 data_path = project_root / data_path
 
+            # If the path contains train/val/test subdirectories, use train for training
+            if data_path.exists() and any((data_path / sub).exists() for sub in ['train', 'val', 'test']):
+                data_path = data_path / 'train'
+
             if not data_path.exists():
-                raise FileNotFoundError(f"Data path not found: {data_path}")
+                raise FileNotFoundError(f"Training data path not found: {data_path}")
 
             train_datagen = ImageDataGenerator(
                 preprocessing_function=mobilenet_v3_preprocess,
