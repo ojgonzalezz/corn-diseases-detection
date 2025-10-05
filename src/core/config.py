@@ -6,7 +6,6 @@ This module provides configuration for the entire project without external depen
 from typing import List, Tuple, Optional, Dict, Any
 import os
 from pydantic import BaseModel, Field, ValidationError, field_validator, ValidationInfo
-import pytest
 
 
 class DataConfig(BaseModel):
@@ -68,7 +67,7 @@ class DataConfig(BaseModel):
     @field_validator('split_ratios')
     @classmethod
     def split_ratios_sum_to_one(cls, v):
-        if sum(v) != pytest.approx(1.0):
+        if abs(sum(v) - 1.0) > 1e-6:
             raise ValueError('split_ratios must sum to 1.0')
         return v
 

@@ -19,13 +19,13 @@ os.environ['CUDA_VISIBLE_DEVICES'] = '-1'
 from src.core.config import config
 from src.utils.paths import paths
 
-# Custom Exceptions for Inference Pipeline
+# Excepciones personalizadas para el pipeline de inferencia
 class NoModelToLoadError(Exception):
-    """Raised when model file cannot be found."""
+    """Se lanza cuando no se encuentra el archivo del modelo."""
     pass
 
 class NoLabelsError(Exception):
-    """Raised when class labels cannot be loaded from configuration."""
+    """Se lanza cuando no se pueden cargar las etiquetas de clases desde la configuración."""
     pass
 
 #####################
@@ -44,25 +44,25 @@ try:
     # Usar sistema centralizado de rutas
     MODEL_PATH = paths.get_model_path("best_VGG16.keras")
     if not MODEL_PATH.exists():
-        raise NoModelToLoadError(f"Model file not found at {MODEL_PATH}")
+        raise NoModelToLoadError(f"Archivo del modelo no encontrado en {MODEL_PATH}")
 except NoModelToLoadError as e:
-    print(f"[ADVERTENCIA] Warning: {e}")
+    print(f"[ADVERTENCIA] {e}")
     MODEL_PATH = None
 
 try:
     _labels = config.data.class_names
     if not _labels:
-        raise NoLabelsError("CLASS_NAMES not found in configuration")
+        raise NoLabelsError("CLASS_NAMES no encontrado en configuración")
 except (NoLabelsError, AttributeError) as e:
-    print(f"[ADVERTENCIA] Warning: Could not load labels - {e}")
+    print(f"[ADVERTENCIA] No se pudieron cargar las etiquetas - {e}")
     _labels = None
 
-# Get NUM_CLASSES from config
+# Obtener NUM_CLASSES de la configuración
 try:
     NUM_CLASSES = config.data.num_classes
 except (ValueError, TypeError, AttributeError):
     NUM_CLASSES = 4
-    print(f"[ADVERTENCIA] Warning: Could not parse NUM_CLASSES. Using default: {NUM_CLASSES}")
+    print(f"[ADVERTENCIA] No se pudo parsear NUM_CLASSES. Usando valor por defecto: {NUM_CLASSES}")
 
 # --- Carga de modelo ---
 _model = None
@@ -71,12 +71,12 @@ if MODEL_PATH and MODEL_PATH.exists():
         with tf.device('/CPU:0'):
             # Dentro de este bloque, todas las operaciones se ejecutarán en la CPU
             _model = tf.keras.models.load_model(MODEL_PATH)
-        print(f"[OK] Model loaded successfully from {MODEL_PATH}")
+        print(f"[OK] Modelo cargado exitosamente desde {MODEL_PATH}")
     except Exception as e:
-        print(f"[ERROR] Error loading model: {e}")
+        print(f"[ERROR] Error al cargar modelo: {e}")
         _model = None
 else:
-    print("[ADVERTENCIA] Warning: Model path not set or file doesn't exist. Inference will not work until model is trained.")
+    print("[ADVERTENCIA] Ruta del modelo no configurada o archivo no existe. La inferencia no funcionará hasta que se entrene el modelo.")
 
 
 # ---- Image preprocessing ----
@@ -88,21 +88,21 @@ def preprocess_image(file_bytes: bytes) -> np.ndarray:
     return arr
 
 
-#---- Inference function ----
+#---- Función de inferencia ----
 def predict(file_bytes: bytes):
     """
-    Predict the class of a corn leaf image.
+    Predice la clase de una imagen de hoja de maíz.
 
     Args:
-        file_bytes: Raw image bytes
+        file_bytes: Bytes crudos de la imagen
 
     Returns:
-        dict: Prediction results with label, confidence, and probabilities
+        dict: Resultados de predicción con etiqueta, confianza y probabilidades
     """
     if _model is None:
         return {
-            "error": "Model not loaded",
-            "message": "Model file not found. Please train the model first."
+            "error": "Modelo no cargado",
+            "message": "Archivo del modelo no encontrado. Entrene el modelo primero."
         }
 
     try:
@@ -113,18 +113,18 @@ def predict(file_bytes: bytes):
         
         # Validación de consistencia
         num_classes = len(preds)
-        expected_classes = NUM_CLASSES  # Get from config instead of hardcoded
+        expected_classes = NUM_CLASSES  # Obtener de configuración en lugar de hardcodeado
 
         if num_classes != expected_classes:
-            print(f"[ADVERTENCIA]  Advertencia: Modelo devuelve {num_classes} clases, esperaba {expected_classes}")
-        
+            print(f"[ADVERTENCIA] Modelo devuelve {num_classes} clases, se esperaban {expected_classes}")
+
         if _labels:
             if len(_labels) != expected_classes:
-                print(f"[ADVERTENCIA]  Advertencia: {len(_labels)} labels para {expected_classes} clases")
+                print(f"[ADVERTENCIA] {len(_labels)} etiquetas para {expected_classes} clases")
             label = _labels[idx] if idx < len(_labels) else f"class_{idx}"
         else:
             label = str(idx)
-        
+
         # Crear diccionario con probabilidades
         class_probs = {}
         if _labels and len(_labels) == expected_classes:
@@ -133,7 +133,7 @@ def predict(file_bytes: bytes):
         else:
             for i in range(min(num_classes, expected_classes)):
                 class_probs[f"class_{i}"] = probs[i]
-        
+
         return {
             "predicted_label": label,
             "predicted_index": idx,
@@ -141,7 +141,7 @@ def predict(file_bytes: bytes):
             "all_probabilities": class_probs,
             "raw_probabilities": probs
         }
-        
+
     except Exception as e:
         return {
             "error": str(e),
