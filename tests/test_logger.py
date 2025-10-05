@@ -92,7 +92,7 @@ class TestGetLogger:
 
     def test_get_logger_with_file(self, tmp_path):
         """Verifica get_logger con archivo de log."""
-        with patch('src.utils.logger.paths') as mock_paths:
+        with patch('src.utils.paths.paths') as mock_paths:
             mock_paths.root = tmp_path
             
             logger = get_logger('test_file', log_to_file=True)
