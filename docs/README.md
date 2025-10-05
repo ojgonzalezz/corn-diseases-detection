@@ -39,6 +39,6 @@ corn-diseases-detection/
 2. Abrir `notebooks/colab_edge_models_training.ipynb` en Google Colab
 3. Configurar runtime a GPU (T4)
 4. Ejecutar todas las celdas
-5. Esperar 2-3 horas para completar entrenamiento
+5. Esperar 2-3 horas para completar entrenamiento para cada iteración.
 
 Ver documentación en carpeta `docs/` para instrucciones detalladas.
