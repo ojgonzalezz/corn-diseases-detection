@@ -59,13 +59,13 @@ def main():
 
     # Step 2: Validate model
     success = run_command(
-        f"python validate_model.py --config {args.config} --model {model_file} --test-data {args.data_path}/test --max-samples {args.max_samples} --output {validation_report}",
+        f"python validate_model.py --config {args.config} --model {model_file} --test-data {args.data_path} --max-samples {args.max_samples} --output {validation_report}",
         f"Step 2: Validate model (max {args.max_samples} samples)"
     )
 
     # Step 3: Run inference demo
     success = run_command(
-        f"python inference.py --config {args.config} --model {model_file} --batch --num-samples {args.inference_samples}",
+        f"python inference.py --config {args.config} --model {model_file} --data-path {args.data_path} --batch --num-samples {args.inference_samples}",
         f"Step 3: Run inference demo ({args.inference_samples} samples)"
     )
 

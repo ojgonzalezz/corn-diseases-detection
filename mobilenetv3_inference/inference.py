@@ -193,6 +193,7 @@ def main():
     parser = argparse.ArgumentParser(description='MobileNetV3Large Inference Pipeline')
     parser.add_argument('--config', default='config.yaml', help='Ruta al archivo de configuración')
     parser.add_argument('--model', required=True, help='Ruta al modelo TFLite')
+    parser.add_argument('--data-path', help='Ruta base a los datos (reemplaza rutas en config)')
     parser.add_argument('--image', help='Ruta a una imagen para predicción')
     parser.add_argument('--batch', action='store_true', help='Procesar imágenes de muestra')
     parser.add_argument('--num-samples', type=int, default=10, help='Número de muestras para procesamiento batch')
@@ -202,6 +203,12 @@ def main():
     try:
         # Inicializar pipeline
         inference = MobileNetV3Inference(args.config)
+
+        # Actualizar rutas de datos si se especifica data-path
+        if args.data_path:
+            inference.config['data']['train_path'] = f"{args.data_path}/train"
+            inference.config['data']['val_path'] = f"{args.data_path}/val"
+            inference.config['data']['test_path'] = f"{args.data_path}/test"
 
         # Cargar modelo
         inference.load_model(args.model)
