@@ -144,8 +144,6 @@ quantization:
   enabled: true
   optimization: ["DEFAULT"]
   representative_dataset_samples: 100
-  inference_input_type: "tf.uint8"
-  inference_output_type: "tf.uint8"
   supported_ops: ["TFLITE_BUILTINS_INT8"]
 ```
 

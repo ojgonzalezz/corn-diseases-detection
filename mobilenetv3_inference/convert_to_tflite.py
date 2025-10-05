@@ -235,12 +235,14 @@ class MobileNetV3TFLiteConverter:
             # Configurar optimizaciones
             converter.optimizations = self.config['quantization']['optimization']
 
-            # Configurar tipos de entrada/salida
-            input_type = getattr(tf, self.config['quantization']['inference_input_type'].split('.')[-1])
-            output_type = getattr(tf, self.config['quantization']['inference_output_type'].split('.')[-1])
+            # Configurar tipos de entrada/salida (solo si están definidos)
+            if 'inference_input_type' in self.config['quantization']:
+                input_type = getattr(tf, self.config['quantization']['inference_input_type'].split('.')[-1])
+                converter.inference_input_type = input_type
 
-            converter.inference_input_type = input_type
-            converter.inference_output_type = output_type
+            if 'inference_output_type' in self.config['quantization']:
+                output_type = getattr(tf, self.config['quantization']['inference_output_type'].split('.')[-1])
+                converter.inference_output_type = output_type
 
             # Configurar operaciones soportadas
             converter.target_spec.supported_ops = [
