@@ -244,7 +244,7 @@ class MobileNetV3Inference:
                 total_time += result['inference_time_ms']
 
         avg_time = total_time / len(image_paths) if image_paths else 0
-        logger.info(".2f"
+        logger.info(f"Tiempo promedio de inferencia: {avg_time:.2f} ms")
         return results
 
     def load_sample_images(self, num_samples: int = 10) -> List[str]:

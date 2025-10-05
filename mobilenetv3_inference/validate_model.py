@@ -273,7 +273,7 @@ class ModelValidator:
             'true_labels': true_labels.tolist()
         }
 
-        logger.info(".2f"
+        logger.info(f"Accuracy: {accuracy:.2f}")
         # Mostrar matriz de confusión si se solicita
         if show_confusion_matrix:
             self._display_confusion_matrix(cm)
