@@ -41,7 +41,8 @@ class ModelValidator:
         self.target_size_reduction = self.config['validation']['target_size_reduction']
 
         logger.info("Inicializando Model Validator")
-        logger.info(".2f"        logger.info(f"Reducción de tamaño objetivo: {self.target_size_reduction}x")
+        logger.info(f"Precisión objetivo: {self.target_accuracy:.2f}")
+        logger.info(f"Reducción de tamaño objetivo: {self.target_size_reduction}x")
 
     def _load_config(self, config_path: str) -> dict:
         """Carga la configuración desde archivo YAML."""

@@ -327,10 +327,10 @@ def main():
             avg_confidence = np.mean([r['confidence'] for r in successful_predictions])
             avg_time = np.mean([r['inference_time_ms'] for r in successful_predictions])
 
-            print("
-Estadísticas del lote:")
+            print(f"\nEstadísticas del lote:")
             print(f"Imágenes procesadas: {len(successful_predictions)}/{len(results)}")
-            print(".3f"            print(".1f"
+            print(f"Confianza promedio: {avg_confidence:.3f}")
+            print(f"Tiempo promedio: {avg_time:.1f} ms")
         else:
             logger.error("Especifique --image para predicción individual o --batch para procesamiento de lote")
 
