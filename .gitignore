@@ -185,5 +185,17 @@ logs/
 mlruns/
 
 # EDA and Tests folders
-experimentation/eda/
+EDA/
 tests/
+Tests Modelos/
+
+# Model results and experiments (large files)
+Tests Modelos/**/*.zip
+Tests Modelos/**/*.png
+Tests Modelos/**/*.ipynb
+*.zip
+*.tflite
+*.h5
+*.pb
+*.onnx
+*.pkl

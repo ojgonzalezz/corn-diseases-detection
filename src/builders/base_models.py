@@ -49,29 +49,20 @@ def load_vgg16(input_shape: Optional[Tuple[int, int, int]] = None, weights: str 
 
 def load_yolo(input_shape: Optional[Tuple[int, int, int]] = None) -> Optional[object]:
     """
-    Carga un modelo YOLO para clasificación de imágenes.
-
-    IMPORTANTE: Esta función usa YOLOv8-cls (clasificación), no detección de objetos.
-    YOLO puede usarse tanto para detección como para clasificación.
+    Carga modelo YOLOv8 para clasificación.
 
     Args:
-        input_shape (tuple, optional): Shape de entrada (altura, ancho, canales).
-                                      Si es None, usa IMAGE_SIZE de la configuración.
-                                      Para YOLO, típicamente (640, 640, 3) pero se puede ajustar.
+        input_shape: Dimensiones de entrada (altura, ancho, canales).
+                    Si None, usa configuración IMAGE_SIZE.
 
     Returns:
-        model: Modelo YOLO adaptado para clasificación, o None si falla.
+        Modelo YOLO para clasificación o None si falla.
 
     Raises:
         ImportError: Si ultralytics no está instalado.
 
     Note:
         Requiere: pip install ultralytics
-        Documentación: https://docs.ultralytics.com/tasks/classify/
-
-    Example:
-        >>> model = load_yolo()  # Usa configuración por defecto
-        >>> # Entrenar: model.train(data='path/to/dataset', epochs=100)
     """
     if input_shape is None:
         img_size = config.data.image_size
@@ -186,31 +177,17 @@ def load_mobilenetv3_large(input_shape: Optional[Tuple[int, int, int]] = None, w
 
 def load_efficientnet_lite_b2(input_shape: Optional[Tuple[int, int, int]] = None, weights: str = 'imagenet') -> Model:
     """
-    Carga EfficientNet-Lite B2 - Optimizado para edge con mayor precisión.
-    
-    EfficientNet-Lite es una versión simplificada de EfficientNet específicamente
-    diseñada para deployment en dispositivos móviles y edge.
-    
-    Características:
-    - Parámetros: ~10.1M
-    - Tamaño: ~42MB
-    - Mayor precisión manteniendo eficiencia
-    - Compound scaling optimizado
-    
-    NOTA: TensorFlow no incluye EfficientNet-Lite nativamente.
-    Usaremos EfficientNetV2B2 como alternativa compatible que tiene
-    características similares de eficiencia.
-    
+    Carga EfficientNetV2B2 optimizado para edge computing.
+
+    Usa EfficientNetV2B2 como alternativa compatible a EfficientNet-Lite.
+    Características: ~10.1M parámetros, ~42MB, alta precisión.
+
     Args:
         input_shape: Dimensiones de entrada (mínimo 224x224).
         weights: Pesos preentrenados ('imagenet' o None).
-        
+
     Returns:
-        Modelo EfficientNet-Lite B2 sin la capa de clasificación.
-        
-    Example:
-        >>> model = load_efficientnet_lite_b2()
-        >>> print(f"Parámetros: {model.count_params():,}")
+        Modelo EfficientNet sin capa de clasificación.
     """
     if input_shape is None:
         img_size = config.data.image_size
@@ -231,30 +208,17 @@ def load_efficientnet_lite_b2(input_shape: Optional[Tuple[int, int, int]] = None
 
 def load_mobilevit(input_shape: Optional[Tuple[int, int, int]] = None, variant: str = 'small') -> Model:
     """
-    Carga MobileViT - Mobile Vision Transformer para edge computing.
-    
-    MobileViT combina CNNs con Transformers para crear un modelo ligero
-    y eficiente que captura tanto información local como global.
-    
-    Características:
-    - small: ~6.4M params, ~25MB - Balance óptimo
-    - Usa self-attention para capturar dependencias de largo alcance
-    - Diseñado específicamente para dispositivos móviles
-    
-    NOTA: MobileViT no está en tf.keras.applications nativamente.
-    Esta implementación usa una arquitectura personalizada basada en
-    MobileNetV3 + Transformer blocks.
-    
+    Carga MobileViT personalizado basado en MobileNetV3.
+
+    Combina CNNs con atención para capturar características locales y globales.
+    Variante small: ~6.4M parámetros, ~25MB.
+
     Args:
         input_shape: Dimensiones de entrada (recomendado 256x256).
-        variant: Variante del modelo ('small', 'xs', 's').
-        
+        variant: Variante ('small', 'xs', 's').
+
     Returns:
         Modelo MobileViT personalizado.
-        
-    Example:
-        >>> model = load_mobilevit(variant='small')
-        >>> print(f"Parámetros: {model.count_params():,}")
     """
     if input_shape is None:
         img_size = config.data.image_size
@@ -283,30 +247,16 @@ def load_mobilevit(input_shape: Optional[Tuple[int, int, int]] = None, variant: 
 
 def load_pmvt(input_shape: Optional[Tuple[int, int, int]] = None) -> Model:
     """
-    Carga PMVT - Plant-based Mobile Vision Transformer.
-    
-    PMVT es una arquitectura personalizada que combina:
-    - MobileViT como backbone
-    - Optimizaciones específicas para imágenes de plantas
-    - Atención a características como texturas de hojas, patrones de enfermedad
-    
-    Características:
-    - Parámetros: ~6M
-    - Optimizado para clasificación de enfermedades en plantas
-    - Usa attention mechanisms para detectar patrones sutiles
-    
-    NOTA: Esta es una implementación basada en MobileNetV3 con
-    modificaciones para el dominio de enfermedades de plantas.
-    
+    Carga PMVT - Arquitectura optimizada para enfermedades de plantas.
+
+    Basada en MobileNetV3 con atención especializada en patrones de plantas.
+    Características: ~6M parámetros, optimizado para detección de enfermedades.
+
     Args:
         input_shape: Dimensiones de entrada (recomendado 224x224 o 256x256).
-        
+
     Returns:
         Modelo PMVT personalizado para plantas.
-        
-    Example:
-        >>> model = load_pmvt()
-        >>> print(f"Parámetros: {model.count_params():,}")
     """
     if input_shape is None:
         img_size = config.data.image_size

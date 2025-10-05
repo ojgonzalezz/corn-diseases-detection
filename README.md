@@ -1,26 +1,26 @@
-# Corn Diseases Detection
+# Detección de Enfermedades del Maíz
 
-Deep learning system for corn leaf disease classification using lightweight architectures optimized for edge computing.
+Sistema de deep learning para clasificación de enfermedades en hojas de maíz usando arquitecturas ligeras optimizadas para edge computing.
 
-## Quick Start
+## Inicio Rápido
 
-1. 📖 See [docs/README.md](docs/README.md) for complete setup instructions
-2. 🚀 Run [notebooks/colab_edge_models_training.ipynb](notebooks/colab_edge_models_training.ipynb) on Google Colab with GPU
+1. Ver [docs/README.md](docs/README.md) para instrucciones completas
+2. Ejecutar [notebooks/colab_edge_models_training.ipynb](notebooks/colab_edge_models_training.ipynb) en Google Colab con GPU
 
-## Project Structure
+## Estructura del Proyecto
 
 ```
 corn-diseases-detection/
-├── data/                     # Dataset (train/val/test splits)
-├── src/                      # Source code
-├── tests/                    # Test suite
-├── experiments/              # Edge computing experiments
-├── docs/                     # Documentation
-│   ├── README.md            # Complete documentation
-│   └── LICENSE              # License information
-├── notebooks/               # Jupyter notebooks
-│   └── colab_edge_models_training.ipynb  # Main training notebook
-├── requirements.txt          # Python dependencies
-├── .gitignore               # Git ignore rules
-└── README.md                # This file
+├── data/                     # Dataset (divisiones train/val/test)
+├── src/                      # Código fuente
+├── tests/                    # Suite de pruebas
+├── experiments/              # Experimentos edge computing
+├── docs/                     # Documentación
+│   ├── README.md            # Documentación completa
+│   └── LICENSE              # Información de licencia
+├── notebooks/               # Notebooks Jupyter
+│   └── colab_edge_models_training.ipynb  # Notebook principal de entrenamiento
+├── requirements.txt          # Dependencias Python
+├── .gitignore               # Reglas git ignore
+└── README.md                # Este archivo
 ```

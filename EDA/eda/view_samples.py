@@ -1,3 +1,7 @@
+"""
+Visualización de muestras del dataset de enfermedades de maíz.
+"""
+
 import pathlib
 import random
 import matplotlib.pyplot as plt

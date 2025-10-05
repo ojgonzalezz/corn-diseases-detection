@@ -1,45 +1,44 @@
-# Corn Diseases Detection - Edge Models
+# Detección de Enfermedades del Maíz - Modelos Edge
 
-Deep learning system for corn leaf disease classification using lightweight architectures optimized for edge computing.
+Sistema de deep learning para diagnóstico automático de enfermedades comunes en hojas de maíz usando 4 arquitecturas optimizadas para edge entrenadas en Google Colab con GPU gratuita.
 
-## Overview
+## Resumen
 
-This project implements a complete pipeline for automatic diagnosis of common corn leaf diseases using 4 edge-optimized architectures trained in Google Colab with free GPU access.
+Implementa pipeline completo para clasificación automática de enfermedades usando arquitecturas ligeras optimizadas para dispositivos edge.
 
-## Disease Classes
+## Clases de Enfermedad
 
-The model classifies 4 categories:
-- Blight (Corn Borer)
-- Common_Rust (Common Rust)
-- Gray_Leaf_Spot (Gray Leaf Spot)
-- Healthy (Healthy leaves)
+Clasifica 4 categorías:
+- Blight (Barrenador del maíz)
+- Common_Rust (Roya común)
+- Gray_Leaf_Spot (Mancha gris de la hoja)
+- Healthy (Hojas sanas)
 
-## Project Structure
+## Estructura del Proyecto
 
 ```
 corn-diseases-detection/
-├── data/                    # Dataset (ignored by git)
-├── src/                     # Source code
-│   ├── adapters/           # Data loaders
-│   ├── builders/           # Edge model builders
-│   ├── core/               # Central configuration
-│   ├── pipelines/          # ML pipelines
-│   └── utils/              # Utilities
-├── tests/                  # Test suite (10 files)
-├── experimentation/        # EDA scripts and notebooks
-├── experiments/            # Edge computing experiments
-│   └── edge_models/        # Lightweight architecture training
-├── notebooks/colab_edge_models_training.ipynb  # Main Colab notebook
-├── COLAB_SETUP.md          # Colab setup guide
+├── data/                    # Dataset (ignorado por git)
+├── src/                     # Código fuente
+│   ├── adapters/           # Carga de datos
+│   ├── builders/           # Constructores de modelos edge
+│   ├── core/               # Configuración central
+│   ├── pipelines/          # Pipelines ML
+│   └── utils/              # Utilidades
+├── tests/                  # Suite de pruebas (10 archivos)
+├── EDA/                    # Scripts y notebooks de EDA
+├── experiments/            # Experimentos edge computing
+│   └── edge_models/        # Entrenamiento arquitecturas ligeras
+├── notebooks/colab_edge_models_training.ipynb  # Notebook principal Colab
 └── README.md
 ```
 
-## Quick Start
+## Inicio Rápido
 
-1. Upload `data/` folder to Google Drive under `MyDrive/corn-diseases-data/`
-2. Open `notebooks/colab_edge_models_training.ipynb` in Google Colab
-3. Set runtime to GPU (T4)
-4. Run all cells
-5. Wait 2-3 hours for training completion
+1. Subir carpeta `data/` a Google Drive en `MyDrive/corn-diseases-data/`
+2. Abrir `notebooks/colab_edge_models_training.ipynb` en Google Colab
+3. Configurar runtime a GPU (T4)
+4. Ejecutar todas las celdas
+5. Esperar 2-3 horas para completar entrenamiento
 
-See documentation in `docs/` folder for detailed instructions.
+Ver documentación en carpeta `docs/` para instrucciones detalladas.

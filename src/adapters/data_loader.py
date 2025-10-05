@@ -28,13 +28,10 @@ from src.utils.paths import paths
 
 def load_split_data_paths() -> Dict[str, Dict[str, List[str]]]:
     """
-    Carga RUTAS de imágenes de los directorios 'train', 'val' y 'test' sin cargarlas en memoria.
-
-    Esta función es para cuando los datos ya están divididos y se quiere trabajar eficientemente.
+    Carga rutas de imágenes de directorios train/val/test sin cargarlas en memoria.
 
     Returns:
-        Dict[str, Dict[str, List[str]]]: Diccionario con las claves 'train', 'val', 'test',
-            donde cada una contiene un diccionario de {'categoria': [lista_rutas_archivos]}.
+        Dict con estructura {'split': {'categoria': [rutas_archivos]}}.
 
     Example:
         >>> data = load_split_data_paths()
@@ -100,13 +97,10 @@ def load_split_data_paths() -> Dict[str, Dict[str, List[str]]]:
 
 def load_split_data() -> Dict[str, Dict[str, List[Image.Image]]]:
     """
-    Carga imágenes de los directorios 'train', 'val' y 'test' directamente en memoria.
-
-    Esta función es para cuando los datos ya están divididos y procesados.
+    Carga imágenes de directorios train/val/test directamente en memoria.
 
     Returns:
-        Dict[str, Dict[str, List[Image.Image]]]: Diccionario con las claves 'train', 'val', 'test',
-            donde cada una contiene un diccionario de {'categoria': [lista_imagenes]}.
+        Dict con estructura {'split': {'categoria': [imagenes]}}.
 
     Example:
         >>> data = load_split_data()
@@ -167,21 +161,13 @@ def load_split_data() -> Dict[str, Dict[str, List[Image.Image]]]:
 
 def load_raw_data() -> Dict[str, Dict[str, Any]]:
     """
-    Carga imágenes de los directorios 'data_1' y 'data_2' en memoria,
-    manteniendo la separación e incluyendo las consideraciones de balanceo.
+    Carga imágenes de directorios data_1, data_2, etc. con consideraciones de balanceo.
 
     Returns:
-        Dict[str, Dict[str, Any]]: Diccionario con estructura:
-            {
-                'data_1': {
-                    'dataset_consideration': str,
-                    'images': Dict[str, List[Image.Image]]
-                },
-                'data_2': {...}
-            }
+        Dict con estructura {'dataset': {'consideration': str, 'images': {categoria: [imgs]}}}.
 
     Raises:
-        FileNotFoundError: Si no se encuentra el directorio raw o subdirectorios data_*.
+        FileNotFoundError: Si no se encuentra directorio raw o subdirectorios data_*.
 
     Example:
         >>> raw_data = load_raw_data()

@@ -1,3 +1,7 @@
+"""
+Validación de integridad del dataset de enfermedades de maíz.
+"""
+
 import pathlib
 from PIL import Image
 from tqdm import tqdm

@@ -1,3 +1,7 @@
+"""
+Análisis de distribución de clases y estadísticas del dataset de enfermedades de maíz.
+"""
+
 import pathlib
 import pandas as pd
 import matplotlib.pyplot as plt
