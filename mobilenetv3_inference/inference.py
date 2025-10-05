@@ -209,7 +209,8 @@ class MobileNetV3Inference:
                 'image_path': img_path
             }
 
-            logger.info(".3f"            logger.info(f"Predicción: {predicted_class} (confianza: {confidence:.3f})")
+            logger.info(f"Confianza: {confidence:.3f}")
+            logger.info(f"Predicción: {predicted_class} (confianza: {confidence:.3f})")
 
             return result
 

@@ -232,7 +232,8 @@ class ModelValidator:
         predictions = np.array(predictions)
         avg_inference_time = np.mean(inference_times)
 
-        logger.info(".1f"        return predictions, avg_inference_time
+        logger.info(f"Tiempo promedio de inferencia: {avg_inference_time:.1f} ms")
+        return predictions, avg_inference_time
 
     def evaluate_accuracy(self, predictions: np.ndarray, true_labels: np.ndarray, show_confusion_matrix: bool = True) -> Dict:
         """
