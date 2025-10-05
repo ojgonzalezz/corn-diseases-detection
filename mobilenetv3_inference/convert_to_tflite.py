@@ -88,6 +88,17 @@ class MobileNetV3TFLiteConverter:
         """Simple training to adapt the model to corn disease classification."""
         try:
             from tensorflow.keras.preprocessing.image import ImageDataGenerator
+            from pathlib import Path
+
+            # Ensure data_path is absolute or relative to project root
+            data_path = Path(data_path)
+            if not data_path.is_absolute():
+                # If run from mobilenetv3_inference/, go up one level
+                project_root = Path(__file__).parent.parent
+                data_path = project_root / data_path
+
+            if not data_path.exists():
+                raise FileNotFoundError(f"Data path not found: {data_path}")
 
             train_datagen = ImageDataGenerator(
                 preprocessing_function=mobilenet_v3_preprocess,
@@ -98,8 +109,10 @@ class MobileNetV3TFLiteConverter:
                 validation_split=0.2
             )
 
+            logger.info(f"Looking for training data in: {data_path}")
+
             train_generator = train_datagen.flow_from_directory(
-                data_path,
+                str(data_path),
                 target_size=tuple(self.config['model']['input_shape'][:2]),
                 batch_size=32,
                 class_mode='categorical',
@@ -107,14 +120,23 @@ class MobileNetV3TFLiteConverter:
             )
 
             val_generator = train_datagen.flow_from_directory(
-                data_path,
+                str(data_path),
                 target_size=tuple(self.config['model']['input_shape'][:2]),
                 batch_size=32,
                 class_mode='categorical',
                 subset='validation'
             )
 
+            logger.info(f"Found classes: {list(train_generator.class_indices.keys())}")
             logger.info(f"Training with {train_generator.samples} training samples, {val_generator.samples} validation samples")
+
+            # Verify classes match config
+            expected_classes = set(self.config['data']['classes'])
+            found_classes = set(train_generator.class_indices.keys())
+
+            if expected_classes != found_classes:
+                logger.warning(f"Class mismatch! Expected: {expected_classes}, Found: {found_classes}")
+                # Continue anyway, the model will adapt
 
             # Fine-tune only the classification head
             self.model.fit(

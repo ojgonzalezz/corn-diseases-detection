@@ -313,8 +313,8 @@ class ModelValidator:
 
         logger.info("=== VALIDACIÓN DE REQUISITOS ===")
         logger.info(f"Precisión objetivo: {self.target_accuracy:.0%}")
-        logger.info(".2f"        logger.info(f"Reducción de tamaño objetivo: {self.target_size_reduction}x")
-        logger.info(".1f"        logger.info(f"Precisión requerida: {'✅ CUMPLIDA' if validation_results['accuracy_requirement_met'] else '❌ NO CUMPLIDA'}")
+        logger.info(f"Reducción de tamaño objetivo: {self.target_size_reduction:.2f}x")
+        logger.info(f"Precisión requerida: {'✅ CUMPLIDA' if validation_results['accuracy_requirement_met'] else '❌ NO CUMPLIDA'}")
         logger.info(f"Reducción requerida: {'✅ CUMPLIDA' if validation_results['size_reduction_requirement_met'] else '❌ NO CUMPLIDA'}")
         logger.info(f"VALIDACIÓN GENERAL: {'✅ PASADA' if validation_results['overall_pass'] else '❌ FALLIDA'}")
 
