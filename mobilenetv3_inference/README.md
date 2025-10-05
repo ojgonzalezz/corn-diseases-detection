@@ -6,7 +6,7 @@ Sistema de inferencia optimizado para detección de enfermedades del maíz usand
 
 - `run_pipeline.py`: Script principal de ejecución automática
 - `config.yaml`: Configuración de hiperparámetros
-- `convert_to_tflite.py`: Construcción, entrenamiento y conversión a TensorFlow Lite
+- `convert_to_tflite.py`: Construcción, entrenamiento y conversión a TensorFlow Lite (auto-detecta estructura de datos)
 - `validate_model.py`: Validación y métricas
 - `inference.py`: Pipeline de inferencia
 
