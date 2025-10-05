@@ -34,16 +34,6 @@ class ModelValidator:
         self.input_details = self.interpreter.get_input_details()
         self.output_details = self.interpreter.get_output_details()
 
-            logger.info(f"Modelo TFLite cargado para validación: {model_path}")
-            logger.info(f"Input shape: {input_details[0]['shape']}")
-            logger.info(f"Input type: {input_details[0]['dtype']}")
-            logger.info(f"Output shape: {output_details[0]['shape']}")
-            logger.info(f"Output type: {output_details[0]['dtype']}")
-
-        except Exception as e:
-            logger.error(f"Error al cargar modelo TFLite: {e}")
-            raise
-
     def load_test_data(self, test_path: str, max_samples: int = None) -> Tuple[np.ndarray, np.ndarray, List[str]]:
         """
         Carga datos de test para validación.

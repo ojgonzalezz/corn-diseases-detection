@@ -219,7 +219,8 @@ def main():
             print("\nResultado de predicción:")
             print(f"Imagen: {result['image_path']}")
             print(f"Clase predicha: {result['predicted_class']}")
-            print(".3f"            print(".1f"
+            print(f"Confianza: {result['confidence']:.3f}")
+            print(f"Tiempo: {result['inference_time_ms']:.1f} ms")
 
         elif args.batch:
             # Predicción en lote de imágenes de muestra
