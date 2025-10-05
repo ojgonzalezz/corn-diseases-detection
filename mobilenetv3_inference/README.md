@@ -18,12 +18,15 @@ Sistema de inferencia optimizado para detección de enfermedades del maíz usand
 # 1. Instalar todas las dependencias necesarias
 !pip install tensorflow tensorflow-model-optimization pyyaml scikit-learn pillow matplotlib seaborn
 
-# 2. Obtener la versión MÁS RECIENTE del repositorio (fuerza actualización)
+# 2. 🔄 REINICIAR RUNTIME AQUÍ (Runtime → Restart runtime)
+# Esto es necesario por conflictos de numpy después de instalar tensorflow-model-optimization
+
+# 3. Obtener la versión MÁS RECIENTE del repositorio (fuerza actualización)
 !rm -rf corn-diseases-detection  # Eliminar versión anterior si existe
 !git clone https://github.com/ojgonzalezz/corn-diseases-detection.git
 !cd corn-diseases-detection && git log --oneline -1  # Verificar versión
 
-# 3. Montar Google Drive para acceder a los datos
+# 4. Montar Google Drive para acceder a los datos
 from google.colab import drive
 drive.mount('/content/drive')
 ```
@@ -33,6 +36,9 @@ drive.mount('/content/drive')
 ```python
 # Si tienes archivos locales que quieres preservar, usa esta opción:
 !pip install tensorflow tensorflow-model-optimization pyyaml scikit-learn pillow matplotlib seaborn
+
+# 🔄 REINICIAR RUNTIME AQUÍ (Runtime → Restart runtime)
+# Necesario por conflictos de numpy
 
 # Forzar actualización completa del repositorio
 !cd corn-diseases-detection && git fetch origin && git reset --hard origin/main
