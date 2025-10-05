@@ -10,16 +10,27 @@ Sistema de inferencia optimizado para detección de enfermedades del maíz usand
 - `validate_model.py`: Validación completa incluyendo accuracy y matriz de confusión
 - `inference.py`: Pipeline de inferencia optimizado para producción
 
-## Ejecución Automática (Recomendado)
+## Ejecución en Google Colab (Recomendado)
 
-Para ejecutar todo el pipeline automáticamente con un solo comando:
+### Preparación Inicial en Colab
+
+```python
+# 1. Instalar todas las dependencias necesarias
+!pip install tensorflow tensorflow-model-optimization pyyaml scikit-learn pillow matplotlib seaborn
+
+# 2. Clonar o actualizar el repositorio
+!git clone https://github.com/ojgonzalezz/corn-diseases-detection.git 2>/dev/null || (cd corn-diseases-detection && git pull)
+
+# 3. Montar Google Drive para acceder a los datos
+from google.colab import drive
+drive.mount('/content/drive')
+```
+
+### Ejecución Automática Completa
 
 ```bash
-# Ejecutar todo el pipeline automáticamente
-python run_pipeline.py
-
-# O con parámetros personalizados
-python run_pipeline.py --max-samples 1000 --inference-samples 50
+# Ejecutar todo el pipeline automáticamente con tus datos en Drive
+!cd corn-diseases-detection/mobilenetv3_inference && python run_pipeline.py --data-path /content/drive/MyDrive/corn-diseases-data
 ```
 
 **Qué hace automáticamente:**
@@ -44,6 +55,16 @@ Opciones:
   --data-path DATA_PATH     Ruta a los datos (default: ../data)
   --max-samples MAX_SAMPLES Máximo muestras para validación (default: 500)
   --inference-samples SAMPLES Muestras para demo de inferencia (default: 20)
+```
+
+### Ejemplos de Uso Personalizado
+
+```bash
+# Más muestras para validación más precisa
+!cd corn-diseases-detection/mobilenetv3_inference && python run_pipeline.py --data-path /content/drive/MyDrive/corn-diseases-data --max-samples 1000
+
+# Menos muestras para demo rápida
+!cd corn-diseases-detection/mobilenetv3_inference && python run_pipeline.py --data-path /content/drive/MyDrive/corn-diseases-data --inference-samples 10
 ```
 
 ## Requisitos del Sistema

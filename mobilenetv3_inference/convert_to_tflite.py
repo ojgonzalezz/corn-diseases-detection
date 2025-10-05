@@ -17,6 +17,13 @@ from tensorflow.keras.preprocessing import image
 from tensorflow.keras.applications.mobilenet_v3 import preprocess_input as mobilenet_v3_preprocess
 from tensorflow.keras import layers, models
 from tensorflow.keras.callbacks import ModelCheckpoint, EarlyStopping
+# Configurar logging ANTES de usarlo
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+)
+logger = logging.getLogger(__name__)
+
 try:
     import tensorflow_model_optimization as tfmot
     PRUNING_AVAILABLE = True
@@ -24,13 +31,6 @@ except ImportError:
     logger.warning("tensorflow-model-optimization no disponible. El pruning será omitido.")
     PRUNING_AVAILABLE = False
     tfmot = None
-
-# Configurar logging
-logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
-)
-logger = logging.getLogger(__name__)
 
 class MobileNetV3TFLiteConverter:
     """Clase para conversión optimizada de MobileNetV3Large a TFLite."""
