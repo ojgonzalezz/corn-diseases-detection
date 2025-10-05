@@ -1,8 +1,4 @@
 #!/usr/bin/env python3
-"""
-Validación de Modelo MobileNetV3Large Optimizado
-Evalúa precisión, rendimiento y cumplimiento de requisitos en edge devices.
-"""
 
 import os
 import sys
@@ -11,83 +7,32 @@ import yaml
 import logging
 import numpy as np
 from pathlib import Path
-from typing import Dict, List, Tuple
+from typing import Dict, List
 import tensorflow as tf
 from sklearn.metrics import classification_report, accuracy_score, confusion_matrix
 import seaborn as sns
 import matplotlib.pyplot as plt
 
-# Configurar logging
-logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
-)
+logging.basicConfig(level=logging.INFO, format='%(levelname)s: %(message)s')
 logger = logging.getLogger(__name__)
 
 class ModelValidator:
-    """Clase para validación completa de modelos TFLite optimizados."""
-
     def __init__(self, config_path: str = "config.yaml"):
-        """
-        Inicializa el validador.
-
-        Args:
-            config_path: Ruta al archivo de configuración YAML
-        """
         self.config = self._load_config(config_path)
         self.interpreter = None
         self.class_names = self.config['data']['classes']
         self.target_accuracy = self.config['validation']['target_accuracy']
         self.target_size_reduction = self.config['validation']['target_size_reduction']
 
-        logger.info("Inicializando Model Validator")
-        logger.info(f"Precisión objetivo: {self.target_accuracy:.2f}")
-        logger.info(f"Reducción de tamaño objetivo: {self.target_size_reduction}x")
-
     def _load_config(self, config_path: str) -> dict:
-        """Carga la configuración desde archivo YAML."""
-        try:
-            with open(config_path, 'r') as f:
-                config = yaml.safe_load(f)
-            logger.info(f"Configuración cargada desde {config_path}")
-            return config
-        except FileNotFoundError:
-            logger.error(f"Archivo de configuración no encontrado: {config_path}")
-            raise
-        except yaml.YAMLError as e:
-            logger.error(f"Error al parsear configuración YAML: {e}")
-            raise
+        with open(config_path, 'r') as f:
+            return yaml.safe_load(f)
 
     def load_tflite_model(self, model_path: str):
-        """
-        Carga el modelo TFLite para validación.
-
-        Args:
-            model_path: Ruta al archivo .tflite
-        """
-        try:
-            self.interpreter = tf.lite.Interpreter(
-                model_path=model_path,
-                num_threads=self.config['inference']['num_threads']
-            )
-
-            # Configurar delegates si disponibles
-            if self.config['inference']['use_xnnpack_delegate']:
-                try:
-                    xnnpack_delegate = tf.lite.experimental.load_delegate('libXNNPACK.so')
-                    self.interpreter = tf.lite.Interpreter(
-                        model_path=model_path,
-                        experimental_delegates=[xnnpack_delegate],
-                        num_threads=self.config['inference']['num_threads']
-                    )
-                    logger.info("XNNPACK delegate cargado para validación")
-                except Exception as e:
-                    logger.warning(f"No se pudo cargar XNNPACK delegate: {e}")
-
-            self.interpreter.allocate_tensors()
-
-            input_details = self.interpreter.get_input_details()
-            output_details = self.interpreter.get_output_details()
+        self.interpreter = tf.lite.Interpreter(model_path=model_path, num_threads=self.config['inference']['num_threads'])
+        self.interpreter.allocate_tensors()
+        self.input_details = self.interpreter.get_input_details()
+        self.output_details = self.interpreter.get_output_details()
 
             logger.info(f"Modelo TFLite cargado para validación: {model_path}")
             logger.info(f"Input shape: {input_details[0]['shape']}")

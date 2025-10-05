@@ -1,8 +1,4 @@
 #!/usr/bin/env python3
-"""
-MobileNetV3Large Pipeline Automático
-Ejecuta todo el pipeline de conversión, validación e inferencia automáticamente.
-"""
 
 import os
 import sys
@@ -13,31 +9,16 @@ from datetime import datetime
 from pathlib import Path
 
 def run_command(cmd, description, cwd=None):
-    """Ejecuta un comando y maneja errores."""
     print(f"\n{'='*60}")
-    print(f"🚀 {description}")
+    print(f"RUNNING: {description}")
     print('='*60)
 
     try:
-        result = subprocess.run(
-            cmd,
-            shell=True,
-            cwd=cwd,
-            capture_output=True,
-            text=True,
-            check=True
-        )
-        print("✅ Completado exitosamente")
-        if result.stdout:
-            print("Salida:", result.stdout[-500:])  # Últimos 500 caracteres
+        result = subprocess.run(cmd, shell=True, cwd=cwd, capture_output=True, text=True, check=True)
+        print("SUCCESS: Completed")
         return True
     except subprocess.CalledProcessError as e:
-        print(f"❌ Error en {description}")
-        print(f"Código de error: {e.returncode}")
-        if e.stdout:
-            print("Salida:", e.stdout[-1000:])
-        if e.stderr:
-            print("Error:", e.stderr[-1000:])
+        print(f"ERROR in {description}: {e.returncode}")
         return False
 
 def main():
@@ -59,81 +40,48 @@ def main():
     validation_report = results_dir / 'validation_report.json'
     inference_report = results_dir / 'inference_demo.json'
 
-    print("MobileNetV3Large Pipeline Automático")
-    print(f"Inicio: {datetime.now()}")
-    print(f"Configuración: {args.config}")
-    print(f"Datos: {args.data_path}")
-    print(f"Modelo de salida: {model_file}")
-    print(f"Reporte de validación: {validation_report}")
+    print("MobileNetV3Large Pipeline")
+    print(f"Start: {datetime.now()}")
+    print(f"Config: {args.config}")
+    print(f"Data: {args.data_path}")
 
-    # PASO 1: Conversión a TFLite
+    # Step 1: Convert to TFLite
     success = run_command(
         f"python convert_to_tflite.py --config {args.config} --output {model_file} --data-path {args.data_path}",
-        "PASO 1: Conversión del modelo a TensorFlow Lite",
-        cwd=Path('.')
+        "Step 1: Convert model to TensorFlow Lite"
     )
 
-    if not success:
-        print("\n❌ Falló la conversión del modelo")
+    if not success or not model_file.exists():
+        print("ERROR: Model conversion failed")
         sys.exit(1)
 
-    # Verificar que el modelo se creó
-    if not model_file.exists():
-        print(f"\n❌ El archivo del modelo no se creó: {model_file}")
-        sys.exit(1)
+    print(f"Model created: {model_file} ({model_file.stat().st_size / (1024*1024):.1f} MB)")
 
-    print(f"✅ Modelo creado: {model_file} ({model_file.stat().st_size / (1024*1024):.1f} MB)")
-
-    # PASO 2: Validación del modelo
+    # Step 2: Validate model
     success = run_command(
         f"python validate_model.py --config {args.config} --model {model_file} --test-data {args.data_path}/test --max-samples {args.max_samples} --output {validation_report}",
-        f"PASO 2: Validación del modelo (máx. {args.max_samples} muestras)",
-        cwd=Path('.')
+        f"Step 2: Validate model (max {args.max_samples} samples)"
     )
 
-    if success and validation_report.exists():
-        try:
-            with open(validation_report, 'r') as f:
-                report = json.load(f)
-
-            accuracy = report.get('accuracy', 'N/A')
-            print(f"📊 Accuracy: {accuracy:.4f}")
-            print(f"📊 Matriz de confusión guardada en: {results_dir}/confusion_matrix.png")
-        except Exception as e:
-            print(f"⚠️  No se pudo leer el reporte de validación: {e}")
-    else:
-        print("\n⚠️  La validación falló o no generó reporte")
-
-    # PASO 3: Demo de inferencia
+    # Step 3: Run inference demo
     success = run_command(
         f"python inference.py --config {args.config} --model {model_file} --batch --num-samples {args.inference_samples}",
-        f"PASO 3: Demo de inferencia ({args.inference_samples} muestras)",
-        cwd=Path('.')
+        f"Step 3: Run inference demo ({args.inference_samples} samples)"
     )
 
-    # PASO 4: Resumen final
+    # Final summary
     print(f"\n{'='*60}")
-    print("📋 RESUMEN FINAL")
+    print("FINAL SUMMARY")
     print('='*60)
 
-    print("Archivos generados:")
-    print(f"  📁 Modelo optimizado: {model_file}")
-    print(f"  📏 Tamaño: {model_file.stat().st_size / (1024*1024):.1f} MB")
+    print("Generated files:")
+    print(f"  Model: {model_file}")
+    print(f"  Size: {model_file.stat().st_size / (1024*1024):.1f} MB")
     if validation_report.exists():
-        print(f"  📊 Reporte de validación: {validation_report}")
-        print(f"  🖼️  Matriz de confusión: {results_dir}/confusion_matrix.png")
+        print(f"  Validation report: {validation_report}")
+        print(f"  Confusion matrix: {results_dir}/confusion_matrix.png")
 
-    print("\nConfiguración utilizada:")
-    print(f"  ⚙️  Config: {args.config}")
-    print(f"  📂 Datos: {args.data_path}")
-    print(f"  🔢 Muestras validación: {args.max_samples}")
-    print(f"  🚀 Muestras inferencia: {args.inference_samples}")
-
-    print(f"\n✅ Pipeline completado: {datetime.now()}")
-    print("\n💡 Próximos pasos:")
-    print("   - Revisar el accuracy en el reporte de validación")
-    print("   - Ver la matriz de confusión generada")
-    print("   - El modelo está listo para despliegue en dispositivos edge")
+    print(f"\nPipeline completed: {datetime.now()}")
 
 if __name__ == "__main__":
     main()
