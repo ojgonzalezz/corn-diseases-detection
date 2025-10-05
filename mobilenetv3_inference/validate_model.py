@@ -285,7 +285,8 @@ class ModelValidator:
             'size_reduction_factor': size_reduction
         }
 
-        logger.info(".2f"        logger.info(".1f"
+        logger.info(f"Modelo TFLite: {tflite_size_mb:.2f} MB")
+        logger.info(f"Reducción de tamaño: {size_reduction:.1f}x")
         return size_info
 
     def validate_requirements(self, evaluation: Dict, size_info: Dict) -> Dict:

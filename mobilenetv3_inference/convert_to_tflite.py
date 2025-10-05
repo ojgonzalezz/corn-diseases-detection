@@ -37,22 +37,22 @@ class MobileNetV3TFLiteConverter:
             input_shape=self.config['model']['input_shape'],
             alpha=self.config['model']['alpha'],
             minimalistic=self.config['model']['minimalistic'],
-            include_top=self.config['model']['include_top'],
+            include_top=False,  # Always use False to add custom classification head
             weights=self.config['model']['weights'],
             pooling=self.config['model']['pooling']
         )
 
-        if not self.config['model']['include_top']:
-            x = base_model.output
-            x = layers.GlobalAveragePooling2D()(x)
-            x = layers.Dense(1024, activation='relu')(x)
-            x = layers.Dropout(0.5)(x)
-            predictions = layers.Dense(len(self.config['data']['classes']), activation='softmax')(x)
-            self.model = models.Model(inputs=base_model.input, outputs=predictions)
-            for layer in base_model.layers:
-                layer.trainable = False
-        else:
-            self.model = base_model
+        # Add custom classification head for corn diseases
+        x = base_model.output
+        x = layers.GlobalAveragePooling2D()(x)
+        x = layers.Dense(1024, activation='relu')(x)
+        x = layers.Dropout(0.5)(x)
+        predictions = layers.Dense(len(self.config['data']['classes']), activation='softmax')(x)
+        self.model = models.Model(inputs=base_model.input, outputs=predictions)
+
+        # Freeze base model layers
+        for layer in base_model.layers:
+            layer.trainable = False
 
         # Compilar modelo
         self.model.compile(
@@ -79,6 +79,51 @@ class MobileNetV3TFLiteConverter:
         self.pruned_model = tfmot.sparsity.keras.prune_low_magnitude(self.model, pruning_schedule=pruning_schedule)
         self.pruned_model.compile(optimizer=self.config['training']['optimizer'], loss='categorical_crossentropy', metrics=['accuracy'])
         return self.pruned_model
+
+    def train_model(self, data_path: str, epochs: int = 5):
+        """Simple training to adapt the model to corn disease classification."""
+        try:
+            from tensorflow.keras.preprocessing.image import ImageDataGenerator
+
+            train_datagen = ImageDataGenerator(
+                preprocessing_function=mobilenet_v3_preprocess,
+                rotation_range=20,
+                width_shift_range=0.2,
+                height_shift_range=0.2,
+                horizontal_flip=True,
+                validation_split=0.2
+            )
+
+            train_generator = train_datagen.flow_from_directory(
+                data_path,
+                target_size=tuple(self.config['model']['input_shape'][:2]),
+                batch_size=32,
+                class_mode='categorical',
+                subset='training'
+            )
+
+            val_generator = train_datagen.flow_from_directory(
+                data_path,
+                target_size=tuple(self.config['model']['input_shape'][:2]),
+                batch_size=32,
+                class_mode='categorical',
+                subset='validation'
+            )
+
+            logger.info(f"Training with {train_generator.samples} training samples, {val_generator.samples} validation samples")
+
+            # Fine-tune only the classification head
+            self.model.fit(
+                train_generator,
+                validation_data=val_generator,
+                epochs=epochs,
+                verbose=1
+            )
+
+            logger.info("Model training completed")
+
+        except Exception as e:
+            logger.warning(f"Training failed: {e}. Continuing with pre-trained weights.")
 
     def create_representative_dataset(self, data_path: str, num_samples: int = 100):
         def representative_dataset():
@@ -139,6 +184,9 @@ def main():
 
     converter = MobileNetV3TFLiteConverter(args.config)
     converter.build_model()
+
+    # Train the model with corn disease data
+    converter.train_model(args.data_path, epochs=3)
 
     if converter.config['pruning']['enabled']:
         converter.apply_pruning()
