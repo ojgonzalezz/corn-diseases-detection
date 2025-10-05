@@ -13,7 +13,6 @@ import ast
 import math
 import random
 from tqdm import tqdm
-import collections
 from collections import defaultdict
 from typing import Dict, List, Tuple, Any
 import numpy as np
@@ -48,7 +47,7 @@ def data_split(datasets: Dict[str, Any], environment_variables: Dict[str, Any]) 
             raise ValueError("CLASS_NAMES no contiene categorías válidas.")
     except (ValueError, SyntaxError, KeyError) as e:
         # Fallback robusto: Derivar categorías directamente de los datos
-        print(f"[ADVERTENCIA] Warning: Could not parse CLASS_NAMES from env ({e}). Deriving from data...")
+        print(f"[ADVERTENCIA] No se pudo parsear CLASS_NAMES del entorno ({e}). Derivando de los datos...")
         categories = set()
         for dataset_key in datasets.keys():
             categories.update(datasets[dataset_key]["images"].keys())

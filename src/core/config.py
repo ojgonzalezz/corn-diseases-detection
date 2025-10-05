@@ -1,7 +1,7 @@
 """
-Simplified configuration management.
+Gestión simplificada de configuración.
 
-This module provides configuration for the entire project without external dependencies.
+Este módulo proporciona configuración para todo el proyecto sin dependencias externas.
 """
 from typing import List, Tuple, Optional, Dict, Any
 import os
@@ -9,7 +9,7 @@ from pydantic import BaseModel, Field, ValidationError, field_validator, Validat
 
 
 class DataConfig(BaseModel):
-    """Configuration related to data and images."""
+    """Configuración relacionada con datos e imágenes."""
 
     # Image parameters
     image_size: Tuple[int, int] = Field((224, 224), description="Tamaño de las imágenes (ancho, alto)")
@@ -61,21 +61,21 @@ class DataConfig(BaseModel):
     @classmethod
     def image_size_must_be_positive(cls, v):
         if not all(dim > 0 for dim in v):
-            raise ValueError("image_size dimensions must be positive")
+            raise ValueError("Las dimensiones de image_size deben ser positivas")
         return v
 
     @field_validator('split_ratios')
     @classmethod
     def split_ratios_sum_to_one(cls, v):
         if abs(sum(v) - 1.0) > 1e-6:
-            raise ValueError('split_ratios must sum to 1.0')
+            raise ValueError('split_ratios deben sumar 1.0')
         return v
 
     @field_validator('class_names')
     @classmethod
     def class_names_match_num_classes(cls, v, info: ValidationInfo):
         if 'num_classes' in info.data and len(v) != info.data['num_classes']:
-            raise ValueError('Length of class_names must match num_classes')
+            raise ValueError('La longitud de class_names debe coincidir con num_classes')
         return v
 
 
@@ -101,7 +101,7 @@ training = TrainingConfig()
 
 
 class Config(BaseModel):
-    """Clase config compatible con el código existente."""
+    """Clase Config compatible con el código existente."""
     data: DataConfig
     training: TrainingConfig
 
