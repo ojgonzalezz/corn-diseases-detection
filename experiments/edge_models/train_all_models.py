@@ -34,39 +34,7 @@ EXPERIMENTS = [
         'epochs': 50,  # Más épocas para mejor convergencia
         'batch_size': 32,  # Optimizado para mejores resultados
         'fine_tune': False,
-    },
-
-    # EfficientNet-Lite B2 - Máxima eficiencia (learning rate ajustado)
-    {
-        'name': 'EfficientNetLiteB2',
-        'lr': 0.002,  # Aumentado significativamente para EfficientNet
-        'dropout': 0.25,
-        'epochs': 50,  # Más épocas
-        'batch_size': 32,  # Optimizado para mejores resultados
-        'fine_tune': False,
-    },
-
-    # MobileViT - Vision Transformer móvil
-    {
-        'name': 'MobileViT',
-        'lr': 0.001,
-        'dropout': 0.3,
-        'epochs': 40,  # Moderadamente aumentado
-        'batch_size': 32,  # Optimizado para mejores resultados
-        'fine_tune': True,
-        'fine_tune_epochs': 15,  # Más épocas de fine-tuning
-    },
-
-    # PMVT - Optimizado para plantas
-    {
-        'name': 'PMVT',
-        'lr': 0.001,
-        'dropout': 0.3,
-        'epochs': 40,  # Moderadamente aumentado
-        'batch_size': 32,  # Optimizado para mejores resultados
-        'fine_tune': True,
-        'fine_tune_epochs': 15,  # Más épocas de fine-tuning
-    },
+    }
 ]
 
 
