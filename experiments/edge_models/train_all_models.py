@@ -29,11 +29,11 @@ EXPERIMENTS = [
     # MobileNetV3Large - Balance tamaño/precisión
     {
         'name': 'MobileNetV3Large',
-        'lr': 0.001,
-        'dropout': 0.3,
+        'lr': 0.0008,
+        'dropout': 0.25,
         'epochs': 50,  # Más épocas para mejor convergencia
         'batch_size': 32,  # Optimizado para mejores resultados
-        'fine_tune': False,
+        'fine_tune': True,
     }
 ]
 
