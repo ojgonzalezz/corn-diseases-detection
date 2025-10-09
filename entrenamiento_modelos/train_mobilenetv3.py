@@ -30,14 +30,21 @@ def create_mobilenetv3_model(num_classes, image_size, learning_rate):
     # Congelar capas base inicialmente
     base_model.trainable = False
 
-    # Construir modelo completo
+    # Construir modelo completo - Arquitectura optimizada para >85% accuracy
     inputs = tf.keras.Input(shape=(*image_size, 3))
     x = base_model(inputs, training=False)
     x = GlobalAveragePooling2D()(x)
-    x = Dense(256, activation='relu')(x)
-    x = Dropout(0.3)(x)
+
+    # Capa densa más grande para mejor representación de características
+    x = Dense(512, activation='relu', kernel_regularizer=tf.keras.regularizers.l2(0.001))(x)
+    x = Dropout(0.3)(x)  # Dropout moderado para balance entre learning y regularización
+
+    x = Dense(256, activation='relu', kernel_regularizer=tf.keras.regularizers.l2(0.001))(x)
+    x = Dropout(0.25)(x)
+
     x = Dense(128, activation='relu')(x)
     x = Dropout(0.2)(x)
+
     outputs = Dense(num_classes, activation='softmax')(x)
 
     model = Model(inputs, outputs)
@@ -81,6 +88,18 @@ def train_mobilenetv3():
     print(f"Imagenes de entrenamiento: {train_gen.samples}")
     print(f"Imagenes de validacion: {val_gen.samples}")
     print(f"Imagenes de prueba: {test_gen.samples}")
+
+    # Calcular class weights para balanceo de clases (mejora recall)
+    from sklearn.utils.class_weight import compute_class_weight
+    import numpy as np
+
+    class_weights = compute_class_weight(
+        class_weight='balanced',
+        classes=np.unique(train_gen.classes),
+        y=train_gen.classes
+    )
+    class_weight_dict = dict(enumerate(class_weights))
+    print(f"\nClass weights calculados: {class_weight_dict}")
 
     # Crear modelo
     print("\nCreando modelo MobileNetV3-Large...")
@@ -141,29 +160,68 @@ def train_mobilenetv3():
             epochs=EPOCHS,
             validation_data=val_gen,
             callbacks=callbacks,
+            class_weight=class_weight_dict,  # Usar class weights para mejor recall
             verbose=1
         )
 
         training_time = time.time() - start_time
         print(f"\nTiempo de entrenamiento: {training_time:.2f} segundos ({training_time/60:.2f} minutos)")
 
-        # Fine-tuning (descongelar últimas capas)
+        # Fine-tuning (descongelar últimas capas gradualmente)
         print("\nIniciando fine-tuning...")
-        model.layers[1].trainable = True
 
-        # Re-compilar con learning rate más bajo
+        # Descongelar solo las últimas 30 capas del modelo base (más que antes)
+        base_model = model.layers[1]
+        base_model.trainable = True
+
+        # Congelar todas las capas excepto las últimas 30
+        for layer in base_model.layers[:-30]:
+            layer.trainable = False
+
+        trainable_layers = sum([1 for layer in base_model.layers if layer.trainable])
+        print(f"Capas descongeladas para fine-tuning: {trainable_layers} de {len(base_model.layers)}")
+
+        # Re-compilar con learning rate bajo pero no demasiado bajo para fine-tuning
+        # Usar 0.00005 (0.001 * 0.05) para permitir ajuste fino sin sobreajuste
         model.compile(
-            optimizer=Adam(learning_rate=LEARNING_RATE * 0.1),
+            optimizer=Adam(learning_rate=LEARNING_RATE * 0.05),
             loss='categorical_crossentropy',
             metrics=['accuracy']
         )
 
+        # Callbacks para fine-tuning - Balance entre exploración y convergencia
+        finetune_callbacks = [
+            EarlyStopping(
+                monitor='val_accuracy',
+                patience=8,  # Aumentado de 5 a 8 para dar más tiempo
+                restore_best_weights=True,
+                verbose=1,
+                mode='max'
+            ),
+            ReduceLROnPlateau(
+                monitor='val_loss',
+                factor=0.5,
+                patience=4,  # Aumentado de 3 a 4
+                min_lr=1e-7,
+                verbose=1,
+                mode='min'
+            ),
+            ModelCheckpoint(
+                str(MODELS_DIR / 'mobilenetv3_best.keras'),
+                monitor='val_accuracy',
+                save_best_only=True,
+                verbose=1,
+                mode='max'
+            )
+        ]
+
         # Entrenar con fine-tuning
         history_finetune = model.fit(
             train_gen,
-            epochs=20,
+            epochs=20,  # Aumentado de 15 a 20 para mejor convergencia
             validation_data=val_gen,
-            callbacks=callbacks,
+            callbacks=finetune_callbacks,
+            class_weight=class_weight_dict,  # Usar class weights también en fine-tuning
             verbose=1
         )
 

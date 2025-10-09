@@ -98,12 +98,12 @@ MLFLOW_DIR.mkdir(parents=True, exist_ok=True)
 CLASSES = ['Blight', 'Common_Rust', 'Gray_Leaf_Spot', 'Healthy']
 NUM_CLASSES = len(CLASSES)
 
-# Hiperparámetros comunes
-IMAGE_SIZE = (256, 256)
-BATCH_SIZE = 128
-EPOCHS = 20
-LEARNING_RATE = 0.001
-EARLY_STOPPING_PATIENCE = 10
+# Hiperparámetros comunes - OPTIMIZADOS para >85% accuracy y >80% recall
+IMAGE_SIZE = (256, 256)  # Mantener según preprocesamiento
+BATCH_SIZE = 32  # Reducido de 128 a 32 para mejor generalización y estabilidad
+EPOCHS = 40  # Aumentado de 20 a 40 para permitir mejor convergencia
+LEARNING_RATE = 0.001  # Mantener para fase inicial
+EARLY_STOPPING_PATIENCE = 15  # Aumentado para dar más tiempo a mejorar
 REDUCE_LR_PATIENCE = 5
 
 # División del dataset
@@ -123,13 +123,12 @@ GPU_MEMORY_LIMIT = None  # None = usar toda la memoria disponible
 MLFLOW_TRACKING_URI = f"file:///{MLFLOW_DIR}"
 MLFLOW_EXPERIMENT_NAME = "corn_disease_classification"
 
-# Data Augmentation
+# Data Augmentation - DESACTIVADO porque ya se aplicó en preprocessing
+# El dataset en data_processed YA tiene:
+# - Imágenes balanceadas (3690 por clase)
+# - Augmentation aplicado (rotación, flips, brillo, contraste)
+# - Normalización de brillo y dimensiones (256x256)
+# Aplicar augmentation aquí causaría DOBLE transformación y PEOR rendimiento
 DATA_AUGMENTATION = {
-    'rotation_range': 20,
-    'width_shift_range': 0.2,
-    'height_shift_range': 0.2,
-    'horizontal_flip': True,
-    'vertical_flip': True,
-    'zoom_range': 0.2,
-    'fill_mode': 'nearest'
+    # Sin transformaciones adicionales - solo rescale se aplica en utils.py
 }

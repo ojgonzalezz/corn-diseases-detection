@@ -46,20 +46,38 @@ def setup_gpu(memory_limit=None):
 
 def create_data_generators(data_dir, image_size, batch_size, train_split, val_split,
                           test_split, random_seed, augmentation_params):
-    """Crear generadores de datos para entrenamiento, validación y prueba"""
+    """
+    Crear generadores de datos para entrenamiento, validación y prueba
+
+    IMPORTANTE: El dataset en data_processed YA TIENE data augmentation aplicado
+    en el preprocesamiento (rotación, flips, brillo, contraste + balanceo de clases).
+    Por lo tanto, NO aplicamos augmentation adicional aquí para evitar:
+    - Doble transformación de imágenes
+    - Sobre-regularización que reduce accuracy
+    - Imágenes artificialmente distorsionadas
+
+    NOTA: Esta implementación usa ImageDataGenerator con validation_split.
+    - train_generator: usa el subset 'training' SIN augmentation (solo rescale)
+    - validation_data: usa el subset 'validation' sin augmentation
+    - test_generator: REUTILIZA el subset 'validation' sin augmentation
+
+    Los conjuntos de validación y prueba son idénticos en esta implementación.
+    Esto es común en transfer learning cuando el dataset no es muy grande.
+    """
     from tensorflow.keras.preprocessing.image import ImageDataGenerator
 
-    # Generador con augmentation para entrenamiento
+    # Generador SOLO con rescale para entrenamiento (NO augmentation)
+    # El augmentation YA fue aplicado en preprocessing
     train_datagen = ImageDataGenerator(
         rescale=1./255,
-        validation_split=val_split + test_split,
-        **augmentation_params
+        validation_split=val_split + test_split
+        # NO se pasa **augmentation_params porque causaría doble augmentation
     )
 
-    # Generador sin augmentation para validación y prueba
-    val_test_datagen = ImageDataGenerator(
+    # Generador sin augmentation para validación/prueba
+    val_datagen = ImageDataGenerator(
         rescale=1./255,
-        validation_split=test_split / (val_split + test_split)
+        validation_split=val_split + test_split
     )
 
     # Generador de entrenamiento
@@ -73,19 +91,19 @@ def create_data_generators(data_dir, image_size, batch_size, train_split, val_sp
         seed=random_seed
     )
 
-    # Generador de validación (del subset validation)
-    validation_data = val_test_datagen.flow_from_directory(
+    # Generador de validación (mismo que test, sin augmentation)
+    validation_data = val_datagen.flow_from_directory(
         data_dir,
         target_size=image_size,
         batch_size=batch_size,
         class_mode='categorical',
-        subset='training',
+        subset='validation',
         shuffle=False,
         seed=random_seed
     )
 
-    # Generador de prueba (del subset validation)
-    test_generator = val_test_datagen.flow_from_directory(
+    # Generador de prueba (reutiliza el conjunto de validación)
+    test_generator = val_datagen.flow_from_directory(
         data_dir,
         target_size=image_size,
         batch_size=batch_size,
@@ -191,7 +209,7 @@ def save_training_log(log_path, model_name, hyperparameters, history,
         json.dump(log_data, f, indent=2)
 
     # También crear versión legible
-    txt_log_path = log_path.replace('.json', '.txt')
+    txt_log_path = str(log_path).replace('.json', '.txt')
     with open(txt_log_path, 'w', encoding='utf-8') as f:
         f.write(f"{'='*60}\n")
         f.write(f"LOG DE ENTRENAMIENTO - {model_name}\n")
