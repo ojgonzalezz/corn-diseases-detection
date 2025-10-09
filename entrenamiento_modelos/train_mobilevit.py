@@ -6,7 +6,6 @@ Implementación simplificada de Vision Transformer móvil
 import os
 import time
 import mlflow
-import mlflow.keras
 import tensorflow as tf
 from tensorflow.keras import layers, Model
 from tensorflow.keras.optimizers import Adam
@@ -261,7 +260,7 @@ def train_mobilevit():
         # Guardar modelo
         model_path = MODELS_DIR / 'mobilevit_final.keras'
         model.save(str(model_path))
-        mlflow.keras.log_model(model, "model")
+        mlflow.log_artifact(str(model_path))
 
         print(f"\nModelo guardado en: {model_path}")
         print(f"Log guardado en: {log_path}")

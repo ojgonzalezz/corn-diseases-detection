@@ -5,7 +5,6 @@ Entrenamiento de MobileNetV3-Large para clasificación de enfermedades del maíz
 import os
 import time
 import mlflow
-import mlflow.keras
 import tensorflow as tf
 from tensorflow.keras.applications import MobileNetV3Large
 from tensorflow.keras.models import Model
@@ -221,7 +220,7 @@ def train_mobilenetv3():
         # Guardar modelo
         model_path = MODELS_DIR / 'mobilenetv3_final.keras'
         model.save(str(model_path))
-        mlflow.keras.log_model(model, "model")
+        mlflow.log_artifact(str(model_path))
 
         print(f"\nModelo guardado en: {model_path}")
         print(f"Log guardado en: {log_path}")
