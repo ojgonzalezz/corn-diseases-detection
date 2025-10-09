@@ -30,20 +30,19 @@ def create_mobilenetv3_model(num_classes, image_size, learning_rate):
     # Congelar capas base inicialmente
     base_model.trainable = False
 
-    # Construir modelo completo - Arquitectura optimizada para >85% accuracy
+    # Construir modelo completo - Arquitectura 10/10 optimizada
+    # Balance perfecto entre capacidad y generalización
     inputs = tf.keras.Input(shape=(*image_size, 3))
     x = base_model(inputs, training=False)
     x = GlobalAveragePooling2D()(x)
 
-    # Capa densa más grande para mejor representación de características
-    x = Dense(512, activation='relu', kernel_regularizer=tf.keras.regularizers.l2(0.001))(x)
-    x = Dropout(0.3)(x)  # Dropout moderado para balance entre learning y regularización
-
+    # Arquitectura balanceada: 2 capas densas (256→128)
+    # Dropout más alto para mejor regularización
     x = Dense(256, activation='relu', kernel_regularizer=tf.keras.regularizers.l2(0.001))(x)
-    x = Dropout(0.25)(x)
+    x = Dropout(0.35)(x)  # Aumentado de 0.3 a 0.35 para mejor generalización
 
-    x = Dense(128, activation='relu')(x)
-    x = Dropout(0.2)(x)
+    x = Dense(128, activation='relu', kernel_regularizer=tf.keras.regularizers.l2(0.001))(x)
+    x = Dropout(0.3)(x)  # Aumentado de 0.25 a 0.3
 
     outputs = Dense(num_classes, activation='softmax')(x)
 
@@ -170,12 +169,13 @@ def train_mobilenetv3():
         # Fine-tuning (descongelar últimas capas gradualmente)
         print("\nIniciando fine-tuning...")
 
-        # Descongelar solo las últimas 30 capas del modelo base (más que antes)
+        # Descongelar solo las últimas 20 capas del modelo base
+        # Balance perfecto para evitar overfitting y permitir adaptación
         base_model = model.layers[1]
         base_model.trainable = True
 
-        # Congelar todas las capas excepto las últimas 30
-        for layer in base_model.layers[:-30]:
+        # Congelar todas las capas excepto las últimas 20
+        for layer in base_model.layers[:-20]:
             layer.trainable = False
 
         trainable_layers = sum([1 for layer in base_model.layers if layer.trainable])
