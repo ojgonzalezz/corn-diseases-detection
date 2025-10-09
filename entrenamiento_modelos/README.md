@@ -46,7 +46,7 @@ pip install -r requirements.txt
 ### Google Colab
 
 **Preparación Inicial (una sola vez)**:
-1. Sube `data_processed/` a tu Google Drive en: `Mi unidad/corn-diseases-detection/data_processed/`
+1. Sube `data_processed/` a tu Google Drive en: `Mi unidad/data_processed/`
 
 **Ejecución (cada sesión de entrenamiento)**:
 ```python
@@ -68,9 +68,9 @@ drive.mount('/content/drive')
 ```
 
 Los scripts detectan Colab automáticamente y:
-- Leen dataset desde `Drive/corn-diseases-detection/data_processed/`
-- Guardan modelos en `Drive/corn-diseases-detection/models/`
-- Guardan logs en `Drive/corn-diseases-detection/logs/`
+- Leen dataset desde `Mi unidad/data_processed/`
+- Guardan modelos en `Mi unidad/corn-diseases-detection/models/`
+- Guardan logs en `Mi unidad/corn-diseases-detection/logs/`
 
 ## Uso
 

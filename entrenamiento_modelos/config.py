@@ -25,16 +25,16 @@ try:
         raise RuntimeError("Google Drive no está montado. Monta Drive primero.")
 
     # Rutas en Google Drive
-    DRIVE_BASE = Path('/content/drive/MyDrive/corn-diseases-detection')
     BASE_DIR = Path('/content/corn-diseases-detection')
 
-    # Dataset desde Drive
-    DATA_DIR = DRIVE_BASE / 'data_processed'
+    # Dataset desde Drive (raíz de MyDrive)
+    DATA_DIR = Path('/content/drive/MyDrive/data_processed')
 
-    # Salidas en Drive (persistentes)
-    MODELS_DIR = DRIVE_BASE / 'models'
-    LOGS_DIR = DRIVE_BASE / 'logs'
-    MLFLOW_DIR = DRIVE_BASE / 'mlruns'
+    # Salidas en Drive (dentro de carpeta del proyecto)
+    DRIVE_PROJECT = Path('/content/drive/MyDrive/corn-diseases-detection')
+    MODELS_DIR = DRIVE_PROJECT / 'models'
+    LOGS_DIR = DRIVE_PROJECT / 'logs'
+    MLFLOW_DIR = DRIVE_PROJECT / 'mlruns'
 
     # Verificar que el dataset existe
     if not DATA_DIR.exists():
@@ -43,15 +43,14 @@ try:
         print("!" * 70)
         print(f"Ruta esperada: {DATA_DIR}")
         print("\nAsegúrate de haber subido la carpeta 'data_processed' a:")
-        print("  Mi unidad/corn-diseases-detection/data_processed/")
+        print("  Mi unidad/data_processed/")
         print("\nLa estructura debe ser:")
         print("  Mi unidad/")
-        print("  └── corn-diseases-detection/")
-        print("      └── data_processed/")
-        print("          ├── Blight/")
-        print("          ├── Common_Rust/")
-        print("          ├── Gray_Leaf_Spot/")
-        print("          └── Healthy/")
+        print("  └── data_processed/")
+        print("      ├── Blight/")
+        print("      ├── Common_Rust/")
+        print("      ├── Gray_Leaf_Spot/")
+        print("      └── Healthy/")
         print("!" * 70 + "\n")
         raise FileNotFoundError(f"Dataset no encontrado en {DATA_DIR}")
 

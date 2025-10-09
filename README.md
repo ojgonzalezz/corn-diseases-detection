@@ -216,7 +216,7 @@ pip install numpy pandas matplotlib seaborn pillow tqdm
 ### Ejecución en Google Colab
 
 **Preparación (una sola vez):**
-1. Sube `data_processed/` a Google Drive en: `Mi unidad/corn-diseases-detection/data_processed/`
+1. Sube `data_processed/` a Google Drive en: `Mi unidad/data_processed/`
 
 **Entrenar todos los modelos:**
 ```python
