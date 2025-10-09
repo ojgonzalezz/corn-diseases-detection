@@ -52,12 +52,12 @@ pip install -r requirements.txt
 ```python
 # 1. Habilitar GPU en Runtime > Change runtime type > GPU
 
-# 2. Montar Google Drive
+# 2. Montar Google Drive (OBLIGATORIO - hacer primero)
 from google.colab import drive
 drive.mount('/content/drive')
 
-# 3. Clonar repo
-!git clone https://github.com/ojgonzalezz/corn-diseases-detection.git
+# 3. Clonar repo (rama pipe)
+!git clone -b pipe https://github.com/ojgonzalezz/corn-diseases-detection.git
 %cd corn-diseases-detection/entrenamiento_modelos
 
 # 4. Instalar dependencias
