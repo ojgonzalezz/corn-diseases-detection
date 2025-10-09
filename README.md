@@ -203,12 +203,41 @@ pip install numpy pandas matplotlib seaborn pillow tqdm
 
 ---
 
-## Próximos Pasos
+## 4. Entrenamiento de Modelos
 
-1. Entrenamiento de modelos de clasificación usando el dataset procesado
-2. Evaluación y selección del mejor modelo
-3. Optimización de hiperparámetros
-4. Despliegue del modelo
+**Directorio:** `entrenamiento_modelos/`
+
+### Modelos Implementados
+- MobileNetV3-Large
+- EfficientNet-Lite (B0)
+- MobileViT
+- PMVT (Plant Mobile Vision Transformer)
+
+### Ejecución en Google Colab
+
+**Preparación (una sola vez):**
+1. Sube `data_processed/` a Google Drive en: `Mi unidad/corn-diseases-detection/data_processed/`
+
+**Entrenar todos los modelos:**
+```python
+# 1. Habilitar GPU en Runtime > Change runtime type > GPU
+# 2. Clonar repositorio
+!git clone https://github.com/ojgonzalezz/corn-diseases-detection.git
+%cd corn-diseases-detection/entrenamiento_modelos
+
+# 3. Instalar dependencias
+!pip install -q -r requirements.txt
+
+# 4. Entrenar (monta Drive automáticamente)
+!python train_all_models.py
+```
+
+**Salidas (guardadas automáticamente en Drive):**
+- Modelos: `Mi unidad/corn-diseases-detection/models/`
+- Logs: `Mi unidad/corn-diseases-detection/logs/`
+- MLflow: `Mi unidad/corn-diseases-detection/mlruns/`
+
+Ver más detalles en: `entrenamiento_modelos/README.md`
 
 ---
 

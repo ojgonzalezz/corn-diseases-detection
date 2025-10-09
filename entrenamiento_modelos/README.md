@@ -45,22 +45,29 @@ pip install -r requirements.txt
 
 ### Google Colab
 
-Ver instrucciones detalladas en [COLAB_SETUP.md](COLAB_SETUP.md)
+**Preparación Inicial (una sola vez)**:
+1. Sube `data_processed/` a tu Google Drive en: `Mi unidad/corn-diseases-detection/data_processed/`
 
-Resumen rápido:
+**Ejecución (cada sesión de entrenamiento)**:
 ```python
-# 1. Clonar repo
+# 1. Habilitar GPU en Runtime > Change runtime type > GPU
+
+# 2. Clonar repo
 !git clone https://github.com/ojgonzalezz/corn-diseases-detection.git
 %cd corn-diseases-detection/entrenamiento_modelos
 
-# 2. Instalar dependencias
+# 3. Instalar dependencias
 !pip install -q -r requirements.txt
 
-# 3. Subir dataset data_processed/ (manualmente o desde Drive)
-
-# 4. Entrenar
-!python train_mobilenetv3.py
+# 4. Entrenar (monta Drive automáticamente)
+!python train_all_models.py
 ```
+
+Los scripts detectan Colab automáticamente y:
+- Montan Google Drive
+- Leen dataset desde `Drive/corn-diseases-detection/data_processed/`
+- Guardan modelos en `Drive/corn-diseases-detection/models/`
+- Guardan logs en `Drive/corn-diseases-detection/logs/`
 
 ## Uso
 

@@ -1,6 +1,6 @@
 """
 Configuración común para el entrenamiento de modelos
-Compatible con Google Colab y entornos locales
+Compatible con Google Colab (con Drive) y entornos locales
 """
 
 import os
@@ -10,16 +10,40 @@ from pathlib import Path
 try:
     import google.colab
     IN_COLAB = True
+
+    # Montar Google Drive automáticamente
+    from google.colab import drive
+    drive.mount('/content/drive', force_remount=False)
+
+    # Rutas en Google Drive
+    DRIVE_BASE = Path('/content/drive/MyDrive/corn-diseases-detection')
     BASE_DIR = Path('/content/corn-diseases-detection')
+
+    # Dataset desde Drive
+    DATA_DIR = DRIVE_BASE / 'data_processed'
+
+    # Salidas en Drive (persistentes)
+    MODELS_DIR = DRIVE_BASE / 'models'
+    LOGS_DIR = DRIVE_BASE / 'logs'
+    MLFLOW_DIR = DRIVE_BASE / 'mlruns'
+
+    print("=" * 60)
+    print("CONFIGURACIÓN GOOGLE COLAB + DRIVE")
+    print("=" * 60)
+    print(f"Dataset (entrada): {DATA_DIR}")
+    print(f"Modelos (salida): {MODELS_DIR}")
+    print(f"Logs (salida): {LOGS_DIR}")
+    print("=" * 60)
+
 except ImportError:
     IN_COLAB = False
     BASE_DIR = Path(__file__).parent.parent
 
-# Rutas
-DATA_DIR = BASE_DIR / 'data_processed'
-MODELS_DIR = BASE_DIR / 'entrenamiento_modelos' / 'models'
-LOGS_DIR = BASE_DIR / 'entrenamiento_modelos' / 'logs'
-MLFLOW_DIR = BASE_DIR / 'entrenamiento_modelos' / 'mlruns'
+    # Rutas locales
+    DATA_DIR = BASE_DIR / 'data_processed'
+    MODELS_DIR = BASE_DIR / 'entrenamiento_modelos' / 'models'
+    LOGS_DIR = BASE_DIR / 'entrenamiento_modelos' / 'logs'
+    MLFLOW_DIR = BASE_DIR / 'entrenamiento_modelos' / 'mlruns'
 
 # Crear directorios
 MODELS_DIR.mkdir(parents=True, exist_ok=True)
