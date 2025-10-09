@@ -52,19 +52,22 @@ pip install -r requirements.txt
 ```python
 # 1. Habilitar GPU en Runtime > Change runtime type > GPU
 
-# 2. Clonar repo
+# 2. Montar Google Drive
+from google.colab import drive
+drive.mount('/content/drive')
+
+# 3. Clonar repo
 !git clone https://github.com/ojgonzalezz/corn-diseases-detection.git
 %cd corn-diseases-detection/entrenamiento_modelos
 
-# 3. Instalar dependencias
+# 4. Instalar dependencias
 !pip install -q -r requirements.txt
 
-# 4. Entrenar (monta Drive automáticamente)
+# 5. Entrenar
 !python train_all_models.py
 ```
 
 Los scripts detectan Colab automáticamente y:
-- Montan Google Drive
 - Leen dataset desde `Drive/corn-diseases-detection/data_processed/`
 - Guardan modelos en `Drive/corn-diseases-detection/models/`
 - Guardan logs en `Drive/corn-diseases-detection/logs/`

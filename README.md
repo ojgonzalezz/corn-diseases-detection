@@ -221,14 +221,19 @@ pip install numpy pandas matplotlib seaborn pillow tqdm
 **Entrenar todos los modelos:**
 ```python
 # 1. Habilitar GPU en Runtime > Change runtime type > GPU
-# 2. Clonar repositorio
+
+# 2. Montar Google Drive
+from google.colab import drive
+drive.mount('/content/drive')
+
+# 3. Clonar repositorio
 !git clone https://github.com/ojgonzalezz/corn-diseases-detection.git
 %cd corn-diseases-detection/entrenamiento_modelos
 
-# 3. Instalar dependencias
+# 4. Instalar dependencias
 !pip install -q -r requirements.txt
 
-# 4. Entrenar (monta Drive automáticamente)
+# 5. Entrenar
 !python train_all_models.py
 ```
 
