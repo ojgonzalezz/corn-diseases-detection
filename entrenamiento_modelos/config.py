@@ -54,11 +54,27 @@ try:
         print("!" * 70 + "\n")
         raise FileNotFoundError(f"Dataset no encontrado en {DATA_DIR}")
 
+    # Verificar que hay GPU disponible (OBLIGATORIO en Colab)
+    import tensorflow as tf
+    gpus = tf.config.list_physical_devices('GPU')
+    if not gpus:
+        print("\n" + "!" * 70)
+        print("ERROR: NO SE DETECTÓ GPU")
+        print("!" * 70)
+        print("\nPara usar GPU en Google Colab:")
+        print("1. Ve a: Runtime > Change runtime type")
+        print("2. Selecciona: Hardware accelerator > GPU")
+        print("3. Haz clic en 'Save'")
+        print("4. Reconecta y vuelve a ejecutar")
+        print("!" * 70 + "\n")
+        raise RuntimeError("GPU no disponible. Configura GPU en Colab primero.")
+
     print("\n" + "=" * 70)
     print("CONFIGURACIÓN GOOGLE COLAB + DRIVE")
     print("=" * 70)
     print(f"✓ Drive montado correctamente")
     print(f"✓ Dataset encontrado: {DATA_DIR}")
+    print(f"✓ GPU detectada: {gpus[0].name}")
     print(f"✓ Modelos se guardarán en: {MODELS_DIR}")
     print(f"✓ Logs se guardarán en: {LOGS_DIR}")
     print("=" * 70 + "\n")
@@ -84,8 +100,8 @@ NUM_CLASSES = len(CLASSES)
 
 # Hiperparámetros comunes
 IMAGE_SIZE = (256, 256)
-BATCH_SIZE = 32
-EPOCHS = 50
+BATCH_SIZE = 64
+EPOCHS = 20
 LEARNING_RATE = 0.001
 EARLY_STOPPING_PATIENCE = 10
 REDUCE_LR_PATIENCE = 5

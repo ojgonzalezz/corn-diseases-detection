@@ -22,8 +22,8 @@ Esta carpeta contiene los scripts para entrenar 4 arquitecturas de redes neurona
 
 ```python
 IMAGE_SIZE = (256, 256)
-BATCH_SIZE = 32
-EPOCHS = 50
+BATCH_SIZE = 64
+EPOCHS = 20
 LEARNING_RATE = 0.001
 EARLY_STOPPING_PATIENCE = 10
 REDUCE_LR_PATIENCE = 5
@@ -43,34 +43,49 @@ REDUCE_LR_PATIENCE = 5
 pip install -r requirements.txt
 ```
 
-### Google Colab
+### Google Colab (Recomendado)
 
 **Preparación Inicial (una sola vez)**:
-1. Sube `data_processed/` a tu Google Drive en: `Mi unidad/data_processed/`
+1. Habilita GPU: `Runtime` > `Change runtime type` > `Hardware accelerator` > `GPU`
+2. Sube `data_processed/` a tu Google Drive en: `Mi unidad/data_processed/`
 
-**Ejecución (cada sesión de entrenamiento)**:
+**Ejecución Automática (Opción 1 - Recomendada)**:
 ```python
-# 1. Habilitar GPU en Runtime > Change runtime type > GPU
+!wget -q https://raw.githubusercontent.com/ojgonzalezz/corn-diseases-detection/pipe/entrenamiento_modelos/setup_and_train.py
+!python setup_and_train.py
+```
 
-# 2. Montar Google Drive (OBLIGATORIO - hacer primero)
+El script automático:
+- ✓ Verifica GPU (detiene si no hay GPU)
+- ✓ Monta Google Drive automáticamente
+- ✓ Clona el repositorio
+- ✓ Instala dependencias
+- ✓ Inicia entrenamiento de los 4 modelos
+
+**Ejecución Manual (Opción 2)**:
+```python
+# 1. Montar Google Drive
 from google.colab import drive
 drive.mount('/content/drive')
 
-# 3. Clonar repo (rama pipe)
+# 2. Clonar repo (rama pipe)
 !git clone -b pipe https://github.com/ojgonzalezz/corn-diseases-detection.git
 %cd corn-diseases-detection/entrenamiento_modelos
 
-# 4. Instalar dependencias
+# 3. Instalar dependencias
 !pip install -q -r requirements.txt
 
-# 5. Entrenar
+# 4. Entrenar todos los modelos
 !python train_all_models.py
 ```
 
 Los scripts detectan Colab automáticamente y:
-- Leen dataset desde `Mi unidad/data_processed/`
-- Guardan modelos en `Mi unidad/corn-diseases-detection/models/`
-- Guardan logs en `Mi unidad/corn-diseases-detection/logs/`
+- ✓ Verifican que GPU esté habilitada (obligatorio)
+- ✓ Leen dataset desde `Mi unidad/data_processed/`
+- ✓ Guardan modelos en `Mi unidad/corn-diseases-detection/models/`
+- ✓ Guardan logs en `Mi unidad/corn-diseases-detection/logs/`
+
+**Tiempo estimado**: ~40-60 minutos para los 4 modelos con GPU T4
 
 ## Uso
 

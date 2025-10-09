@@ -213,27 +213,39 @@ pip install numpy pandas matplotlib seaborn pillow tqdm
 - MobileViT
 - PMVT (Plant Mobile Vision Transformer)
 
+### Hiperparámetros
+- Épocas: 20
+- Batch size: 64
+- Learning rate: 0.001
+- Early stopping: 10 épocas
+- Tiempo estimado: ~40-60 minutos (4 modelos con GPU T4)
+
 ### Ejecución en Google Colab
 
 **Preparación (una sola vez):**
-1. Sube `data_processed/` a Google Drive en: `Mi unidad/data_processed/`
+1. Habilita GPU: `Runtime` > `Change runtime type` > `Hardware accelerator` > `GPU`
+2. Sube `data_processed/` a Google Drive en: `Mi unidad/data_processed/`
 
-**Entrenar todos los modelos:**
+**Opción 1 - Script Automático (Recomendado):**
 ```python
-# 1. Habilitar GPU en Runtime > Change runtime type > GPU
+!wget -q https://raw.githubusercontent.com/ojgonzalezz/corn-diseases-detection/pipe/entrenamiento_modelos/setup_and_train.py
+!python setup_and_train.py
+```
 
-# 2. Montar Google Drive (OBLIGATORIO)
+**Opción 2 - Ejecución Manual:**
+```python
+# 1. Montar Google Drive
 from google.colab import drive
 drive.mount('/content/drive')
 
-# 3. Clonar repositorio (rama pipe)
+# 2. Clonar repositorio (rama pipe)
 !git clone -b pipe https://github.com/ojgonzalezz/corn-diseases-detection.git
 %cd corn-diseases-detection/entrenamiento_modelos
 
-# 4. Instalar dependencias
+# 3. Instalar dependencias
 !pip install -q -r requirements.txt
 
-# 5. Entrenar
+# 4. Entrenar todos los modelos
 !python train_all_models.py
 ```
 
