@@ -100,7 +100,7 @@ NUM_CLASSES = len(CLASSES)
 
 # Hiperparámetros comunes - OPTIMIZADOS para >85% accuracy y >80% recall
 IMAGE_SIZE = (256, 256)  # Mantener según preprocesamiento
-BATCH_SIZE = 128  # Optimizado para GPU A100 - Mayor throughput y velocidad
+BATCH_SIZE = 64  # Sweet spot para A100: balance entre velocidad y generalización
 EPOCHS = 40  # Aumentado de 20 a 40 para permitir mejor convergencia
 LEARNING_RATE = 0.001  # Mantener para fase inicial
 EARLY_STOPPING_PATIENCE = 15  # Aumentado para dar más tiempo a mejorar
