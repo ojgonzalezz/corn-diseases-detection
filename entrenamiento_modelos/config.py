@@ -11,18 +11,18 @@ try:
     import google.colab
     IN_COLAB = True
 
-    # Verificar si Drive ya está montado
-    drive_path = Path('/content/drive')
-    if not drive_path.exists() or not (drive_path / 'MyDrive').exists():
-        # Montar Google Drive solo si no está montado
-        from google.colab import drive
-        print("\n" + "=" * 60)
-        print("MONTANDO GOOGLE DRIVE")
-        print("=" * 60)
-        print("Por favor, autoriza el acceso a Google Drive...")
-        drive.mount('/content/drive')
-        print("Drive montado correctamente!")
-        print("=" * 60 + "\n")
+    # Verificar si Drive está montado
+    drive_path = Path('/content/drive/MyDrive')
+    if not drive_path.exists():
+        print("\n" + "!" * 70)
+        print("ERROR: Google Drive no está montado")
+        print("!" * 70)
+        print("\nAntes de ejecutar el script, debes montar Google Drive:")
+        print("\n  from google.colab import drive")
+        print("  drive.mount('/content/drive')")
+        print("\nLuego vuelve a ejecutar el script de entrenamiento.")
+        print("!" * 70 + "\n")
+        raise RuntimeError("Google Drive no está montado. Monta Drive primero.")
 
     # Rutas en Google Drive
     DRIVE_BASE = Path('/content/drive/MyDrive/corn-diseases-detection')
@@ -38,22 +38,31 @@ try:
 
     # Verificar que el dataset existe
     if not DATA_DIR.exists():
-        print("\n" + "!" * 60)
+        print("\n" + "!" * 70)
         print("ERROR: No se encontró el dataset en Google Drive")
-        print("!" * 60)
+        print("!" * 70)
         print(f"Ruta esperada: {DATA_DIR}")
         print("\nAsegúrate de haber subido la carpeta 'data_processed' a:")
-        print("Mi unidad/corn-diseases-detection/data_processed/")
-        print("!" * 60 + "\n")
+        print("  Mi unidad/corn-diseases-detection/data_processed/")
+        print("\nLa estructura debe ser:")
+        print("  Mi unidad/")
+        print("  └── corn-diseases-detection/")
+        print("      └── data_processed/")
+        print("          ├── Blight/")
+        print("          ├── Common_Rust/")
+        print("          ├── Gray_Leaf_Spot/")
+        print("          └── Healthy/")
+        print("!" * 70 + "\n")
         raise FileNotFoundError(f"Dataset no encontrado en {DATA_DIR}")
 
-    print("\n" + "=" * 60)
+    print("\n" + "=" * 70)
     print("CONFIGURACIÓN GOOGLE COLAB + DRIVE")
-    print("=" * 60)
-    print(f"Dataset (entrada): {DATA_DIR}")
-    print(f"Modelos (salida): {MODELS_DIR}")
-    print(f"Logs (salida): {LOGS_DIR}")
-    print("=" * 60 + "\n")
+    print("=" * 70)
+    print(f"✓ Drive montado correctamente")
+    print(f"✓ Dataset encontrado: {DATA_DIR}")
+    print(f"✓ Modelos se guardarán en: {MODELS_DIR}")
+    print(f"✓ Logs se guardarán en: {LOGS_DIR}")
+    print("=" * 70 + "\n")
 
 except ImportError:
     IN_COLAB = False
