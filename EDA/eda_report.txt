@@ -1,0 +1,48 @@
+RESUMEN EJECUTIVO - EDA CORN DISEASES
+============================================================
+
+Total de imágenes: 13381
+Número de clases: 4
+Clases: Blight, Common_Rust, Gray_Leaf_Spot, Healthy
+
+  Distribución de Clases:
+  - Total: 13,381 imágenes
+  - Common_Rust: 3,690 (27.58%)
+  - Blight: 3,580 (26.75%)
+  - Healthy: 3,485 (26.04%)
+  - Gray_Leaf_Spot: 2,626 (19.62%)
+  - Balance: 71.17% (desbalance moderado)
+
+--- Balance de clases ---
+Clase más frecuente: Common_Rust (3690 imgs)
+Clase menos frecuente: Gray_Leaf_Spot (2626 imgs)
+Ratio de balance: 71.17%
+
+  Dimensiones:
+  - Blight, Gray_Leaf_Spot, Healthy: 256x256 px (uniformes)
+  - Common_Rust: dimensiones variables (promedio 365x341 px)
+  - 55 resoluciones diferentes detectadas
+
+--- Caracteristicas de imagenes ---
+Ancho promedio: 283.3 +/- 214.2 px
+Alto promedio: 277.5 +/- 187.3 px
+Ratio aspecto promedio: 1.012
+Tamano promedio: 26.9 KB
+
+  Estadísticas de Píxeles por Clase:
+  - Healthy: Mayor brillo (136.45), más verde (G=162.34)
+  - Common_Rust: Menor brillo (86.91), mayor contraste (63.95)
+  - Blight: Brillo medio (112.01), contraste bajo (37.04)
+  - Gray_Leaf_Spot: Similar a Blight pero con más variabilidad
+
+--- Caracteristicas de pixeles ---
+Brillo promedio: 110.54 +/- 26.36
+Contraste promedio: 47.09 +/- 13.54
+Canal R: 111.50 +/- 45.66
+Canal G: 125.07 +/- 42.25
+Canal B: 95.04 +/- 44.46
+
+--- Recomendaciones ---
+  1. Aplicar data augmentation o class weights por desbalance
+  2. Normalizar tamaños a resolución uniforme (recomiendo 256x256)
+  3. Considerar normalización de brillo por alta variabilidad

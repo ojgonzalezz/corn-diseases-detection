@@ -1,0 +1,87 @@
+REPORTE DE PREPROCESAMIENTO - CORN DISEASES
+============================================================
+
+--- Transformaciones aplicadas ---
+1. Normalizacion de tamano: 256x256 px
+2. Normalizacion de brillo: target=120, rango=(0.8, 1.2)
+3. Balanceo de clases: target=3690 imagenes por clase
+4. Data augmentation: rotacion, flip, ajustes de brillo/contraste
+
+--- Conteo antes y despues ---
+Blight:
+  Original: 3580 -> Procesado: 3690 (diff: +110)
+Common_Rust:
+  Original: 3690 -> Procesado: 3690 (diff: +0)
+Gray_Leaf_Spot:
+  Original: 2626 -> Procesado: 3690 (diff: +1064)
+Healthy:
+  Original: 3485 -> Procesado: 3690 (diff: +205)
+
+Total original: 13381
+Total procesado: 14760
+Incremento: +1379 imagenes (10.3%)
+
+--- Balance de clases ---
+Min: 3690, Max: 3690
+Ratio de balance: 100.00%
+Estado: PERFECTAMENTE BALANCEADO
+
+--- Verificacion de dimensiones ---
+Blight:
+  Dimensiones: 256x256 px
+  Varianza dimensiones: 0.0000
+Common_Rust:
+  Dimensiones: 256x256 px
+  Varianza dimensiones: 0.0000
+Gray_Leaf_Spot:
+  Dimensiones: 256x256 px
+  Varianza dimensiones: 0.0000
+Healthy:
+  Dimensiones: 256x256 px
+  Varianza dimensiones: 0.0000
+
+--- Estadisticas de brillo normalizado ---
+Brillo global: 112.61 +/- 15.32
+Target de brillo: 120
+Desviacion del target: 7.39
+Blight: 118.52 +/- 6.43
+Common_Rust: 95.66 +/- 16.90
+Gray_Leaf_Spot: 116.07 +/- 6.40
+Healthy: 120.17 +/- 13.48
+
+--- Estadisticas de contraste ---
+Blight: 39.27 +/- 7.18
+Common_Rust: 75.78 +/- 8.04
+Gray_Leaf_Spot: 51.71 +/- 14.15
+Healthy: 37.69 +/- 10.48
+
+--- Estadisticas RGB ---
+Blight:
+  R: 121.60
+  G: 129.63
+  B: 104.32
+Common_Rust:
+  R: 100.55
+  G: 108.29
+  B: 78.15
+Gray_Leaf_Spot:
+  R: 121.24
+  G: 128.25
+  B: 98.72
+Healthy:
+  R: 112.00
+  G: 144.34
+  B: 104.19
+
+--- Calidad del dataset procesado ---
+[OK] Todas las imagenes tienen dimensiones uniformes: 256x256
+[OK] Balance de clases: 100.00%
+[OK] Brillo normalizado: desviacion=7.39 del target
+[OK] Total de imagenes: 14760
+
+--- Ubicacion del dataset procesado ---
+Directorio: C:\Users\afeli\Downloads\corn-diseases-detection\data_processed
+  Blight/: 3690 imagenes
+  Common_Rust/: 3690 imagenes
+  Gray_Leaf_Spot/: 3690 imagenes
+  Healthy/: 3690 imagenes

@@ -1,0 +1,56 @@
+RESUMEN EJECUTIVO - EDA DATASET PROCESADO
+============================================================
+
+Total de imagenes: 14760
+Numero de clases: 4
+Clases: Blight, Common_Rust, Gray_Leaf_Spot, Healthy
+
+--- Balance de clases ---
+Clase mas frecuente: Blight (3690 imgs)
+Clase menos frecuente: Blight (3690 imgs)
+Ratio de balance: 100.00%
+
+--- Caracteristicas de imagenes ---
+Ancho promedio: 256.0 +/- 0.0 px
+Alto promedio: 256.0 +/- 0.0 px
+Ratio aspecto promedio: 1.000
+Tamano promedio: 26.4 KB
+Uniformidad de dimensiones: PERFECTA (todas 256x256)
+
+--- Caracteristicas de pixeles ---
+Brillo promedio: 113.78 +/- 14.46
+Contraste promedio: 50.61 +/- 18.32
+Canal R: 115.26 +/- 49.21
+Canal G: 128.76 +/- 46.02
+Canal B: 97.33 +/- 47.59
+
+Desviacion del brillo target (120): 6.22
+
+--- Estadisticas por clase ---
+
+Blight:
+  Brillo: 118.44 +/- 5.07
+  Contraste: 39.50 +/- 7.91
+  RGB: R=121.59, G=129.17, B=104.56
+
+Common_Rust:
+  Brillo: 99.95 +/- 17.57
+  Contraste: 74.29 +/- 11.59
+  RGB: R=105.49, G=113.86, B=80.51
+
+Gray_Leaf_Spot:
+  Brillo: 116.38 +/- 7.89
+  Contraste: 51.32 +/- 13.43
+  RGB: R=121.73, G=127.78, B=99.61
+
+Healthy:
+  Brillo: 120.36 +/- 13.31
+  Contraste: 37.32 +/- 10.22
+  RGB: R=112.22, G=144.24, B=104.63
+
+--- Evaluacion de calidad ---
+[OK] Balance de clases: 100.00%
+[OK] Uniformidad de dimensiones: PERFECTA
+[OK] Normalizacion de brillo: desviacion=6.22
+
+[LISTO] Dataset procesado listo para entrenamiento
