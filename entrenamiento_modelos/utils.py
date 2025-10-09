@@ -12,18 +12,33 @@ from datetime import datetime
 from sklearn.metrics import confusion_matrix, classification_report
 import tensorflow as tf
 
-def setup_gpu(memory_limit=10240):
-    """Configurar GPU para entrenamiento"""
+def setup_gpu(memory_limit=None):
+    """
+    Configurar GPU para entrenamiento
+    Compatible con Google Colab y entornos locales
+
+    Args:
+        memory_limit: Límite de memoria en MB. Si es None, usa toda la memoria disponible.
+                     En Google Colab, se recomienda None para usar la GPU completa.
+    """
     gpus = tf.config.list_physical_devices('GPU')
     if gpus:
         try:
-            # Configurar límite de memoria
-            tf.config.set_logical_device_configuration(
-                gpus[0],
-                [tf.config.LogicalDeviceConfiguration(memory_limit=memory_limit)]
-            )
-            print(f"GPU configurada con límite de {memory_limit}MB")
+            if memory_limit is not None:
+                # Configurar límite de memoria (solo en entornos locales)
+                tf.config.set_logical_device_configuration(
+                    gpus[0],
+                    [tf.config.LogicalDeviceConfiguration(memory_limit=memory_limit)]
+                )
+                print(f"GPU configurada con límite de {memory_limit}MB")
+            else:
+                # Permitir crecimiento dinámico de memoria (recomendado para Colab)
+                for gpu in gpus:
+                    tf.config.experimental.set_memory_growth(gpu, True)
+                print("GPU configurada con crecimiento dinámico de memoria")
+
             print(f"GPUs disponibles: {len(gpus)}")
+            print(f"GPU en uso: {gpus[0].name}")
         except RuntimeError as e:
             print(f"Error configurando GPU: {e}")
     else:

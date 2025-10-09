@@ -1,12 +1,21 @@
 """
 Configuración común para el entrenamiento de modelos
+Compatible con Google Colab y entornos locales
 """
 
 import os
 from pathlib import Path
 
+# Detectar si estamos en Google Colab
+try:
+    import google.colab
+    IN_COLAB = True
+    BASE_DIR = Path('/content/corn-diseases-detection')
+except ImportError:
+    IN_COLAB = False
+    BASE_DIR = Path(__file__).parent.parent
+
 # Rutas
-BASE_DIR = Path(__file__).parent.parent
 DATA_DIR = BASE_DIR / 'data_processed'
 MODELS_DIR = BASE_DIR / 'entrenamiento_modelos' / 'models'
 LOGS_DIR = BASE_DIR / 'entrenamiento_modelos' / 'logs'
@@ -38,7 +47,9 @@ TEST_SPLIT = 0.15   # 15% prueba
 RANDOM_SEED = 42
 
 # GPU Configuration
-GPU_MEMORY_LIMIT = 10240  # Limite de memoria GPU en MB (ajustar segun disponibilidad)
+# En Google Colab, la GPU se gestiona automáticamente
+# En entornos locales, puedes ajustar este valor según tu GPU
+GPU_MEMORY_LIMIT = None  # None = usar toda la memoria disponible
 
 # MLflow
 MLFLOW_TRACKING_URI = f"file:///{MLFLOW_DIR}"

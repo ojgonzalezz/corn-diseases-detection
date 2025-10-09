@@ -37,8 +37,29 @@ REDUCE_LR_PATIENCE = 5
 
 ## Instalación
 
+### Entorno Local
+
 ```bash
 pip install -r requirements.txt
+```
+
+### Google Colab
+
+Ver instrucciones detalladas en [COLAB_SETUP.md](COLAB_SETUP.md)
+
+Resumen rápido:
+```python
+# 1. Clonar repo
+!git clone https://github.com/ojgonzalezz/corn-diseases-detection.git
+%cd corn-diseases-detection/entrenamiento_modelos
+
+# 2. Instalar dependencias
+!pip install -q -r requirements.txt
+
+# 3. Subir dataset data_processed/ (manualmente o desde Drive)
+
+# 4. Entrenar
+!python train_mobilenetv3.py
 ```
 
 ## Uso
