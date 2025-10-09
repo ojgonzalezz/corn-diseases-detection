@@ -112,9 +112,9 @@ entrenamiento_modelos/
 ## Requisitos del Sistema
 
 **GPU:**
-- NVIDIA GPU con soporte CUDA
-- Memoria GPU: Mínimo 8GB (configurado para RTX 4070 con 10GB)
-- Drivers actualizados
+- GPU con soporte CUDA (recomendado)
+- Memoria GPU: Mínimo 8GB recomendado
+- Alternativamente, puede ejecutarse en Google Colab con GPU gratuita
 
 **CPU/RAM:**
 - RAM: Mínimo 16GB recomendado

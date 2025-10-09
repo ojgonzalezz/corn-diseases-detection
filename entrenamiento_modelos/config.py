@@ -38,7 +38,7 @@ TEST_SPLIT = 0.15   # 15% prueba
 RANDOM_SEED = 42
 
 # GPU Configuration
-GPU_MEMORY_LIMIT = 10240  # 10GB para NVIDIA 4070
+GPU_MEMORY_LIMIT = 10240  # Limite de memoria GPU en MB (ajustar segun disponibilidad)
 
 # MLflow
 MLFLOW_TRACKING_URI = f"file:///{MLFLOW_DIR}"
