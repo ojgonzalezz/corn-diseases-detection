@@ -1,12 +1,10 @@
 """
 Script para entrenar todos los modelos secuencialmente
-Versión mejorada con mejor manejo de errores y timeouts
 """
 
 import os
 import sys
 import time
-import signal
 from datetime import datetime
 
 # Importar scripts de entrenamiento
@@ -15,49 +13,20 @@ from train_efficientnet import train_efficientnet
 from train_mobilevit import train_mobilevit
 from train_pmvt import train_pmvt
 
-class TimeoutError(Exception):
-    pass
-
-def timeout_handler(signum, frame):
-    raise TimeoutError("Timeout alcanzado")
-
-def train_with_timeout(train_func, model_name, timeout_hours=2):
-    """Entrenar modelo con timeout"""
-    # Configurar timeout (en segundos)
-    timeout_seconds = timeout_hours * 3600
-    signal.signal(signal.SIGALRM, timeout_handler)
-    signal.alarm(timeout_seconds)
-
+def train_model_safely(train_func, model_name):
+    """Entrenar modelo con manejo de errores básico"""
     try:
         start_time = datetime.now()
         print(f"Iniciando entrenamiento de {model_name}...")
-        print(f"Timeout configurado: {timeout_hours} horas")
-
         train_func()
-
         end_time = datetime.now()
         duration = (end_time - start_time).total_seconds()
-
-        # Cancelar timeout
-        signal.alarm(0)
-
         return {
             'estado': 'COMPLETADO',
             'duracion': duration,
             'mensaje': f"Completado en {duration/60:.2f} minutos"
         }
-
-    except TimeoutError:
-        print(f"\n⚠️  Timeout alcanzado para {model_name} después de {timeout_hours} horas")
-        return {
-            'estado': 'TIMEOUT',
-            'duracion': timeout_seconds,
-            'mensaje': f"Timeout después de {timeout_hours} horas"
-        }
-
     except Exception as e:
-        # Cancelar timeout
-        signal.alarm(0)
         print(f"\n✗ Error entrenando {model_name}: {str(e)}")
         return {
             'estado': 'ERROR',
@@ -73,8 +42,6 @@ def main():
     print("="*60)
     print(f"Fecha de inicio: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
     print("="*60)
-    print("NOTA: Cada modelo tiene un timeout de 2 horas")
-    print("Si un modelo se queda atascado, se saltará al siguiente")
 
     modelos = [
         ("MobileNetV3-Large", train_mobilenetv3),
@@ -91,18 +58,13 @@ def main():
         print(f"MODELO {i}/4: {nombre}")
         print(f"{'='*60}\n")
 
-        # Entrenar con timeout
-        resultado = train_with_timeout(train_func, nombre, timeout_hours=2)
+        # Entrenar modelo
+        resultado = train_model_safely(train_func, nombre)
 
         resultados.append({
             'modelo': nombre,
             **resultado
         })
-
-        # Pequeña pausa entre modelos para liberar memoria
-        if i < len(modelos):
-            print(f"\nPausa de 30 segundos antes del siguiente modelo...")
-            time.sleep(30)
 
     # Resumen final
     global_duration = time.time() - global_start
@@ -115,7 +77,6 @@ def main():
     for resultado in resultados:
         status_icon = {
             'COMPLETADO': '[✓]',
-            'TIMEOUT': '[⏰]',
             'ERROR': '[✗]'
         }.get(resultado['estado'], '[?]')
 

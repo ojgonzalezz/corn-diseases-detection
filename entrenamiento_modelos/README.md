@@ -49,28 +49,7 @@ pip install -r requirements.txt
 1. Habilita GPU: `Runtime` > `Change runtime type` > `Hardware accelerator` > `GPU`
 2. Sube `data_processed/` a tu Google Drive en: `Mi unidad/data_processed/`
 
-**🚨 DIAGNÓSTICO ANTES DE EMPEZAR (IMPORTANTE)**:
-```python
-# Ejecuta este script primero para verificar que todo esté configurado correctamente
-!wget -q https://raw.githubusercontent.com/ojgonzalezz/corn-diseases-detection/pipe/entrenamiento_modelos/diagnostic.py
-!python diagnostic.py
-```
-
-**Ejecución Automática (Opción 1 - Recomendada)**:
-```python
-!wget -q https://raw.githubusercontent.com/ojgonzalezz/corn-diseases-detection/pipe/entrenamiento_modelos/setup_and_train.py
-!python setup_and_train.py
-```
-
-El script automático mejorado incluye:
-- ✓ Verificación robusta de GPU con timeouts
-- ✓ Montaje de Google Drive con reintentos automáticos
-- ✓ Verificación del dataset con espera inteligente
-- ✓ Timeouts en cada paso para evitar cuelgues
-- ✓ Mejor manejo de errores y recuperación
-- ✓ Timeout total de 4 horas para todo el proceso
-
-**Ejecución Manual (Opción 2)**:
+**Ejecución en Colab**:
 ```python
 # 1. Montar Google Drive
 from google.colab import drive
@@ -87,57 +66,33 @@ drive.mount('/content/drive')
 !python train_all_models.py
 ```
 
-Los scripts detectan Colab automáticamente y:
+Los scripts detectan automáticamente el entorno Colab y:
 - ✓ Verifican que GPU esté habilitada (obligatorio)
 - ✓ Leen dataset desde `Mi unidad/data_processed/`
 - ✓ Guardan modelos en `Mi unidad/corn-diseases-detection/models/`
 - ✓ Guardan logs en `Mi unidad/corn-diseases-detection/logs/`
 
-**Tiempo estimado**: ~40-60 minutos para los 4 modelos con GPU T4
-**Nota**: El script mejorado tiene timeouts para evitar cuelgues infinitos
+**Tiempo estimado**: ~40-60 minutos para los 4 modelos con GPU
 
 ## Uso
-
-### 🔧 Diagnóstico del Entorno
-
-Antes de empezar, verifica que todo esté configurado correctamente:
-
-```bash
-# Script de diagnóstico completo
-python diagnostic.py
-
-# Solo listar modelos disponibles
-python train_single_model.py --list
-```
 
 ### Entrenar un modelo individual
 
 ```bash
-# Usando script específico
-python train_mobilenetv3.py
-python train_efficientnet.py
-python train_mobilevit.py
-python train_pmvt.py
-
-# O usando el script unificado (útil para testing)
-python train_single_model.py mobilenetv3
-python train_single_model.py efficientnet
-python train_single_model.py mobilevit
-python train_single_model.py pmvt
+# Modelos disponibles
+python train_mobilenetv3.py    # MobileNetV3-Large
+python train_efficientnet.py   # EfficientNet-Lite
+python train_mobilevit.py      # MobileViT
+python train_pmvt.py          # PMVT
 ```
 
 ### Entrenar todos los modelos secuencialmente
 
 ```bash
-# Versión mejorada con timeouts y mejor manejo de errores
 python train_all_models.py
 ```
 
-**Características de la versión mejorada:**
-- ⏰ **Timeout por modelo**: 2 horas máximo por modelo
-- 🔄 **Continúa si falla**: Si un modelo falla, continúa con el siguiente
-- 📊 **Resumen detallado**: Genera archivo de resumen al finalizar
-- 🧠 **Liberación de memoria**: Pausas entre modelos para liberar GPU
+Ejecuta todos los 4 modelos uno por uno con manejo básico de errores.
 
 ## Salidas Generadas
 
@@ -176,8 +131,9 @@ entrenamiento_modelos/
 ├── train_efficientnet.py     # Entrenamiento EfficientNet
 ├── train_mobilevit.py        # Entrenamiento MobileViT
 ├── train_pmvt.py             # Entrenamiento PMVT
-├── train_all_models.py       # Entrenar todos
-├── requirements.txt          # Dependencias
+├── train_all_models.py       # Script para entrenar todos los modelos
+├── requirements.txt          # Dependencias Python
+├── README.md                 # Esta documentación
 ├── models/                   # Modelos entrenados (.keras)
 ├── logs/                     # Logs y visualizaciones
 └── mlruns/                   # Experimentos MLflow
