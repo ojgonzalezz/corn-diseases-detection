@@ -49,18 +49,26 @@ pip install -r requirements.txt
 1. Habilita GPU: `Runtime` > `Change runtime type` > `Hardware accelerator` > `GPU`
 2. Sube `data_processed/` a tu Google Drive en: `Mi unidad/data_processed/`
 
+**🚨 DIAGNÓSTICO ANTES DE EMPEZAR (IMPORTANTE)**:
+```python
+# Ejecuta este script primero para verificar que todo esté configurado correctamente
+!wget -q https://raw.githubusercontent.com/ojgonzalezz/corn-diseases-detection/pipe/entrenamiento_modelos/diagnostic.py
+!python diagnostic.py
+```
+
 **Ejecución Automática (Opción 1 - Recomendada)**:
 ```python
 !wget -q https://raw.githubusercontent.com/ojgonzalezz/corn-diseases-detection/pipe/entrenamiento_modelos/setup_and_train.py
 !python setup_and_train.py
 ```
 
-El script automático:
-- ✓ Verifica GPU (detiene si no hay GPU)
-- ✓ Monta Google Drive automáticamente
-- ✓ Clona el repositorio
-- ✓ Instala dependencias
-- ✓ Inicia entrenamiento de los 4 modelos
+El script automático mejorado incluye:
+- ✓ Verificación robusta de GPU con timeouts
+- ✓ Montaje de Google Drive con reintentos automáticos
+- ✓ Verificación del dataset con espera inteligente
+- ✓ Timeouts en cada paso para evitar cuelgues
+- ✓ Mejor manejo de errores y recuperación
+- ✓ Timeout total de 4 horas para todo el proceso
 
 **Ejecución Manual (Opción 2)**:
 ```python
@@ -86,30 +94,50 @@ Los scripts detectan Colab automáticamente y:
 - ✓ Guardan logs en `Mi unidad/corn-diseases-detection/logs/`
 
 **Tiempo estimado**: ~40-60 minutos para los 4 modelos con GPU T4
+**Nota**: El script mejorado tiene timeouts para evitar cuelgues infinitos
 
 ## Uso
+
+### 🔧 Diagnóstico del Entorno
+
+Antes de empezar, verifica que todo esté configurado correctamente:
+
+```bash
+# Script de diagnóstico completo
+python diagnostic.py
+
+# Solo listar modelos disponibles
+python train_single_model.py --list
+```
 
 ### Entrenar un modelo individual
 
 ```bash
-# MobileNetV3
+# Usando script específico
 python train_mobilenetv3.py
-
-# EfficientNet-Lite
 python train_efficientnet.py
-
-# MobileViT
 python train_mobilevit.py
-
-# PMVT
 python train_pmvt.py
+
+# O usando el script unificado (útil para testing)
+python train_single_model.py mobilenetv3
+python train_single_model.py efficientnet
+python train_single_model.py mobilevit
+python train_single_model.py pmvt
 ```
 
 ### Entrenar todos los modelos secuencialmente
 
 ```bash
+# Versión mejorada con timeouts y mejor manejo de errores
 python train_all_models.py
 ```
+
+**Características de la versión mejorada:**
+- ⏰ **Timeout por modelo**: 2 horas máximo por modelo
+- 🔄 **Continúa si falla**: Si un modelo falla, continúa con el siguiente
+- 📊 **Resumen detallado**: Genera archivo de resumen al finalizar
+- 🧠 **Liberación de memoria**: Pausas entre modelos para liberar GPU
 
 ## Salidas Generadas
 
@@ -187,6 +215,70 @@ Después de entrenar todos los modelos, puedes comparar:
 4. **Matrices de confusión**: Errores por clase
 
 Usa MLflow UI para comparar métricas lado a lado.
+
+## 🔧 Solución de Problemas
+
+### El script se queda atascado (stuck)
+
+**Síntomas:**
+- El script deja de mostrar progreso
+- No hay error visible
+- Parece "congelado"
+
+**Soluciones:**
+
+1. **Ejecuta el diagnóstico primero:**
+   ```bash
+   python diagnostic.py
+   ```
+   Esto te dirá exactamente dónde está el problema.
+
+2. **Verifica los puntos comunes de fallo:**
+   - ❌ **Google Drive no montado**: Ejecuta `from google.colab import drive; drive.mount('/content/drive')`
+   - ❌ **Dataset no encontrado**: Verifica que `data_processed/` esté en la raíz de tu Drive
+   - ❌ **GPU no habilitada**: Ve a `Runtime > Change runtime type > GPU`
+   - ❌ **Dependencias faltantes**: Ejecuta `pip install -r requirements.txt`
+
+3. **Si el entrenamiento se queda atascado:**
+   - Usa `python train_single_model.py mobilenetv3` para probar un modelo individual
+   - Los nuevos scripts tienen timeouts de 2 horas por modelo
+   - Si un modelo falla, los demás continúan automáticamente
+
+### Errores Comunes
+
+**"No se detectó GPU"**
+```bash
+# En Google Colab:
+# Runtime > Change runtime type > Hardware accelerator > GPU > Save
+# Luego reconecta la sesión
+```
+
+**"Dataset no encontrado"**
+```
+Asegúrate de que la carpeta esté en:
+Mi unidad/data_processed/
+  ├── Blight/
+  ├── Common_Rust/
+  ├── Gray_Leaf_Spot/
+  └── Healthy/
+```
+
+**"Error de memoria GPU"**
+- Reduce `BATCH_SIZE` en `config.py`
+- Reinicia la sesión de Colab
+- Usa `GPU_MEMORY_LIMIT = 4096` en config.py
+
+**"Timeout alcanzado"**
+- Los nuevos scripts tienen timeouts seguros
+- Si un paso toma demasiado tiempo, revisa tu conexión a internet
+- Para Drive lento, el script ahora reintenta automáticamente
+
+### Logs de Depuración
+
+Todos los scripts generan logs detallados. Revisa:
+- `logs/` - Logs de entrenamiento por modelo
+- `entrenamiento_resumen.txt` - Resumen completo
+- MLflow UI para métricas detalladas
 
 ## Notas Importantes
 
